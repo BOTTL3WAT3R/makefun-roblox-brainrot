@@ -1,16 +1,16 @@
 -- BrainrotCatalog.luau (ModuleScript, ReplicatedStorage.Shared)
--- Candy Island -- the full original cast of 42 absurd meme characters.
+-- Candy Island -- the full original cast of 48 absurd meme characters.
 -- Every brainrot is built from primitive Parts at runtime: a body, a head and one silly
 -- accessory, painted from the colour recipe below. No character here copies any other game:
 -- the names, shapes and jokes are this game's own.
 --
 -- Rarity ladder (weakest to strongest): Common, Rare, Epic, Legendary, Mythic,
--- Brainrot God, Cosmic, Transcendent.
+-- Brainrot God, Cosmic, Transcendent, Celestial, Secret.
 -- Mutations multiply income: Normal x1, Gold x2, Diamond x4, Rainbow x8.
 
 local BrainrotCatalog = {}
 
-BrainrotCatalog.RarityOrder = { "Common", "Rare", "Epic", "Legendary", "Mythic", "Brainrot God", "Cosmic", "Transcendent" }
+BrainrotCatalog.RarityOrder = { "Common", "Rare", "Epic", "Legendary", "Mythic", "Brainrot God", "Cosmic", "Transcendent", "Celestial", "Secret" }
 
 BrainrotCatalog.RarityColors = {
 	Common = Color3.fromRGB(170, 170, 170),
@@ -21,11 +21,13 @@ BrainrotCatalog.RarityColors = {
 	["Brainrot God"] = Color3.fromRGB(255, 255, 255),
 	Cosmic = Color3.fromRGB(120, 60, 255),
 	Transcendent = Color3.fromRGB(255, 244, 200),
+	Celestial = Color3.fromRGB(140, 255, 255),
+	Secret = Color3.fromRGB(255, 60, 180),
 }
 
 -- Hatch odds per rarity, in percent. They add up to 100.
 BrainrotCatalog.RarityHatchWeights = {
-	Common = 44.15,
+	Common = 43.98,
 	Rare = 28,
 	Epic = 15,
 	Legendary = 8,
@@ -33,6 +35,8 @@ BrainrotCatalog.RarityHatchWeights = {
 	["Brainrot God"] = 1,
 	Cosmic = 0.6,
 	Transcendent = 0.25,
+	Celestial = 0.12,
+	Secret = 0.05,
 }
 
 BrainrotCatalog.Mutations = {
@@ -171,6 +175,24 @@ BrainrotCatalog.Characters = {
 	{ Id = "the_big_bang_burrito", Name = "The Big Bang Burrito", Rarity = "Transcendent", Price = 8000000, IncomePerSecond = 110000,
 		BodyShape = "Block", Accessory = "Crown", BodyColor = { 252, 244, 206 }, HeadColor = { 255, 250, 228 },
 		AccessoryColor = { 255, 120, 90 }, Tagline = "It all started with a wrap. It all ends with one too." },
+	{ Id = "archangel_alfredo", Name = "Archangel Alfredo", Rarity = "Celestial", Price = 11000000, IncomePerSecond = 150000,
+		BodyShape = "Ball", Accessory = "Halo", BodyColor = { 200, 240, 245 }, HeadColor = { 225, 250, 252 },
+		AccessoryColor = { 255, 215, 0 }, Tagline = "Descended from the heavens on a cloud of cream sauce." },
+	{ Id = "princess_pulsar_parfait", Name = "Princess Pulsar Parfait", Rarity = "Celestial", Price = 13500000, IncomePerSecond = 185000,
+		BodyShape = "Cylinder", Accessory = "Crown", BodyColor = { 255, 180, 230 }, HeadColor = { 255, 205, 240 },
+		AccessoryColor = { 140, 255, 255 }, Tagline = "Royalty of a dying star. Her layers are older than light." },
+	{ Id = "saint_supernova_souffle", Name = "Saint Supernova Souffle", Rarity = "Celestial", Price = 16000000, IncomePerSecond = 230000,
+		BodyShape = "Ball", Accessory = "Halo", BodyColor = { 255, 230, 170 }, HeadColor = { 255, 240, 200 },
+		AccessoryColor = { 255, 140, 60 }, Tagline = "Rose once, gloriously, and never fell. Do not slam the oven door." },
+	{ Id = "the_nameless_noodle", Name = "The Nameless Noodle", Rarity = "Secret", Price = 22000000, IncomePerSecond = 320000,
+		BodyShape = "Cylinder", Accessory = "Antenna", BodyColor = { 40, 40, 55 }, HeadColor = { 55, 55, 75 },
+		AccessoryColor = { 255, 60, 180 }, Tagline = "It has a name. The name is classified. The noodle is not." },
+	{ Id = "glitch_pancake_protocol", Name = "Glitch Pancake Protocol", Rarity = "Secret", Price = 27000000, IncomePerSecond = 400000,
+		BodyShape = "Block", Accessory = "Antenna", BodyColor = { 90, 255, 190 }, HeadColor = { 140, 255, 215 },
+		AccessoryColor = { 255, 60, 180 }, Tagline = "ERROR: breakfast not found. It stacks itself in two places at once." },
+	{ Id = "omega_donut_prime", Name = "Omega Donut Prime", Rarity = "Secret", Price = 35000000, IncomePerSecond = 520000,
+		BodyShape = "Ball", Accessory = "Crown", BodyColor = { 255, 150, 90 }, HeadColor = { 255, 175, 120 },
+		AccessoryColor = { 140, 255, 255 }, Tagline = "The last donut. The hole in the middle is where the universe keeps its secrets." },
 }
 
 local byId: { [string]: any } = {}

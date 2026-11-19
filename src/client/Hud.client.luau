@@ -11,12 +11,31 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ContextActionService = game:GetService("ContextActionService")
 local TweenService = game:GetService("TweenService")
+local ProximityPromptService = game:GetService("ProximityPromptService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local BrainrotCatalog = require(Shared:WaitForChild("BrainrotCatalog"))
 
 local player = Players.LocalPlayer
 local remotes = ReplicatedStorage:WaitForChild("Remotes")
+
+-- The E prompt on a placed brainrot is created server-side as "Steal" for
+-- everyone, but on YOUR OWN brainrot the same key picks it up instead. The
+-- label is per-viewer, so it is fixed up here at show time: the model's
+-- OwnerUserId attribute (stamped when it was placed) decides which word this
+-- player sees. The server branches on the presser either way -- this is
+-- cosmetics only, never trust.
+ProximityPromptService.PromptShown:Connect(function(prompt: ProximityPrompt)
+	if prompt.Name ~= "StealPrompt" then
+		return
+	end
+	local model = prompt:FindFirstAncestorOfClass("Model")
+	if model and model:GetAttribute("OwnerUserId") == player.UserId then
+		prompt.ActionText = "Pick Up"
+	else
+		prompt.ActionText = "Steal"
+	end
+end)
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "CandyHud"
@@ -89,12 +108,12 @@ local missionLabel = makeLabel("MissionLabel", UDim2.new(0.5, 0, 0, 140), UDim2.
 missionLabel.Text = "MISSION 1/6: Buy a brainrot from the belt (0/1)  REWARD $100"
 
 -- The rarity ladder legend: static reference furniture in the bottom-left --
--- the eight rarities in their catalogue colours, and what each mutation pays.
+-- the ten rarities in their catalogue colours, and what each mutation pays.
 local legend = Instance.new("Frame")
 legend.Name = "RarityLadder"
 legend.AnchorPoint = Vector2.new(0, 1)
 legend.Position = UDim2.new(0, 12, 1, -12)
-legend.Size = UDim2.fromOffset(264, 180)
+legend.Size = UDim2.fromOffset(264, 216)
 legend.BackgroundColor3 = Color3.fromRGB(18, 18, 28)
 legend.BackgroundTransparency = 0.25
 legend.Parent = gui
@@ -130,7 +149,7 @@ for _, mutation in ipairs(BrainrotCatalog.Mutations) do
 end
 local mutationLine = Instance.new("TextLabel")
 mutationLine.Name = "MutationLine"
-mutationLine.Position = UDim2.fromOffset(10, 152)
+mutationLine.Position = UDim2.fromOffset(10, 186)
 mutationLine.Size = UDim2.new(1, -20, 0, 20)
 mutationLine.BackgroundTransparency = 1
 mutationLine.Text = "MUTATIONS: " .. table.concat(mutationParts, "  ")

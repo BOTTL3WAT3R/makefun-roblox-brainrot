@@ -3,7 +3,10 @@
 -- brainrot (a ProximityPrompt rides on every placed model, like the big games)
 -- to rip it off its pad and carry it hoisted above your head, slowed down, while
 -- its owner chases you. Reach your own base to keep it. A locked base raises
--- laser walls and cannot be robbed until the lock timer runs out.
+-- laser walls and cannot be robbed until the lock timer runs out. The same E
+-- prompt on your OWN brainrot reads "Pick Up" (the HUD client relabels it for
+-- the owner): hoist it overhead and bank it on a free pad of your own base to
+-- rearrange your lineup -- one carry machinery serves both journeys.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -137,8 +140,17 @@ function StealService.BeginCarry(thiefState: any, victimState: any, placed: any)
 	end
 	local character = BrainrotCatalog.GetCharacterById(removed.CharacterId)
 	local name = if character then character.Name else "a brainrot"
-	notifyPlayer(thiefState.Player, "You stole " .. name .. "! DASH back to your base to keep it!")
-	notifyPlayer(victimState.Player, name .. " was STOLEN from your base! Chase the thief!")
+	if thiefState == victimState then
+		-- Owner pick-up: the same hoist, but nobody was robbed. The flag rides
+		-- on the carried record so banking knows this was a rearrangement, not
+		-- a steal (no Steal mission credit, and a full base refuses the bank
+		-- instead of destroying the player's own brainrot).
+		removed.PickedUpOwn = true
+		notifyPlayer(thiefState.Player, "Picked up " .. name .. "! Step on your base floor to set it down on a free pad.")
+	else
+		notifyPlayer(thiefState.Player, "You stole " .. name .. "! DASH back to your base to keep it!")
+		notifyPlayer(victimState.Player, name .. " was STOLEN from your base! Chase the thief!")
+	end
 	return true
 end
 
@@ -165,6 +177,12 @@ function StealService.TryBankCarriedBrainrot(thiefState: any): boolean
 		return false
 	end
 	if not PlayerData.HasFreePad(thiefState) then
+		if carried.PickedUpOwn then
+			-- Your own brainrot is never destroyed by a full base: refuse the
+			-- bank and keep carrying until a pad frees up.
+			notifyPlayer(thiefState.Player, "Your base is full! Sell or fuse a brainrot, then step on your base floor to set this one down.")
+			return false
+		end
 		notifyPlayer(thiefState.Player, "Your base is full! The stolen brainrot slips away!")
 		StealService.DropCarriedBrainrot(thiefState, "Dropped: your base had no free pad.")
 		return false
@@ -180,7 +198,11 @@ function StealService.TryBankCarriedBrainrot(thiefState: any): boolean
 		local character = BrainrotCatalog.GetCharacterById(carried.CharacterId)
 		local name = if character then character.Name else "Brainrot"
 		notifyPlayer(thiefState.Player, "Banked! " .. name .. " now earns at YOUR base.")
-		reportMission(thiefState, "Steal")
+		-- Rearranging your own lineup is not a steal: only a genuine theft
+		-- (somebody else's brainrot) feeds the Steal mission.
+		if not carried.PickedUpOwn then
+			reportMission(thiefState, "Steal")
+		end
 	end
 	return placedOk
 end
@@ -294,26 +316,21 @@ function StealService.WatchBases()
 	end
 end
 
--- The E prompt on a placed brainrot: the primary steal path, mirroring the big
--- games. Every refusal says WHY (your own, locked, hands full) instead of the
--- touch path's silence; a 1-second per-thief debounce keeps a refused prompt
--- from spamming toasts while the player stands next to it.
+-- The E prompt on a placed brainrot: the primary interaction path, mirroring
+-- the big games. The SERVER branches on who pressed it: the owner picks their
+-- own brainrot up (the HUD client shows them "Pick Up"; everyone else sees
+-- "Steal"), and a visitor runs the steal gauntlet. Every refusal says WHY
+-- (locked, hands full) instead of the touch path's silence; a 1-second
+-- per-player debounce keeps a refused prompt from spamming toasts while the
+-- player stands next to it.
 local lastStealPromptByUserId: { [number]: number } = {}
 
 function StealService.TryStealViaPrompt(thief: Player, ownerState: any, model: Model): boolean
-	if thief == ownerState.Player then
-		notifyPlayer(thief, "That's your own brainrot!")
-		return false
-	end
 	local now = os.clock()
 	if lastStealPromptByUserId[thief.UserId] and now - lastStealPromptByUserId[thief.UserId] < 1 then
 		return false
 	end
 	lastStealPromptByUserId[thief.UserId] = now
-	if PlayerData.IsBaseLocked(ownerState) then
-		notifyPlayer(thief, "That base is LOCKED! The lasers zap your fingers.")
-		return false
-	end
 	local thiefState = PlayerData.GetState(thief)
 	if not thiefState then
 		return false
@@ -327,6 +344,15 @@ function StealService.TryStealViaPrompt(thief: Player, ownerState: any, model: M
 	if not placed then
 		return false
 	end
+	if thief == ownerState.Player then
+		-- Pick up your own: no lock check (your lasers are yours), no victim --
+		-- BeginCarry with the same state on both sides of the robbery.
+		return StealService.BeginCarry(thiefState, ownerState, placed)
+	end
+	if PlayerData.IsBaseLocked(ownerState) then
+		notifyPlayer(thief, "That base is LOCKED! The lasers zap your fingers.")
+		return false
+	end
 	return StealService.BeginCarry(thiefState, ownerState, placed)
 end
 
@@ -337,7 +363,10 @@ function StealService.WatchPlacedModelForSteal(model: Model, ownerState: any)
 		return
 	end
 	-- The "E" button that floats on the brainrot itself: the character's name
-	-- over the word Steal, exactly the reference layout. It is disabled the
+	-- over the word Steal, exactly the reference layout. The server creates it
+	-- as "Steal" for everyone; the HUD client relabels it "Pick Up" when the
+	-- player looking at it owns the model (OwnerUserId attribute), and the
+	-- server branches on the presser either way. It is disabled the
 	-- moment the brainrot is carried off (BeginCarry), and a banked brainrot
 	-- is a fresh model that earns a fresh prompt from this same watcher.
 	if not body:FindFirstChild("StealPrompt") then

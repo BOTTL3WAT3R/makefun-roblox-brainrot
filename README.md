@@ -4,7 +4,7 @@
 [![rank](https://make.fun/badge/roblox-brainrot-01/BOTTL3WAT3R/makefun-roblox-brainrot/rank.svg)](https://make.fun/bounty/roblox-brainrot-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=roblox-brainrot-01)
 [![reward](https://make.fun/badge/roblox-brainrot-01/BOTTL3WAT3R/makefun-roblox-brainrot/reward.svg)](https://make.fun/bounty/roblox-brainrot-01?utm_source=github&utm_medium=readme&utm_campaign=roblox-brainrot-01)
 
-**Candy Island** — a 3D Roblox brainrot game set on a bright candy island at sunny midday: pastel pink frosting ground, a chocolate shelter hill, lollipop trees, candy-cane poles, gumdrops and sprinkles. The layout follows the big steal-a-brainrot games: one long chocolate conveyor spine runs through the middle of the island with the eight player bases flanking it on both sides, the **Candy Arena** spawn ring just south of the belt, the Egg Machine and the Rebirth Shrine capping the belt's two ends. Buy absurd meme-born characters that each earn cash every second, stand them on the candy pads at your base, climb a ladder of 42 original brainrots across eight rarities and four mutations, steal brainrots from other players' unlocked bases and dash home with the catch — and when the Big Wave warning sounds, run for your base or the chocolate hill, or the strawberry soda wave takes what you are carrying and washes you back to spawn. A six-mission chain under the wave banner teaches the whole loop (buy, hatch, lock, fuse, steal, rebirth) and pays cash for every step, every few minutes a **golden brainrot** appears in the Candy Arena for whoever grabs it first, and the **Index** collection grid lights up in rarity colours for every brainrot you own. There is no shop list — the belt is the only place to buy — so spare cash goes into **boosts**: speed, a one-save wave shield, double income and a luck charm that bends the egg and fuse odds your way. And for the rich, a **Gacha Capsule** west of the arena spins $10,000 into anything from Rare to Transcendent — never a Common. The world stays readable at a glance — one candy colour per zone, one pastel colour per base — because all the motion lives on the brainrots: they walk the shop belt, bob on their pads, the rarest ones spin, and the valuable ones sparkle.
+**Candy Island** — a 3D Roblox brainrot game set on a bright candy island at sunny midday: pastel pink frosting ground, a chocolate shelter hill, lollipop trees, candy-cane poles, gumdrops and sprinkles. The layout follows the big steal-a-brainrot games: one long chocolate conveyor spine runs through the middle of the island with the eight player bases flanking it on both sides, the **Candy Arena** spawn ring just south of the belt, the Egg Machine and the Rebirth Shrine capping the belt's two ends. Buy absurd meme-born characters that each earn cash every second, stand them on the candy pads at your base, climb a ladder of 48 original brainrots across ten rarities and four mutations, steal brainrots from other players' unlocked bases and dash home with the catch — and when the Big Wave warning sounds, run for your base or the chocolate hill, or the strawberry soda wave takes what you are carrying and washes you back to spawn. A six-mission chain under the wave banner teaches the whole loop (buy, hatch, lock, fuse, steal, rebirth) and pays cash for every step, every few minutes a **golden brainrot** appears in the Candy Arena for whoever grabs it first, and the **Index** collection grid lights up in rarity colours for every brainrot you own. There is no shop list — the belt is the only place to buy — so spare cash goes into **boosts**: speed, a one-save wave shield, double income and a luck charm that bends the egg and fuse odds your way. And for the rich, a **Gacha Capsule** west of the arena spins $10,000 into anything from Rare to Secret — never a Common. The world stays readable at a glance — one candy colour per zone, one pastel colour per base — because all the motion lives on the brainrots: they walk the shop belt, bob on their pads, the rarest ones spin, and the valuable ones sparkle.
 
 ## Run it
 
@@ -34,12 +34,15 @@ place link, place id and universe id in `PLAY.json`, and upload an icon and a th
    glowing pad at your base and starts earning cash every
    second — its floating label shows its name, rarity and $/s.
 3. Stand by the pink **Egg Machine** at the belt's west end and press **EGG** to hatch
-   a random brainrot: rarities roll from Common to Transcendent, and mutations
+   a random brainrot: rarities roll from Common to Secret, and mutations
    multiply income (Gold x2, Diamond x4, Rainbow x8).
 4. **Steal:** every placed brainrot wears an **E** prompt with its name — press **E** on a
    brainrot on another player's *unlocked* base to rip it off its pad and carry it
    hoisted above your head (you are slower while carrying). Reach your own base floor to
    bank it. Victims can chase you down — and the Big Wave ends the run for both of you.
+   On your *own* brainrots the same prompt reads **Pick Up**: hoist one overhead and
+   bank it on a free pad to rearrange your lineup (no Steal mission credit for moving
+   your own, and a full base refuses the bank instead of dropping it).
 5. **Defend:** step on your own base's red **LOCK** pad (or press the LOCK BASE button —
    it works from anywhere) to raise laser walls for 60 seconds. Your base's sign counts
    down "LOCKED 60s" while it holds, and stepping on somebody else's pad tells you whose
@@ -50,17 +53,17 @@ place link, place id and universe id in `PLAY.json`, and upload an icon and a th
 7. **Rebirth:** at the gold **Rebirth Shrine** at the belt's east end, pay the cost to
    reset your cash and brainrots for a permanent +100% income multiplier (x2, x3, x4...).
    Costs grow 8x per rebirth.
-8. **Index:** press **INDEX** to open your collection grid — all 42 brainrots, lit up in
+8. **Index:** press **INDEX** to open your collection grid — all 48 brainrots, lit up in
    their rarity colour once you own them, greyed out while they are still out there glowing.
 9. **Fuse:** at the purple **Fuse Machine** by the arena, press **FUSE** and pick any 3
    brainrots of the *same* rarity from your base: they are consumed and bubble up into 1
    random brainrot of the *next* rarity, with a kinder mutation roll than the egg
-   (55% Normal, 25% Gold, 13% Diamond, 7% Rainbow). Fusing is free — but Transcendent
+   (55% Normal, 25% Gold, 13% Diamond, 7% Rainbow). Fusing is free — but Secret
    is the top of the ladder and cannot be fused.
 10. **Gacha Capsule:** at the magenta capsule machine west of the arena, press
     **GACHA** to spin **$10,000** on a premium pull — **no Commons, ever**. The odds:
     Rare 30%, Epic 28%, Legendary 20%, Mythic 12%, Brainrot God 6%, Cosmic 3%,
-    Transcendent 1%, with the usual mutation roll on top (a Lucky Charm bends the
+    Transcendent 1%, Celestial 0.6%, Secret 0.25%, with the usual mutation roll on top (a Lucky Charm bends the
     mutations, just like at the egg). Pull a Brainrot God or better and the whole
     island hears about it.
 11. **Boosts:** press **BOOST** to spend cash on temporary powers instead of
@@ -143,6 +146,12 @@ each with a floating name / rarity / $/s label. Prices and income per second:
 | Seraphim Spaghetti | Transcendent | $5,500,000 | 75,000 | Six wings, every one of them al dente |
 | The Last Brain Cell | Transcendent | $6,800,000 | 90,000 | The final one. It is doing its best |
 | The Big Bang Burrito | Transcendent | $8,000,000 | 110,000 | It all started with a wrap. It all ends with one too |
+| Archangel Alfredo | Celestial | $11,000,000 | 150,000 | Descended from the heavens on a cloud of cream sauce |
+| Princess Pulsar Parfait | Celestial | $13,500,000 | 185,000 | Royalty of a dying star. Her layers are older than light |
+| Saint Supernova Souffle | Celestial | $16,000,000 | 230,000 | Rose once, gloriously, and never fell. Do not slam the oven door |
+| The Nameless Noodle | Secret | $22,000,000 | 320,000 | It has a name. The name is classified. The noodle is not |
+| Glitch Pancake Protocol | Secret | $27,000,000 | 400,000 | ERROR: breakfast not found. It stacks itself in two places at once |
+| Omega Donut Prime | Secret | $35,000,000 | 520,000 | The last donut. The hole in the middle is where the universe keeps its secrets |
 
 Mutations on hatch: Normal x1 (70%), Gold x2 (20%), Diamond x4 (8%), Rainbow x8 (2%).
 
@@ -150,7 +159,7 @@ Mutations on hatch: Normal x1 (70%), Gold x2 (20%), Diamond x4 (8%), Rainbow x8 
 
 Rojo project — `src/` maps into the place, and `game.rbxl` is built from it:
 
-- `src/shared/BrainrotCatalog.luau` — the 42-character cast table, rarities, mutations, hatch rolls
+- `src/shared/BrainrotCatalog.luau` — the 48-character cast table, rarities, mutations, hatch rolls
 - `src/shared/GameConfig.luau` — every tunable: tick rate, lock/steal rules, Big Wave cycle, rebirth formula
 - `src/server/Main.server.luau` — bootstrap: bright midday Lighting (soft bloom, light atmosphere), builds the world, creates RemoteEvents, assigns bases, starts all loops
 - `src/server/WorldBuilder.luau` — builds the 3D world from Parts: pink frosting island on a cream rim in a bright blue sea, the conveyor spine (one long chocolate belt through the middle), 8 candy-trimmed bases flanking it north and south with pads and lock lasers, the Candy Arena spawn ring, pink egg machine and caramel rebirth shrine capping the belt's ends, lavender Fuse Machine cauldron and the pink Gacha Capsule flanking the arena, chocolate high hill with a melted cap, lollipop trees, candy-cane poles, gumdrops and sprinkles, the strawberry Big Wave wall with its foam crest, and every brainrot model with its floating label

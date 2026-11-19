@@ -73,9 +73,10 @@ local function sparkleColorFor(rarity: string?, mutationName: string?): ColorSeq
 			ColorSequenceKeypoint.new(0.75, Color3.fromRGB(90, 160, 255)),
 			ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 110, 255)),
 		})
-	elseif rarity == "Cosmic" or rarity == "Transcendent" then
-		-- The two tiers above Brainrot God sparkle in their own ladder colours:
-		-- galaxy violet for Cosmic, radiant white-gold for Transcendent.
+	elseif rarity == "Cosmic" or rarity == "Transcendent" or rarity == "Celestial" or rarity == "Secret" then
+		-- The four tiers above Brainrot God sparkle in their own ladder colours:
+		-- galaxy violet for Cosmic, radiant white-gold for Transcendent, icy
+		-- cyan-white for Celestial, hot magenta-pink for Secret.
 		return ColorSequence.new(BrainrotCatalog.RarityColors[rarity] or Color3.fromRGB(255, 230, 160))
 	elseif rarity == "Legendary" or rarity == "Mythic" or rarity == "Brainrot God" then
 		return ColorSequence.new(Color3.fromRGB(255, 230, 160))

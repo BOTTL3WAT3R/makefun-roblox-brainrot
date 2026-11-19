@@ -58,8 +58,8 @@ local function reportMission(state: any, actionKey: string)
 end
 
 -- The top of the ladder earns the slow spin: Mythic and everything above it
--- (Brainrot God, Cosmic, Transcendent). Decided by ladder position, not by
--- name, so new tiers join automatically.
+-- (Brainrot God, Cosmic, Transcendent, Celestial, Secret). Decided by ladder
+-- position, not by name, so new tiers join automatically.
 local function shouldSpin(rarity: string): boolean
 	local rarityIndex = table.find(BrainrotCatalog.RarityOrder, rarity)
 	local mythicIndex = table.find(BrainrotCatalog.RarityOrder, "Mythic")
@@ -179,7 +179,7 @@ end
 
 -- GACHA CAPSULE: the premium spin west of the arena. Same shape as HatchEgg
 -- (free pad first, cash second, place the winner) but the rarity table in
--- GameConfig starts at Rare and climbs to Transcendent -- no Commons, ever.
+-- GameConfig starts at Rare and climbs to Secret -- no Commons, ever.
 -- A spin is NOT a hatch and NOT a buy, so it reports no mission action. The
 -- mutation roll is the standard one, bent by the Lucky Charm exactly like
 -- the egg's. Pull Brainrot God or better and the whole island hears about it.

@@ -3,7 +3,7 @@
 -- cash-bought powers (speed, wave shield, income x2, luck -- there is no shop
 -- list any more: the walking belt is the only way to buy a brainrot), a MY BASE
 -- panel listing what you own with a SELL button each, an INDEX panel grid of
--- the whole 42-character cast that lights up in rarity colours for the
+-- the whole 48-character cast that lights up in rarity colours for the
 -- ones you own, a FUSE panel that trades 3 same-rarity brainrots up a tier, and the EGG,
 -- REBIRTH and GACHA buttons (the gacha fires its premium spin straight from
 -- the button -- the capsule machine and the toast are its interface).
