@@ -4,9 +4,9 @@
 -- free pad at your base), a MY BASE panel listing what you own with a SELL button each, an
 -- INDEX panel grid of the whole 36-character cast that lights up in rarity colours for the
 -- ones you own, a FUSE panel that trades 3 same-rarity brainrots up a tier, and the EGG
--- and REBIRTH buttons. The SHOP and MY BASE panels open from the right-hand side,
--- away from the top-left corner where Roblox draws its own menu; the INDEX and FUSE
--- panels are centred modals, so they never sit under the right-hand button column.
+-- and REBIRTH buttons. All four panels (SHOP, MY BASE, INDEX and FUSE) are
+-- centred modals, so they never sit under the right-hand button column or the
+-- top-left corner where Roblox draws its own menu.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -23,21 +23,19 @@ gui.Name = "NeonPanels"
 gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
-local function makePanel(name: string, title: string): ScrollingFrame
-	local panel = Instance.new("ScrollingFrame")
+local function makePanel(name: string, title: string): Frame
+	local panel = Instance.new("Frame")
 	panel.Name = name
-	panel.AnchorPoint = Vector2.new(1, 0)
-	panel.Position = UDim2.new(1, -14, 0, 90)
-	panel.Size = UDim2.fromOffset(380, 460)
+	panel.AnchorPoint = Vector2.new(0.5, 0.5)
+	panel.Position = UDim2.new(0.5, 0, 0.5, 0)
+	panel.Size = UDim2.fromOffset(560, 460)
 	panel.BackgroundColor3 = Color3.fromRGB(22, 22, 34)
 	panel.BackgroundTransparency = 0.1
 	panel.Visible = false
-	panel.ScrollBarThickness = 8
-	panel.AutomaticCanvasSize = Enum.AutomaticSize.Y
-	panel.CanvasSize = UDim2.fromOffset(0, 0)
-	local layout = Instance.new("UIListLayout")
-	layout.Padding = UDim.new(0, 6)
-	layout.Parent = panel
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = Color3.fromRGB(150, 90, 220)
+	stroke.Thickness = 2
+	stroke.Parent = panel
 	local heading = Instance.new("TextLabel")
 	heading.Name = "PanelTitle"
 	heading.Size = UDim2.new(1, 0, 0, 44)
@@ -47,11 +45,38 @@ local function makePanel(name: string, title: string): ScrollingFrame
 	heading.TextSize = 26
 	heading.Font = Enum.Font.FredokaOne
 	heading.Parent = panel
+	local scroll = Instance.new("ScrollingFrame")
+	scroll.Name = "PanelScroll"
+	scroll.Position = UDim2.fromOffset(6, 48)
+	scroll.Size = UDim2.new(1, -12, 1, -54)
+	scroll.BackgroundTransparency = 1
+	scroll.BorderSizePixel = 0
+	scroll.ScrollBarThickness = 8
+	scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	scroll.CanvasSize = UDim2.fromOffset(0, 0)
+	local layout = Instance.new("UIListLayout")
+	layout.Padding = UDim.new(0, 6)
+	layout.Parent = scroll
+	scroll.Parent = panel
+	local close = Instance.new("TextButton")
+	close.Name = "PanelClose"
+	close.AnchorPoint = Vector2.new(1, 0)
+	close.Position = UDim2.new(1, -8, 0, 8)
+	close.Size = UDim2.fromOffset(36, 36)
+	close.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
+	close.TextColor3 = Color3.fromRGB(255, 255, 255)
+	close.TextSize = 20
+	close.Font = Enum.Font.FredokaOne
+	close.Text = "X"
+	close.Activated:Connect(function()
+		panel.Visible = false
+	end)
+	close.Parent = panel
 	panel.Parent = gui
 	return panel
 end
 
-local function makeRow(panel: ScrollingFrame, text: string, buttonText: string, buttonColor: Color3, onClick: () -> ())
+local function makeRow(panel: Frame, text: string, buttonText: string, buttonColor: Color3, onClick: () -> ())
 	local row = Instance.new("Frame")
 	row.Size = UDim2.new(1, -8, 0, 52)
 	row.BackgroundColor3 = Color3.fromRGB(38, 38, 54)
@@ -76,7 +101,8 @@ local function makeRow(panel: ScrollingFrame, text: string, buttonText: string, 
 	button.Text = buttonText
 	button.Activated:Connect(onClick)
 	button.Parent = row
-	row.Parent = panel
+	local scroll = panel:FindFirstChild("PanelScroll")
+	row.Parent = scroll or panel
 	return row
 end
 
