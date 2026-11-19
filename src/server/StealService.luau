@@ -1,5 +1,5 @@
 -- StealService.luau (ModuleScript, ServerScriptService.Server)
--- Brainrot Tycoon: Tsunami Dash -- the tension engine: walk into another player's unlocked
+-- PLUNDERROT: Kraken's Curse -- the tension engine: walk into another player's unlocked
 -- brainrot to rip it off its pad and carry it on your back, slowed down, while its owner
 -- chases you. Reach your own base to keep it. A locked base raises laser walls and cannot
 -- be robbed until the lock timer runs out.
@@ -90,7 +90,7 @@ function StealService.BeginCarry(thiefState: any, victimState: any, placed: any)
 	return true
 end
 
--- Dropping the catch: the tsunami, a tackle or leaving all wash the carried brainrot away.
+-- Dropping the catch: the Kraken Tide, a tackle or leaving all wash the carried brainrot away.
 function StealService.DropCarriedBrainrot(thiefState: any, reason: string)
 	local carried = thiefState.Carried
 	if not carried then

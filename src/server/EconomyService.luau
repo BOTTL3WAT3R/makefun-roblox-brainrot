@@ -1,6 +1,6 @@
 -- EconomyService.luau (ModuleScript, ServerScriptService.Server)
--- Brainrot Tycoon: Tsunami Dash -- the money engine: the per-second income tick for every
--- placed brainrot, buying from the conveyor belt, hatching eggs with a mutation roll,
+-- PLUNDERROT: Kraken's Curse -- the doubloon engine: the per-second income tick for every
+-- placed brainrot, buying from the plunder belt, hatching Kraken eggs with a mutation roll,
 -- placing a fresh brainrot on a free base pad, and selling one back.
 
 local Players = game:GetService("Players")
@@ -98,7 +98,7 @@ function EconomyService.BuyCharacter(state: any, characterId: string): boolean
 		return false
 	end
 	if not PlayerData.HasFreePad(state) then
-		notifyPlayer(state.Player, "Your base is full! Sell a brainrot or rebirth.")
+		notifyPlayer(state.Player, "Your base is full! Sell a brainrot or rebirth with Davy Jones.")
 		return false
 	end
 	if not PlayerData.TrySpendCash(state, character.Price) then
@@ -118,13 +118,13 @@ function EconomyService.HatchEgg(state: any): boolean
 		return false
 	end
 	if not PlayerData.TrySpendCash(state, GameConfig.EggPrice) then
-		notifyPlayer(state.Player, "The egg machine needs " .. GameConfig.FormatCash(GameConfig.EggPrice) .. ".")
+		notifyPlayer(state.Player, "The Kraken Egg Vault needs " .. GameConfig.FormatCash(GameConfig.EggPrice) .. ".")
 		return false
 	end
 	local character, mutation = BrainrotCatalog.RollHatch(rng)
 	local placedOk = EconomyService.PlaceBrainrotOnPad(state, character.Id, mutation.Name)
 	if placedOk then
-		notifyPlayer(state.Player, string.format("The egg hatched %s (%s, %s)!", character.Name, character.Rarity, mutation.Name))
+		notifyPlayer(state.Player, string.format("The Kraken egg hatched %s (%s, %s)!", character.Name, character.Rarity, mutation.Name))
 	end
 	return placedOk
 end

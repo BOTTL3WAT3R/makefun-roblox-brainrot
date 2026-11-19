@@ -1,8 +1,8 @@
 -- TsunamiService.luau (ModuleScript, ServerScriptService.Server)
--- Brainrot Tycoon: Tsunami Dash -- the wave that gives the game its name. Every cycle:
+-- PLUNDERROT: Kraken's Curse -- the Kraken Tide that gives the curse its name. Every cycle:
 -- calm, a loud warning with a countdown, then a wall of water sweeps the island. Anyone
 -- caught low and outside a base loses the brainrot they are carrying and is washed back
--- to spawn. Bases and the shelter hill are safe ground.
+-- to spawn. Bases and the Crow's Nest Cliffs are safe ground.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -81,7 +81,7 @@ end
 function TsunamiService.ApplyWaveHitToPlayer(player: Player)
 	local state = PlayerData.GetState(player)
 	if state and state.Carried then
-		StealService.DropCarriedBrainrot(state, "The TSUNAMI took the brainrot you were carrying!")
+		StealService.DropCarriedBrainrot(state, "The KRAKEN TIDE took the brainrot you were carrying!")
 	end
 	TsunamiService.WashPlayerBackToSpawn(player)
 end
@@ -89,7 +89,7 @@ end
 local function runSweep()
 	TsunamiService.Phase = "Sweeping"
 	broadcastWaveState()
-	notifyAll("TSUNAMI! DASH TO YOUR BASE OR HIGH GROUND!")
+	notifyAll("KRAKEN TIDE! DASH TO YER BASE OR HIGH GROUND!")
 	local wall = WorldBuilder.TsunamiWall
 	local startX = -260
 	local endX = 260
@@ -117,7 +117,7 @@ local function runSweep()
 	if wall then
 		wall.Position = Vector3.new(startX, 12, 0)
 	end
-	notifyAll("The wave passed. The belt is restocked and the looting resumes!")
+	notifyAll("The Kraken Tide passed. The belt is restocked and the plundering resumes!")
 end
 
 function TsunamiService.StartWaveCycleLoop()
@@ -132,7 +132,7 @@ function TsunamiService.StartWaveCycleLoop()
 			end
 			TsunamiService.Phase = "Warning"
 			TsunamiService.SecondsUntilWave = GameConfig.TsunamiWarningSeconds
-			notifyAll("A TSUNAMI is coming! Get to your base or the shelter hill!")
+			notifyAll("The KRAKEN TIDE is coming! Get to yer base or the Crow's Nest Cliffs!")
 			while TsunamiService.SecondsUntilWave > 0 do
 				task.wait(1)
 				TsunamiService.SecondsUntilWave -= 1

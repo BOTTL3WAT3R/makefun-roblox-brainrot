@@ -1,8 +1,8 @@
 -- Main.server.luau (Script, ServerScriptService.Server)
--- Brainrot Tycoon: Tsunami Dash -- the server bootstrap. It builds the world, creates the
+-- PLUNDERROT: Kraken's Curse -- the server bootstrap. It builds the world, creates the
 -- RemoteEvents the client talks through, hands each player a base plot, keeps leaderstats
 -- in step with PlayerData, and starts every service loop: income, conveyor, stealing,
--- the tsunami cycle and the rebirth shrine.
+-- the Kraken Tide cycle and Davy Jones' Shrine.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -139,7 +139,7 @@ local function onPlayerAdded(player: Player)
 		pushStateToPlayer(player)
 	end)
 
-	remotes.Notify:FireClient(player, "Welcome to Brainrot Tycoon: Tsunami Dash! Buy a brainrot from the belt, guard it, and outrun the wave!")
+	remotes.Notify:FireClient(player, "Welcome to PLUNDERROT: Kraken's Curse! Plunder a brainrot from the belt, guard it, and outrun the Kraken Tide!")
 	pushStateToPlayer(player)
 end
 
@@ -188,7 +188,7 @@ remotes.HatchEgg.OnServerEvent:Connect(function(player: Player)
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
 	if root and WorldBuilder.EggMachinePosition and (root.Position - WorldBuilder.EggMachinePosition).Magnitude > 26 then
-		remotes.Notify:FireClient(player, "Walk to the Egg Machine by the shop row to hatch!")
+		remotes.Notify:FireClient(player, "Walk to the Kraken Egg Vault by the plunder belt to hatch!")
 		return
 	end
 	EconomyService.HatchEgg(state)
@@ -230,4 +230,4 @@ EconomyService.StartConveyorLoop()
 TsunamiService.StartWaveCycleLoop()
 RebirthService.WatchShrineProximity()
 
-print(GameConfig.GameTitle .. " server started: world built, remotes live, tsunami scheduled.")
+print(GameConfig.GameTitle .. " server started: world built, remotes live, Kraken Tide scheduled.")

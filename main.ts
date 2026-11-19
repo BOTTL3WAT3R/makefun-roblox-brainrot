@@ -1,6 +1,6 @@
-// Brainrot Tycoon: Tsunami Dash -- a 3D Roblox brainrot game built for make.fun's roblox-brainrot-01
-// bounty. Collect absurd brainrots, guard them at your base, steal from your neighbours, and outrun
-// the tsunami. This entrypoint (Node 22, standard library only) hands the game in, as described below.
+// PLUNDERROT: Kraken's Curse -- a 3D Roblox brainrot game built for make.fun's roblox-brainrot-01
+// bounty. Plunder absurd brainrots, guard them at your base, steal from your neighbours, and outrun
+// the Kraken Tide. This entrypoint (Node 22, standard library only) hands the game in, as described below.
 // A working roblox-brainrot-01 entry (Node 22, standard library only): the game is this directory's Rojo
 // project, built into game.rbxl with `rojo build default.project.json --output game.rbxl`, and the program
 // hands it in. It copies game.rbxl, src/, screenshots/ and PLAY.json from beside this file to /output and
@@ -21,7 +21,7 @@ import { basename, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDossier } from './vendor/makefun-roblox.ts';
 
-const GAME_TITLE = 'Brainrot Tycoon: Tsunami Dash';
+const GAME_TITLE = "PLUNDERROT: Kraken's Curse";
 console.log(`Handing in ${GAME_TITLE}: copying game.rbxl, src/, screenshots/ and PLAY.json, then writing dossier.json.`);
 
 const here = fileURLToPath(new URL('.', import.meta.url));

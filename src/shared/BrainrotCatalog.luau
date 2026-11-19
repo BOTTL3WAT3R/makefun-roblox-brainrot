@@ -1,5 +1,5 @@
 -- BrainrotCatalog.luau (ModuleScript, ReplicatedStorage.Shared)
--- Brainrot Tycoon: Tsunami Dash -- the full original cast of absurd meme characters.
+-- PLUNDERROT: Kraken's Curse -- the full original cast of absurd meme characters.
 -- Every brainrot is built from primitive Parts at runtime: a body, a head and one silly
 -- accessory, painted from the colour recipe below. No character here copies any other game:
 -- the names, shapes and jokes are this game's own.
@@ -40,18 +40,18 @@ BrainrotCatalog.Mutations = {
 -- The cast. BodyShape is one of Block, Ball, Cylinder. Accessory is one of
 -- Cap, Horns, Crown, Antenna, Mohawk, Halo, None. Colours are {r, g, b} triples.
 BrainrotCatalog.Characters = {
-	{ Id = "capyccino", Name = "Capyccino", Rarity = "Common", Price = 50, IncomePerSecond = 1,
+	{ Id = "capyccino", Name = "Cap'n Capybara", Rarity = "Common", Price = 50, IncomePerSecond = 1,
 		BodyShape = "Block", Accessory = "Cap", BodyColor = { 176, 125, 74 }, HeadColor = { 196, 148, 92 },
-		AccessoryColor = { 240, 240, 240 }, Tagline = "A capybara who only drinks foam art." },
+		AccessoryColor = { 240, 240, 240 }, Tagline = "A capybara captain who only drinks foam art." },
 	{ Id = "noodle_newt", Name = "Noodle Newt", Rarity = "Common", Price = 90, IncomePerSecond = 2,
 		BodyShape = "Cylinder", Accessory = "Antenna", BodyColor = { 245, 205, 90 }, HeadColor = { 250, 220, 120 },
 		AccessoryColor = { 255, 90, 90 }, Tagline = "A salamander made of instant noodles." },
 	{ Id = "sigma_spud", Name = "Sigma Spud", Rarity = "Common", Price = 150, IncomePerSecond = 3,
 		BodyShape = "Ball", Accessory = "Mohawk", BodyColor = { 198, 160, 105 }, HeadColor = { 210, 175, 120 },
 		AccessoryColor = { 60, 60, 70 }, Tagline = "A lone-wolf potato. Grinds. Never peels." },
-	{ Id = "toilet_gremlin", Name = "Sir Flushalot", Rarity = "Rare", Price = 400, IncomePerSecond = 7,
+	{ Id = "toilet_gremlin", Name = "Sir Barnacle", Rarity = "Rare", Price = 400, IncomePerSecond = 7,
 		BodyShape = "Block", Accessory = "Horns", BodyColor = { 235, 240, 245 }, HeadColor = { 110, 200, 120 },
-		AccessoryColor = { 120, 120, 130 }, Tagline = "A gremlin knight of the porcelain throne." },
+		AccessoryColor = { 120, 120, 130 }, Tagline = "A barnacle knight of the sunken porcelain throne." },
 	{ Id = "banana_shark", Name = "Bananashark", Rarity = "Rare", Price = 700, IncomePerSecond = 12,
 		BodyShape = "Cylinder", Accessory = "None", BodyColor = { 250, 220, 60 }, HeadColor = { 250, 230, 100 },
 		AccessoryColor = { 250, 220, 60 }, Tagline = "Half shark, half banana, fully slippery." },
@@ -73,21 +73,21 @@ BrainrotCatalog.Characters = {
 	{ Id = "vampire_vacuum", Name = "Count Suckula", Rarity = "Legendary", Price = 22000, IncomePerSecond = 350,
 		BodyShape = "Cylinder", Accessory = "Crown", BodyColor = { 90, 60, 120 }, HeadColor = { 230, 225, 235 },
 		AccessoryColor = { 200, 40, 60 }, Tagline = "A vacuum vampire. Fears stairs and full dustbins." },
-	{ Id = "astro_axolotl", Name = "Astrolotl", Rarity = "Mythic", Price = 55000, IncomePerSecond = 850,
+	{ Id = "astro_axolotl", Name = "Krakenolotl", Rarity = "Mythic", Price = 55000, IncomePerSecond = 850,
 		BodyShape = "Cylinder", Accessory = "Halo", BodyColor = { 255, 160, 200 }, HeadColor = { 255, 185, 215 },
-		AccessoryColor = { 255, 255, 200 }, Tagline = "An axolotl astronaut. Regrew the Moon once." },
+		AccessoryColor = { 255, 255, 200 }, Tagline = "An axolotl of the deep. Regrew a tentacle once." },
 	{ Id = "quantum_quokka", Name = "Quantum Quokka", Rarity = "Mythic", Price = 90000, IncomePerSecond = 1400,
 		BodyShape = "Ball", Accessory = "Halo", BodyColor = { 170, 140, 110 }, HeadColor = { 190, 165, 135 },
 		AccessoryColor = { 120, 255, 230 }, Tagline = "Smiles in two timelines at once." },
 	{ Id = "giga_chadpole", Name = "Giga Chadpole", Rarity = "Brainrot God", Price = 250000, IncomePerSecond = 4000,
 		BodyShape = "Block", Accessory = "Crown", BodyColor = { 120, 200, 110 }, HeadColor = { 140, 220, 130 },
 		AccessoryColor = { 255, 215, 0 }, Tagline = "A tadpole who skipped frog and went straight to legend." },
-	{ Id = "the_waffle_king", Name = "The Waffle King", Rarity = "Brainrot God", Price = 400000, IncomePerSecond = 6500,
+	{ Id = "the_waffle_king", Name = "The Pirate Waffle King", Rarity = "Brainrot God", Price = 400000, IncomePerSecond = 6500,
 		BodyShape = "Block", Accessory = "Crown", BodyColor = { 235, 180, 95 }, HeadColor = { 245, 195, 110 },
-		AccessoryColor = { 255, 60, 90 }, Tagline = "Final form of breakfast. All syrup bows to him." },
-	{ Id = "moist_megazord", Name = "Moist Megazord", Rarity = "Brainrot God", Price = 750000, IncomePerSecond = 12000,
+		AccessoryColor = { 255, 60, 90 }, Tagline = "Final form of breakfast. All syrup bows to the captain." },
+	{ Id = "moist_megazord", Name = "Moist Krakenzord", Rarity = "Brainrot God", Price = 750000, IncomePerSecond = 12000,
 		BodyShape = "Block", Accessory = "Mohawk", BodyColor = { 90, 180, 220 }, HeadColor = { 110, 200, 240 },
-		AccessoryColor = { 255, 140, 60 }, Tagline = "Five damp sponges combined into one soggy titan." },
+		AccessoryColor = { 255, 140, 60 }, Tagline = "Five damp sponges combined into one soggy sea titan." },
 }
 
 local byId: { [string]: any } = {}

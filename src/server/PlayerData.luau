@@ -1,6 +1,6 @@
 -- PlayerData.luau (ModuleScript, ServerScriptService.Server)
--- Brainrot Tycoon: Tsunami Dash -- all per-player state lives in this one module:
--- cash, placed brainrots, the brainrot being carried, rebirths and the income multiplier.
+-- PLUNDERROT: Kraken's Curse -- all per-player state lives in this one module:
+-- doubloons, placed brainrots, the brainrot being carried, rebirths and the income multiplier.
 -- Every other service reads and writes state through here, never in its own tables.
 
 local Players = game:GetService("Players")
