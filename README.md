@@ -67,12 +67,20 @@ place link, place id and universe id in `PLAY.json`, and upload an icon and a th
 12. **Missions:** the gold bar under the wave banner always shows your current mission —
     buy, hatch, lock, fuse, steal, rebirth — and pays cash ($100 up to $5,000) the
     moment you finish each one. Clear all six and you rule Neon Shores.
+13. **Neon Playground:** behind the north bases, a teal safety mat holds a working
+    playground — climb the steps and slide down the **slide**, sit on the **swings**,
+    tip the **seesaw** by standing on one end, ride the spinning **merry-go-round**,
+    launch off the **bounce pad**, or just sit on a **bench** and watch the arena.
+    And by the Fuse Machine there is a **trash can**: hold the rummage prompt to dig
+    through it for $25–$150 of other people's junk, once a minute. Pure fun — the
+    island is a place to hang out, not just a shop floor.
 
 ## Controls
 
 - **WASD / joystick** — move through the 3D world (standard Roblox character controls)
 - **Left Shift or the DASH button** — 3-second speed burst (dash home with a stolen brainrot!)
 - **Walk into** belt brainrots, placed brainrots, lock buttons and base floors to interact
+- **Hold E** at the trash can by the Fuse Machine — rummage for loose cash, once a minute
 - **BOOST / MY BASE / INDEX / FUSE / EGG / REBIRTH buttons** — panels and actions, top-right and bottom-centre
 
 ## The cast

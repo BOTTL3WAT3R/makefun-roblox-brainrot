@@ -24,6 +24,7 @@ local FuseService = require(ServerModules:WaitForChild("FuseService"))
 local TsunamiService = require(ServerModules:WaitForChild("TsunamiService"))
 local RebirthService = require(ServerModules:WaitForChild("RebirthService"))
 local AnimationService = require(ServerModules:WaitForChild("AnimationService"))
+local PlaygroundService = require(ServerModules:WaitForChild("PlaygroundService"))
 
 -- 0. Golden hour: the sun sits low, the air is peachy, and only the neon is bright
 -- enough to bloom. This is the single biggest screenshot win in the game.
@@ -88,6 +89,7 @@ StealService.BindRemotes(remoteFolder)
 FuseService.BindRemotes(remoteFolder)
 TsunamiService.BindRemotes(remoteFolder, Instance.new("BindableEvent"))
 RebirthService.BindRemotes(remoteFolder)
+PlaygroundService.BindRemotes(remoteFolder)
 
 -- 3. State sync: whenever PlayerData changes, push a plain snapshot to that player and
 -- refresh their leaderstats, so the HUD never guesses.
@@ -306,6 +308,7 @@ EconomyService.StartConveyorLoop()
 EconomyService.StartArenaEventLoop()
 TsunamiService.StartWaveCycleLoop()
 RebirthService.WatchShrineProximity()
+PlaygroundService.Start()
 
 -- Boost housekeeping: once a second, catch boost transitions per player. A
 -- Speed Surge switching off restores the player's WalkSpeed (unless they are

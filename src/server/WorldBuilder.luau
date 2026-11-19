@@ -22,6 +22,7 @@ local WorldBuilder = {}
 
 WorldBuilder.Bases = {} :: { any }
 WorldBuilder.ConveyorSlots = {} :: { any }
+WorldBuilder.Playground = nil :: any
 WorldBuilder.TsunamiWall = nil :: Part?
 WorldBuilder.TsunamiFoam = nil :: Part?
 WorldBuilder.HighGroundTopY = 26
@@ -318,6 +319,259 @@ local function buildPalm(parent: Folder, name: string, position: Vector3, withGl
 	end
 end
 
+-- A bench with a real Seat, built as a small model turned to face a target
+-- point: whoever sits down looks at whatever the bench faces (the arena ring).
+local function buildBench(parent: Folder, name: string, position: Vector3, faceTarget: Vector3)
+	local bench = Instance.new("Model")
+	bench.Name = name
+	bench.Parent = parent
+	local frame = CFrame.lookAt(
+		Vector3.new(position.X, 0, position.Z),
+		Vector3.new(faceTarget.X, 0, faceTarget.Z)
+	)
+	local dark = Color3.fromRGB(46, 48, 62)
+	local function add(className: string, partName: string, size: Vector3, offset: Vector3, color: Color3, material: Enum.Material?)
+		local part: any = Instance.new(className)
+		part.Name = partName
+		part.Size = size
+		part.Color = color
+		part.Anchored = true
+		part.TopSurface = Enum.SurfaceType.Smooth
+		part.BottomSurface = Enum.SurfaceType.Smooth
+		if material then
+			part.Material = material
+		end
+		part.CFrame = frame * CFrame.new(offset)
+		part.Parent = bench
+		return part
+	end
+	-- CFrame.lookAt aims local -Z at the target, so the sitter's back is +Z.
+	add("Seat", "Seat", Vector3.new(5.5, 0.7, 1.9), Vector3.new(0, 1.9, 0), dark, Enum.Material.SmoothPlastic)
+	add("Part", "Backrest", Vector3.new(5.5, 2.4, 0.45), Vector3.new(0, 3.6, 1.1), dark, Enum.Material.SmoothPlastic)
+	add("Part", "Trim", Vector3.new(5.5, 0.3, 0.3), Vector3.new(0, 1.45, -1), Color3.fromRGB(40, 230, 255), Enum.Material.Neon)
+	for _, x in ipairs({ -2.3, 2.3 }) do
+		add("Part", "Leg", Vector3.new(0.55, 1.6, 0.55), Vector3.new(x, 0.8, 0.55), dark, nil)
+		add("Part", "Leg", Vector3.new(0.55, 1.6, 0.55), Vector3.new(x, 0.8, -0.55), dark, nil)
+	end
+	return bench
+end
+
+-- THE NEON PLAYGROUND: a pure fun layer on the empty north strip behind the
+-- north base row (the plots end at z=-104, the island edge is z=-130, so the
+-- strip z=-111..-127 fits a safety mat with room to spare). Real usable kit --
+-- a slide you actually slide down, swings that swing with you on them, a
+-- seesaw that tips toward whoever stands on it, a merry-go-round that carries
+-- its riders, a bounce pad -- plus a rummageable trash can by the Fuse Machine
+-- and benches facing the arena. PlaygroundService drives all the motion.
+local function buildPlayground(worldFolder: Folder)
+	local folder = Instance.new("Folder")
+	folder.Name = "Playground"
+	folder.Parent = worldFolder
+
+	local dark = Color3.fromRGB(46, 48, 62)
+	local neonCyan = Color3.fromRGB(40, 230, 255)
+	local orange = Color3.fromRGB(255, 140, 40)
+
+	-- The safety mat: one soft teal slab so the whole zone reads as one place.
+	makePart(folder, "SafetyMat", Vector3.new(190, 0.35, 16), Vector3.new(0, 0.18, -119), Color3.fromRGB(35, 175, 165), Enum.Material.SmoothPlastic)
+	local matEdge = makePart(folder, "MatEdge", Vector3.new(190, 0.25, 0.9), Vector3.new(0, 0.45, -111.4), neonCyan, Enum.Material.Neon)
+	matEdge.CanCollide = false
+
+	-- The zone sign, on the grass lane south of the mat, facing the bases.
+	makePart(folder, "PlaygroundPostW", Vector3.new(0.8, 9, 0.8), Vector3.new(-8, 4.5, -109), neonCyan, Enum.Material.Neon)
+	makePart(folder, "PlaygroundPostE", Vector3.new(0.8, 9, 0.8), Vector3.new(8, 4.5, -109), neonCyan, Enum.Material.Neon)
+	local signBoard = makePart(folder, "PlaygroundSignBoard", Vector3.new(19, 4, 0.6), Vector3.new(0, 8.5, -109), dark, Enum.Material.SmoothPlastic)
+	makeSign(folder, "PlaygroundSign", signBoard, "NEON PLAYGROUND", Color3.fromRGB(120, 255, 235), Vector3.new(0, 5, 0))
+
+	-- SLIDE at (-70, -116): blocky steps climb the north side to a railed
+	-- platform 9 studs up; the wedge chute falls away southward at ~35
+	-- degrees with zero friction, so players genuinely slide to the landing.
+	local slide = Instance.new("Folder")
+	slide.Name = "Slide"
+	slide.Parent = folder
+	makePart(slide, "SlidePlatform", Vector3.new(6.5, 1, 6.5), Vector3.new(-70, 8.5, -119.5), neonCyan, Enum.Material.SmoothPlastic)
+	for _, dx in ipairs({ -2.6, 2.6 }) do
+		for _, dz in ipairs({ -2.6, 2.6 }) do
+			makePart(slide, "SlideLeg", Vector3.new(0.7, 8, 0.7), Vector3.new(-70 + dx, 4, -119.5 + dz), dark, Enum.Material.SmoothPlastic)
+		end
+	end
+	makePart(slide, "SlideRailBack", Vector3.new(6.5, 1.6, 0.4), Vector3.new(-70, 10, -122.6), orange, Enum.Material.SmoothPlastic)
+	makePart(slide, "SlideRailW", Vector3.new(0.4, 1.6, 6.5), Vector3.new(-73.05, 10, -119.5), orange, Enum.Material.SmoothPlastic)
+	makePart(slide, "SlideRailE", Vector3.new(0.4, 1.6, 6.5), Vector3.new(-66.95, 10, -119.5), orange, Enum.Material.SmoothPlastic)
+	for step = 1, 6 do
+		makePart(slide, "SlideStep" .. tostring(step), Vector3.new(4.5, 1.1, 1.15),
+			Vector3.new(-70, step * 1.5 - 0.55, -128.3 + (step - 1) * 1.05), orange, Enum.Material.SmoothPlastic)
+	end
+	local chute = Instance.new("WedgePart")
+	chute.Name = "SlideChute"
+	chute.Size = Vector3.new(5, 9, 13.5)
+	chute.Position = Vector3.new(-70, 4.5, -109.5)
+	chute.Color = orange
+	chute.Material = Enum.Material.SmoothPlastic
+	chute.Anchored = true
+	chute.TopSurface = Enum.SurfaceType.Smooth
+	chute.BottomSurface = Enum.SurfaceType.Smooth
+	chute.CustomPhysicalProperties = PhysicalProperties.new(0.7, 0, 0, 0, 0)
+	chute.Parent = slide
+	for _, dx in ipairs({ -2.45, 2.45 }) do
+		local rail = makePart(slide, "ChuteRail", Vector3.new(0.45, 0.6, 14.2), Vector3.new(-70 + dx, 5.6, -109.5), neonCyan, Enum.Material.SmoothPlastic)
+		rail.CFrame = CFrame.new(-70 + dx, 5.6, -109.5) * CFrame.Angles(math.rad(34), 0, 0)
+	end
+	makePart(slide, "SlideLanding", Vector3.new(6, 0.4, 4.5), Vector3.new(-70, 0.2, -100.3), orange, Enum.Material.SmoothPlastic)
+
+	-- SWINGS at (-25, -118): an A-frame with a neon top bar and two real Seat
+	-- swings. Each swing is a Model whose PrimaryPart sits ON the bar, so
+	-- PlaygroundService can rock the whole model around the bar axis.
+	local swingsFolder = Instance.new("Folder")
+	swingsFolder.Name = "Swings"
+	swingsFolder.Parent = folder
+	makePart(swingsFolder, "SwingBar", Vector3.new(19, 0.8, 0.8), Vector3.new(-25, 10.2, -118), neonCyan, Enum.Material.Neon)
+	for _, endX in ipairs({ -33.5, -16.5 }) do
+		for _, side in ipairs({ -1, 1 }) do
+			local leg = makePart(swingsFolder, "SwingLeg", Vector3.new(0.7, 11.5, 0.7), Vector3.new(endX, 5.1, -118 + side * 2.5), dark, Enum.Material.SmoothPlastic)
+			leg.CFrame = CFrame.new(endX, 5.1, -118 + side * 2.5) * CFrame.Angles(math.rad(-24 * side), 0, 0)
+		end
+	end
+	local swings = {}
+	for i, swingX in ipairs({ -29.5, -20.5 }) do
+		local model = Instance.new("Model")
+		model.Name = "Swing" .. tostring(i)
+		model.Parent = swingsFolder
+		local pivot = Instance.new("Part")
+		pivot.Name = "Pivot"
+		pivot.Size = Vector3.new(0.5, 0.5, 0.5)
+		pivot.Position = Vector3.new(swingX, 10.2, -118)
+		pivot.Transparency = 1
+		pivot.CanCollide = false
+		pivot.Anchored = true
+		pivot.Parent = model
+		model.PrimaryPart = pivot
+		for _, dx in ipairs({ -1.2, 1.2 }) do
+			local chain = makePart(model, "Chain", Vector3.new(0.18, 7.2, 0.18), Vector3.new(swingX + dx, 6.6, -118), Color3.fromRGB(200, 200, 210), Enum.Material.Metal)
+			chain.CanCollide = false
+		end
+		local seat = Instance.new("Seat")
+		seat.Name = "SwingSeat"
+		seat.Size = Vector3.new(3.4, 0.5, 1.7)
+		seat.Position = Vector3.new(swingX, 2.75, -118)
+		seat.Color = orange
+		seat.Material = Enum.Material.SmoothPlastic
+		seat.Anchored = true
+		seat.TopSurface = Enum.SurfaceType.Smooth
+		seat.BottomSurface = Enum.SurfaceType.Smooth
+		seat.Parent = model
+		table.insert(swings, { Model = model, Pivot = Vector3.new(swingX, 10.2, -118), Phase = (i - 1) * 1.7 })
+	end
+
+	-- SEESAW at (25, -116): a log fulcrum and a 16-stud plank model pivoting
+	-- on it; PlaygroundService tips it toward whichever end is stood on.
+	local fulcrum = makePart(folder, "SeesawFulcrum", Vector3.new(3, 2.2, 2.2), Vector3.new(25, 1.1, -116), dark, Enum.Material.SmoothPlastic)
+	fulcrum.Shape = Enum.PartType.Cylinder
+	fulcrum.Orientation = Vector3.new(0, 90, 0)
+	local seesaw = Instance.new("Model")
+	seesaw.Name = "Seesaw"
+	seesaw.Parent = folder
+	local seesawPivot = Instance.new("Part")
+	seesawPivot.Name = "Pivot"
+	seesawPivot.Size = Vector3.new(0.5, 0.5, 0.5)
+	seesawPivot.Position = Vector3.new(25, 2.45, -116)
+	seesawPivot.Transparency = 1
+	seesawPivot.CanCollide = false
+	seesawPivot.Anchored = true
+	seesawPivot.Parent = seesaw
+	seesaw.PrimaryPart = seesawPivot
+	makePart(seesaw, "Plank", Vector3.new(16, 0.5, 2.2), Vector3.new(25, 2.45, -116), Color3.fromRGB(255, 220, 80), Enum.Material.SmoothPlastic)
+	for _, dx in ipairs({ -6.6, 6.6 }) do
+		makePart(seesaw, "PlankPad", Vector3.new(2.8, 0.35, 2.4), Vector3.new(25 + dx, 2.85, -116), Color3.fromRGB(255, 110, 200), Enum.Material.Neon)
+	end
+	for _, dx in ipairs({ -5.2, 5.2 }) do
+		makePart(seesaw, "HandlePost", Vector3.new(0.25, 1.1, 0.25), Vector3.new(25 + dx, 3.2, -116), dark, Enum.Material.Metal)
+		makePart(seesaw, "HandleGrip", Vector3.new(0.25, 0.25, 1.6), Vector3.new(25 + dx, 3.8, -116), dark, Enum.Material.Metal)
+	end
+
+	-- MERRY-GO-ROUND at (75, -116): a slate deck on a pink neon rim, centre
+	-- pole and four handle posts; PlaygroundService spins the model and
+	-- riders standing on the deck are carried around with it.
+	local merry = Instance.new("Model")
+	merry.Name = "MerryGoRound"
+	merry.Parent = folder
+	local merryPivot = Instance.new("Part")
+	merryPivot.Name = "Pivot"
+	merryPivot.Size = Vector3.new(1, 1, 1)
+	merryPivot.Position = Vector3.new(75, 0, -116)
+	merryPivot.Transparency = 1
+	merryPivot.CanCollide = false
+	merryPivot.Anchored = true
+	merryPivot.Parent = merry
+	merry.PrimaryPart = merryPivot
+	local merryRim = makePart(merry, "Rim", Vector3.new(0.7, 19.4, 19.4), Vector3.new(75, 0.55, -116), Color3.fromRGB(255, 110, 200), Enum.Material.Neon)
+	merryRim.Shape = Enum.PartType.Cylinder
+	merryRim.Orientation = Vector3.new(0, 0, 90)
+	local merryDeck = makePart(merry, "Deck", Vector3.new(1.2, 18, 18), Vector3.new(75, 1, -116), dark, Enum.Material.SmoothPlastic)
+	merryDeck.Shape = Enum.PartType.Cylinder
+	merryDeck.Orientation = Vector3.new(0, 0, 90)
+	local merryPole = makePart(merry, "CentrePole", Vector3.new(5, 1.1, 1.1), Vector3.new(75, 3.4, -116), neonCyan, Enum.Material.Neon)
+	merryPole.Shape = Enum.PartType.Cylinder
+	merryPole.Orientation = Vector3.new(0, 0, 90)
+	for postIndex = 1, 4 do
+		local angle = math.rad(45 + (postIndex - 1) * 90)
+		local post = makePart(merry, "HandlePost" .. tostring(postIndex), Vector3.new(3, 0.4, 0.4),
+			Vector3.new(75 + math.cos(angle) * 6.2, 3.1, -116 + math.sin(angle) * 6.2), dark, Enum.Material.Metal)
+		post.Shape = Enum.PartType.Cylinder
+		post.Orientation = Vector3.new(0, 0, 90)
+	end
+
+	-- BOUNCE PAD on the playground's south edge at (45, -112) -- the strip
+	-- between the mat and the north bases is open grass, so it sits clear of
+	-- every plot. PlaygroundService launches whoever steps on it.
+	local bounce = makePart(folder, "BouncePad", Vector3.new(0.8, 10, 10), Vector3.new(45, 0.4, -112), Color3.fromRGB(255, 80, 180), Enum.Material.Neon)
+	bounce.Shape = Enum.PartType.Cylinder
+	bounce.Orientation = Vector3.new(0, 0, 90)
+	local bouncePost = makePart(folder, "BouncePost", Vector3.new(0.7, 7, 0.7), Vector3.new(51.5, 3.5, -106.5), Color3.fromRGB(255, 80, 180), Enum.Material.Neon)
+	makeSign(folder, "BounceSign", bouncePost, "BOUNCE!", Color3.fromRGB(255, 150, 220), Vector3.new(0, 5, 0))
+
+	-- TRASH CAN by the Fuse Machine, on the path every player walks: a
+	-- grey-green bin with a dark lid and a neon band, and a ProximityPrompt
+	-- that PlaygroundService turns into a once-a-minute cash rummage.
+	local trashBody = makePart(folder, "TrashCan", Vector3.new(3.4, 3.2, 3.2), Vector3.new(44, 1.7, 22), Color3.fromRGB(105, 125, 105), Enum.Material.Metal)
+	trashBody.Shape = Enum.PartType.Cylinder
+	trashBody.Orientation = Vector3.new(0, 0, 90)
+	local trashLid = makePart(folder, "TrashLid", Vector3.new(0.5, 3.7, 3.7), Vector3.new(44, 3.55, 22), dark, Enum.Material.Metal)
+	trashLid.Shape = Enum.PartType.Cylinder
+	trashLid.Orientation = Vector3.new(0, 0, 90)
+	local trashBand = makePart(folder, "TrashBand", Vector3.new(0.45, 3.35, 3.35), Vector3.new(44, 2.5, 22), Color3.fromRGB(110, 255, 120), Enum.Material.Neon)
+	trashBand.Shape = Enum.PartType.Cylinder
+	trashBand.Orientation = Vector3.new(0, 0, 90)
+	trashBand.CanCollide = false
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.Name = "RummagePrompt"
+	prompt.ActionText = "Rummage"
+	prompt.ObjectText = "Trash Can"
+	prompt.HoldDuration = 1
+	prompt.MaxActivationDistance = 10
+	prompt.RequiresLineOfSight = false
+	prompt.Parent = trashBody
+
+	-- BENCHES around the Neon Arena, each with a real Seat, facing the ring:
+	-- two flanking the arena-to-belt path, one west, one south past the road.
+	local arenaCentre = Vector3.new(0, 0, 28)
+	buildBench(folder, "BenchNW", Vector3.new(-14, 0, -2), arenaCentre)
+	buildBench(folder, "BenchNE", Vector3.new(14, 0, -2), arenaCentre)
+	buildBench(folder, "BenchW", Vector3.new(-31, 0, 28), arenaCentre)
+	buildBench(folder, "BenchS", Vector3.new(0, 0, 62), arenaCentre)
+
+	WorldBuilder.PlaygroundFolder = folder
+	WorldBuilder.Playground = {
+		Swings = swings,
+		Seesaw = seesaw,
+		SeesawPivot = Vector3.new(25, 2.45, -116),
+		MerryGoRound = merry,
+		MerryPivot = Vector3.new(75, 0, -116),
+		BouncePad = bounce,
+		TrashPrompt = prompt,
+	}
+end
+
 function WorldBuilder.BuildWorld()
 	local worldFolder = Instance.new("Folder")
 	worldFolder.Name = "NeonShoresWorld"
@@ -474,6 +728,10 @@ function WorldBuilder.BuildWorld()
 	for palmIndex, spot in ipairs(palmSpots) do
 		buildPalm(worldFolder, "Palm" .. tostring(palmIndex), spot.Position, spot.Glow, spot.Color)
 	end
+
+	-- The Neon Playground fills the dead north strip behind the north bases,
+	-- and its benches ring the arena (built inside buildPlayground).
+	buildPlayground(worldFolder)
 
 	-- The Big Wave wall itself: a huge sheet of water with a white foam crest,
 	-- tweened smoothly across the island by TsunamiService.
