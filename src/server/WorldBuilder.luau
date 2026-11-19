@@ -460,26 +460,51 @@ local function buildPlayground(worldFolder: Folder)
 
 	-- A white picket fence along both long edges of the mat, like the
 	-- concept art's fenced playground: two rails with a slat every ~4
-	-- studs. The north edge runs full length; the south edge leaves the
-	-- centre open under the zone sign (the way in) and a second gap where
-	-- the original bounce pad's disc crosses the fence line at x 45.
+	-- studs, an end post finishing each run, and every piece grounded on
+	-- the ground under its line -- both lines stand on the island grass
+	-- 0.4 studs off the mat (the mat spans z -127..-111), so baseY comes
+	-- from groundHeightAt, never an assumed height: the old absolute-Y
+	-- build left every slat floating 0.3 studs off the grass.
+	-- The runs are segmented so the fence NEVER crosses a ride:
+	--   * south line (z -110.6): the merry-go-round's rim (radius 9.7 at
+	--     (75,-116)) crosses this line over x 66.9..83.1 and its deck
+	--     over 67.8..82.2, so the fence gaps x 65..85 (rim + 1 margin);
+	--     the slide's chute and its rails cross over x -72.7..-67.3,
+	--     solid up to y ~5.2 at the line, so the fence gaps x -74..-66;
+	--     the centre stays open under the zone sign (the way in), and the
+	--     original bounce pad's disc crosses over x 40.2..49.8, inside
+	--     its kept gap x 36.5..53.5.
+	--   * north line (z -127.4): the slide's staircase climbs through
+	--     this line (step 2 spans z -127.8..-126.7 at x -72.25..-67.75),
+	--     so the same x -74..-66 gap doubles as the stair entrance.
+	--     Nothing else reaches this line: the merry-go-round's rim stops
+	--     at z -125.7, the sandbox's north rim at z -126.05, the swing
+	--     seats sweep z -121.2..-114.9 and the seesaw z -117.1..-114.9.
 	local white = Color3.fromRGB(255, 255, 255)
 	local function buildFenceRun(xStart: number, xEnd: number, z: number)
 		local length = xEnd - xStart
 		local midX = (xStart + xEnd) / 2
-		for _, railY in ipairs({ 1.05, 2.15 }) do
-			makePart(folder, "FenceRail", Vector3.new(length, 0.28, 0.12), Vector3.new(midX, railY, z), white, Enum.Material.SmoothPlastic)
+		local baseY = groundHeightAt(midX, z)
+		for _, railOffset in ipairs({ 0.75, 1.85 }) do
+			makePart(folder, "FenceRail", Vector3.new(length, 0.28, 0.12), Vector3.new(midX, baseY + railOffset, z), white, Enum.Material.SmoothPlastic)
 		end
-		local slatCount = math.floor(length / 4)
-		for slatIndex = 0, slatCount do
-			local slat = makePart(folder, "FenceSlat", Vector3.new(0.35, 2.6, 0.15), Vector3.new(xStart + slatIndex * 4, 1.6, z), white, Enum.Material.SmoothPlastic)
+		local slatX = xStart + 2
+		while slatX <= xEnd - 2 do
+			local slat = makePart(folder, "FenceSlat", Vector3.new(0.35, 2.6, 0.15), Vector3.new(slatX, baseY + 1.3, z), white, Enum.Material.SmoothPlastic)
 			slat.CanCollide = false
+			slatX += 4
+		end
+		for _, postX in ipairs({ xStart, xEnd }) do
+			makePart(folder, "FencePost", Vector3.new(0.55, 3, 0.55), Vector3.new(postX, baseY + 1.5, z), white, Enum.Material.SmoothPlastic)
 		end
 	end
-	buildFenceRun(-95, 95, -127.4)
-	buildFenceRun(-95, -14, -110.6)
+	buildFenceRun(-95, -74, -127.4)
+	buildFenceRun(-66, 95, -127.4)
+	buildFenceRun(-95, -74, -110.6)
+	buildFenceRun(-66, -14, -110.6)
 	buildFenceRun(14, 36.5, -110.6)
-	buildFenceRun(53.5, 95, -110.6)
+	buildFenceRun(53.5, 65, -110.6)
+	buildFenceRun(85, 95, -110.6)
 
 	-- SANDBOX in the one clear pocket of the mat -- between the swings
 	-- (x -31..-19) and the seesaw (x 17..33), against the north fence: a
