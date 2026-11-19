@@ -2,9 +2,10 @@
 -- Candy Island -- the panels over the 3D world: a BOOST panel selling four
 -- cash-bought powers (speed, wave shield, income x2, luck -- there is no shop
 -- list any more: the walking belt is the only way to buy a brainrot), a MY BASE
--- panel listing what you own with a SELL button each, an INDEX panel grid of
--- the whole 48-character cast that lights up in rarity colours for the
--- ones you own, a FUSE panel that trades 3 same-rarity brainrots up a tier, and the EGG,
+-- panel listing what you own with a SELL button each, an INDEX book of the
+-- whole 48-character cast -- real 3D models in viewport tiles, silhouettes
+-- for the ones still missing, and collection milestones in the footer -- a
+-- FUSE panel that trades 3 same-rarity brainrots up a tier, and the EGG,
 -- REBIRTH and GACHA buttons (the gacha fires its premium spin straight from
 -- the button -- the capsule machine and the toast are its interface).
 -- All four panels (BOOST, MY BASE, INDEX and FUSE) are
@@ -188,9 +189,13 @@ end
 
 remotes:WaitForChild("StateUpdate").OnClientEvent:Connect(rebuildBasePanel)
 
--- Index panel: a grid of the whole cast. Owned brainrots glow in their rarity
--- colour; the rest sit greyed out. Ownership comes from the same state snapshot
--- as MY BASE (placed CharacterIds plus the carried one), so no extra remote.
+-- Index panel: a collection BOOK of the whole cast, grouped under rarity
+-- headers. Every tile shows the character's actual 3D model in a viewport --
+-- the server builds one clean specimen per character into
+-- ReplicatedStorage/IndexSpecimens at startup and the tiles clone from there.
+-- Found characters pose in full colour with their name and income; the rest
+-- are dark silhouettes named "???". The footer tracks the collection
+-- milestones: every 12 finds pays a permanent +10% income, server-side.
 local indexPanel = Instance.new("Frame")
 indexPanel.Name = "IndexPanel"
 indexPanel.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -210,7 +215,7 @@ local indexTitle = Instance.new("TextLabel")
 indexTitle.Name = "IndexTitle"
 indexTitle.Size = UDim2.new(1, 0, 0, 44)
 indexTitle.BackgroundTransparency = 1
-indexTitle.Text = "BRAINROT INDEX  0/" .. tostring(#BrainrotCatalog.Characters)
+indexTitle.Text = "BRAINROT INDEX — 0/" .. tostring(#BrainrotCatalog.Characters) .. " FOUND"
 indexTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
 indexTitle.TextSize = 26
 indexTitle.Font = Enum.Font.FredokaOne
@@ -232,69 +237,240 @@ end)
 indexClose.Parent = indexPanel
 
 local indexScroll = Instance.new("ScrollingFrame")
-indexScroll.Name = "IndexGrid"
+indexScroll.Name = "IndexBook"
 indexScroll.Position = UDim2.fromOffset(6, 48)
-indexScroll.Size = UDim2.new(1, -12, 1, -54)
+indexScroll.Size = UDim2.new(1, -12, 1, -118)
 indexScroll.BackgroundTransparency = 1
 indexScroll.BorderSizePixel = 0
 indexScroll.ScrollBarThickness = 8
 indexScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
 indexScroll.CanvasSize = UDim2.fromOffset(0, 0)
 indexScroll.Parent = indexPanel
-local indexLayout = Instance.new("UIGridLayout")
-indexLayout.CellSize = UDim2.fromOffset(118, 86)
-indexLayout.CellPadding = UDim2.fromOffset(6, 6)
-indexLayout.SortOrder = Enum.SortOrder.LayoutOrder
-indexLayout.Parent = indexScroll
+local indexBookLayout = Instance.new("UIListLayout")
+indexBookLayout.Padding = UDim.new(0, 8)
+indexBookLayout.SortOrder = Enum.SortOrder.LayoutOrder
+indexBookLayout.Parent = indexScroll
 
-local indexCells: { [string]: Frame } = {}
-local indexCellLabels: { [string]: TextLabel } = {}
-for cellIndex, character in ipairs(BrainrotCatalog.Characters) do
-	local cell = Instance.new("Frame")
-	cell.Name = "IndexCell_" .. character.Id
-	cell.LayoutOrder = cellIndex
-	cell.BackgroundColor3 = Color3.fromRGB(42, 42, 56)
-	local cellLabel = Instance.new("TextLabel")
-	cellLabel.Size = UDim2.new(1, -8, 1, -8)
-	cellLabel.Position = UDim2.fromOffset(4, 4)
-	cellLabel.BackgroundTransparency = 1
-	cellLabel.Text = string.format("%s\n%s\n$%d/s", character.Name, character.Rarity, character.IncomePerSecond)
-	cellLabel.TextColor3 = Color3.fromRGB(120, 120, 135)
-	cellLabel.TextSize = 14
-	cellLabel.Font = Enum.Font.FredokaOne
-	cellLabel.TextWrapped = true
-	cellLabel.Parent = cell
-	cell.Parent = indexScroll
-	indexCells[character.Id] = cell
-	indexCellLabels[character.Id] = cellLabel
+-- Footer: the collection bonus as it stands, the four milestone markers
+-- (lit once reached) and how many more finds the next +10% needs.
+local indexFooter = Instance.new("Frame")
+indexFooter.Name = "IndexFooter"
+indexFooter.AnchorPoint = Vector2.new(0, 1)
+indexFooter.Position = UDim2.new(0, 6, 1, -6)
+indexFooter.Size = UDim2.new(1, -12, 0, 58)
+indexFooter.BackgroundColor3 = Color3.fromRGB(30, 30, 44)
+indexFooter.BackgroundTransparency = 0.3
+indexFooter.Parent = indexPanel
+local collectionBonusLabel = Instance.new("TextLabel")
+collectionBonusLabel.Name = "CollectionBonus"
+collectionBonusLabel.Position = UDim2.fromOffset(10, 4)
+collectionBonusLabel.Size = UDim2.new(1, -20, 0, 24)
+collectionBonusLabel.BackgroundTransparency = 1
+collectionBonusLabel.Text = "COLLECTION BONUS: +0% income"
+collectionBonusLabel.TextColor3 = Color3.fromRGB(255, 215, 110)
+collectionBonusLabel.TextSize = 17
+collectionBonusLabel.Font = Enum.Font.FredokaOne
+collectionBonusLabel.TextXAlignment = Enum.TextXAlignment.Left
+collectionBonusLabel.Parent = indexFooter
+local milestoneLabel = Instance.new("TextLabel")
+milestoneLabel.Name = "Milestones"
+milestoneLabel.Position = UDim2.fromOffset(10, 30)
+milestoneLabel.Size = UDim2.new(1, -20, 0, 22)
+milestoneLabel.BackgroundTransparency = 1
+milestoneLabel.Text = ""
+milestoneLabel.TextColor3 = Color3.fromRGB(200, 200, 215)
+milestoneLabel.TextSize = 14
+milestoneLabel.Font = Enum.Font.FredokaOne
+milestoneLabel.TextXAlignment = Enum.TextXAlignment.Left
+milestoneLabel.Parent = indexFooter
+
+-- Tiles: one per character, grouped under a header per rarity. The viewport
+-- model is (re)filled only when the tile's found state flips or the
+-- specimens first arrive, so the per-second snapshots stay cheap.
+local tileRecords: { [string]: any } = {}
+
+local function makeTile(sectionGrid: Frame, layoutOrder: number, character: any)
+	local tile = Instance.new("Frame")
+	tile.Name = "IndexTile_" .. character.Id
+	tile.LayoutOrder = layoutOrder
+	tile.BackgroundColor3 = Color3.fromRGB(42, 42, 56)
+	local viewport = Instance.new("ViewportFrame")
+	viewport.Name = "ModelView"
+	viewport.Position = UDim2.fromOffset(4, 4)
+	viewport.Size = UDim2.fromOffset(110, 82)
+	viewport.BackgroundColor3 = Color3.fromRGB(26, 26, 38)
+	viewport.BorderSizePixel = 0
+	viewport.Ambient = Color3.fromRGB(190, 190, 205)
+	viewport.LightColor = Color3.fromRGB(255, 250, 240)
+	viewport.Parent = tile
+	local nameLabel = Instance.new("TextLabel")
+	nameLabel.Name = "CharName"
+	nameLabel.Position = UDim2.fromOffset(4, 88)
+	nameLabel.Size = UDim2.fromOffset(110, 28)
+	nameLabel.BackgroundTransparency = 1
+	nameLabel.Text = "???"
+	nameLabel.TextColor3 = Color3.fromRGB(120, 120, 135)
+	nameLabel.TextSize = 13
+	nameLabel.Font = Enum.Font.FredokaOne
+	nameLabel.TextWrapped = true
+	nameLabel.Parent = tile
+	local incomeLabel = Instance.new("TextLabel")
+	incomeLabel.Name = "CharIncome"
+	incomeLabel.Position = UDim2.fromOffset(4, 114)
+	incomeLabel.Size = UDim2.fromOffset(110, 16)
+	incomeLabel.BackgroundTransparency = 1
+	incomeLabel.Text = ""
+	incomeLabel.TextColor3 = Color3.fromRGB(140, 255, 150)
+	incomeLabel.TextSize = 13
+	incomeLabel.Font = Enum.Font.FredokaOne
+	incomeLabel.Parent = tile
+	tile.Parent = sectionGrid
+	tileRecords[character.Id] = {
+		Character = character,
+		Frame = tile,
+		Viewport = viewport,
+		NameLabel = nameLabel,
+		IncomeLabel = incomeLabel,
+		Found = nil,
+	}
 end
 
-local function rebuildIndexPanel(snapshot: any)
-	local owned: { [string]: boolean } = {}
-	for _, placed in ipairs(snapshot.Placed) do
-		if placed.CharacterId then
-			owned[placed.CharacterId] = true
-		end
+for sectionIndex, rarity in ipairs(BrainrotCatalog.RarityOrder) do
+	local section = Instance.new("Frame")
+	section.Name = "IndexSection_" .. rarity
+	section.LayoutOrder = sectionIndex
+	section.Size = UDim2.new(1, -4, 0, 0)
+	section.AutomaticSize = Enum.AutomaticSize.Y
+	section.BackgroundTransparency = 1
+	local sectionLayout = Instance.new("UIListLayout")
+	sectionLayout.Padding = UDim.new(0, 4)
+	sectionLayout.Parent = section
+	local header = Instance.new("TextLabel")
+	header.Name = "RarityHeader"
+	header.Size = UDim2.new(1, 0, 0, 26)
+	header.BackgroundTransparency = 1
+	header.Text = "◆ " .. string.upper(rarity)
+	header.TextColor3 = BrainrotCatalog.RarityColors[rarity] or Color3.fromRGB(255, 255, 255)
+	header.TextSize = 18
+	header.Font = Enum.Font.FredokaOne
+	header.TextXAlignment = Enum.TextXAlignment.Left
+	header.Parent = section
+	local grid = Instance.new("Frame")
+	grid.Name = "TileGrid"
+	grid.Size = UDim2.new(1, 0, 0, 0)
+	grid.AutomaticSize = Enum.AutomaticSize.Y
+	grid.BackgroundTransparency = 1
+	local gridLayout = Instance.new("UIGridLayout")
+	gridLayout.CellSize = UDim2.fromOffset(118, 134)
+	gridLayout.CellPadding = UDim2.fromOffset(6, 6)
+	gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	gridLayout.Parent = grid
+	grid.Parent = section
+	section.Parent = indexScroll
+	for tileIndex, character in ipairs(BrainrotCatalog.GetCharactersOfRarity(rarity)) do
+		makeTile(grid, tileIndex, character)
 	end
-	if snapshot.CarriedId then
-		owned[snapshot.CarriedId] = true
+end
+
+local specimensFolder: Folder? = nil
+local specimensReady = false
+
+-- Poses a tile's specimen clone in its viewport: the real model for a found
+-- character, the same model repainted dark grey (45,45,60) with no name for
+-- a missing one. The clone is centred on its bounding box and the camera
+-- sits at a fixed three-quarter angle -- no spin, one static pose per tile.
+local function fillTileViewport(record: any)
+	local viewport = record.Viewport
+	for _, child in ipairs(viewport:GetChildren()) do
+		child:Destroy()
 	end
-	local ownedCount = 0
-	for _, character in ipairs(BrainrotCatalog.Characters) do
-		local cell = indexCells[character.Id]
-		local cellLabel = indexCellLabels[character.Id]
-		if cell and cellLabel then
-			if owned[character.Id] then
-				ownedCount += 1
-				cell.BackgroundColor3 = BrainrotCatalog.RarityColors[character.Rarity] or Color3.fromRGB(42, 42, 56)
-				cellLabel.TextColor3 = Color3.fromRGB(20, 20, 28)
-			else
-				cell.BackgroundColor3 = Color3.fromRGB(42, 42, 56)
-				cellLabel.TextColor3 = Color3.fromRGB(120, 120, 135)
+	local specimen = specimensFolder and specimensFolder:FindFirstChild(record.Character.Id)
+	if not specimen then
+		return
+	end
+	local worldModel = Instance.new("WorldModel")
+	worldModel.Parent = viewport
+	local clone = specimen:Clone()
+	if not record.Found then
+		for _, descendant in ipairs(clone:GetDescendants()) do
+			if descendant:IsA("BasePart") then
+				descendant.Color = Color3.fromRGB(45, 45, 60)
+				descendant.Material = Enum.Material.SmoothPlastic
+			elseif descendant:IsA("BillboardGui") then
+				descendant:Destroy()
 			end
 		end
 	end
-	indexTitle.Text = "BRAINROT INDEX  " .. tostring(ownedCount) .. "/" .. tostring(#BrainrotCatalog.Characters)
+	clone.Parent = worldModel
+	local boxCFrame, boxSize = clone:GetBoundingBox()
+	clone:PivotTo(CFrame.new(-boxCFrame.Position) * clone:GetPivot())
+	local camera = Instance.new("Camera")
+	camera.FieldOfView = 45
+	local reach = math.max(boxSize.X, boxSize.Y, boxSize.Z)
+	camera.CFrame = CFrame.lookAt(Vector3.new(reach * 0.55, reach * 0.3, reach * 1.05), Vector3.new(0, 0, 0))
+	camera.Parent = viewport
+	viewport.CurrentCamera = camera
+end
+
+-- Specimens are built by the server during startup; wait for the folder and
+-- every character, then pose any tile whose found state is already known.
+task.spawn(function()
+	local folder = ReplicatedStorage:WaitForChild("IndexSpecimens")
+	specimensFolder = folder
+	for _, character in ipairs(BrainrotCatalog.Characters) do
+		folder:WaitForChild(character.Id)
+	end
+	specimensReady = true
+	for _, record in pairs(tileRecords) do
+		if record.Found ~= nil then
+			fillTileViewport(record)
+		end
+	end
+end)
+
+local function rebuildIndexPanel(snapshot: any)
+	if not snapshot then
+		return
+	end
+	local foundSet: { [string]: boolean } = {}
+	for _, characterId in ipairs(snapshot.FoundIds or {}) do
+		foundSet[characterId] = true
+	end
+	local foundCount = snapshot.FoundCount or 0
+	indexTitle.Text = "BRAINROT INDEX — " .. tostring(foundCount) .. "/" .. tostring(#BrainrotCatalog.Characters) .. " FOUND"
+	for _, character in ipairs(BrainrotCatalog.Characters) do
+		local record = tileRecords[character.Id]
+		if record then
+			local found = foundSet[character.Id] == true
+			if record.Found ~= found then
+				record.Found = found
+				if found then
+					local rarityColor = BrainrotCatalog.RarityColors[character.Rarity] or Color3.fromRGB(42, 42, 56)
+					record.Frame.BackgroundColor3 = rarityColor:Lerp(Color3.fromRGB(22, 22, 34), 0.5)
+					record.NameLabel.Text = character.Name
+					record.NameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+					record.IncomeLabel.Text = "$" .. tostring(character.IncomePerSecond) .. "/s"
+				else
+					record.Frame.BackgroundColor3 = Color3.fromRGB(42, 42, 56)
+					record.NameLabel.Text = "???"
+					record.NameLabel.TextColor3 = Color3.fromRGB(120, 120, 135)
+					record.IncomeLabel.Text = ""
+				end
+				if specimensReady then
+					fillTileViewport(record)
+				end
+			end
+		end
+	end
+	collectionBonusLabel.Text = "COLLECTION BONUS: +" .. tostring(snapshot.CollectionBonusPercent or 0) .. "% income"
+	local markerParts = {}
+	for _, milestone in ipairs(GameConfig.CollectionMilestones) do
+		table.insert(markerParts, (if foundCount >= milestone then "★ " else "☆ ") .. tostring(milestone))
+	end
+	local nextText = if snapshot.NextMilestoneIn
+		then "next: " .. tostring(snapshot.NextMilestoneIn) .. " more for +10%"
+		else "MAX BONUS!"
+	milestoneLabel.Text = table.concat(markerParts, "   ") .. "   ·   " .. nextText
 end
 
 remotes:WaitForChild("StateUpdate").OnClientEvent:Connect(rebuildIndexPanel)

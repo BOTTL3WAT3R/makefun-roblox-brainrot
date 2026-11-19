@@ -46,13 +46,13 @@ local function notifyAllPlayers(message: string)
 	end
 end
 
--- Mission reporting is always pcall-wrapped: the mission chain is a bonus
+-- Quest reporting is always pcall-wrapped: the quest chain is a bonus
 -- layer and can never be allowed to break the mechanic that feeds it.
-local function reportMission(state: any, actionKey: string)
+local function reportQuest(state: any, actionKey: string, amount: number?)
 	pcall(function()
-		local completed, reward = PlayerData.ReportMissionAction(state, actionKey)
-		if completed then
-			notifyPlayer(state.Player, "MISSION COMPLETE! +" .. GameConfig.FormatCash(reward))
+		local completions = PlayerData.ReportQuestAction(state, actionKey, amount)
+		for _, completion in ipairs(completions) do
+			notifyPlayer(state.Player, "Quest complete: " .. completion.Label .. " +" .. GameConfig.FormatCash(completion.Reward))
 		end
 	end)
 end
@@ -74,8 +74,9 @@ function EconomyService.GetPlacedIncomePerSecond(state: any): number
 			total += BrainrotCatalog.GetIncomePerSecond(character, placed.Mutation)
 		end
 	end
-	-- Stacking order: base income x rebirth multiplier x Income X2 boost.
-	return math.floor(total * PlayerData.GetIncomeMultiplier(state) * PlayerData.GetIncomeBoostMultiplier(state))
+	-- Stacking order: base income x rebirth multiplier x collection milestone
+	-- bonus x Income X2 boost.
+	return math.floor(total * PlayerData.GetIncomeMultiplier(state) * PlayerData.GetCollectionMultiplier(state) * PlayerData.GetIncomeBoostMultiplier(state))
 end
 
 -- Places a brainrot on the owner's next free pad and stands its model on that pad.
@@ -127,6 +128,10 @@ function EconomyService.PlaceBrainrotOnPad(state: any, characterId: string, muta
 	}
 	model:SetAttribute("BrainrotUid", placed.Uid)
 	PlayerData.AddPlaced(state, placed)
+	-- Every road to owning a brainrot ends on a pad (belt buy, hatch, gacha,
+	-- fuse result, arena grab, banked steal), so this is the one place the
+	-- permanent collection mark is stamped.
+	PlayerData.MarkOwned(state, characterId)
 	return true
 end
 
@@ -146,7 +151,7 @@ function EconomyService.BuyCharacter(state: any, characterId: string): boolean
 	local placedOk = EconomyService.PlaceBrainrotOnPad(state, characterId, "Normal")
 	if placedOk then
 		notifyPlayer(state.Player, "Bought " .. character.Name .. "! It now earns for you at your base.")
-		reportMission(state, "Buy")
+		reportQuest(state, "Buy")
 	end
 	return placedOk
 end
@@ -172,7 +177,7 @@ function EconomyService.HatchEgg(state: any): boolean
 	local placedOk = EconomyService.PlaceBrainrotOnPad(state, character.Id, mutation.Name)
 	if placedOk then
 		notifyPlayer(state.Player, string.format("The egg hatched %s (%s, %s)!", character.Name, character.Rarity, mutation.Name))
-		reportMission(state, "Hatch")
+		reportQuest(state, "Hatch")
 	end
 	return placedOk
 end
@@ -180,7 +185,7 @@ end
 -- GACHA CAPSULE: the premium spin west of the arena. Same shape as HatchEgg
 -- (free pad first, cash second, place the winner) but the rarity table in
 -- GameConfig starts at Rare and climbs to Secret -- no Commons, ever.
--- A spin is NOT a hatch and NOT a buy, so it reports no mission action. The
+-- A spin is NOT a hatch and NOT a buy, but it has its own quest key. The
 -- mutation roll is the standard one, bent by the Lucky Charm exactly like
 -- the egg's. Pull Brainrot God or better and the whole island hears about it.
 local function rollGachaRarity(): string
@@ -222,6 +227,7 @@ function EconomyService.RollGacha(state: any): boolean
 	if placedOk then
 		local mutationText = if mutation.Name == "Normal" then "" else ", " .. mutation.Name
 		notifyPlayer(state.Player, string.format("GACHA: %s [%s]%s!", character.Name, character.Rarity, mutationText))
+		reportQuest(state, "Gacha")
 		-- Jackpot theatre: Brainrot God and above gets announced to everyone else.
 		local rarityIndex = table.find(BrainrotCatalog.RarityOrder, character.Rarity)
 		local godIndex = table.find(BrainrotCatalog.RarityOrder, "Brainrot God")
@@ -599,6 +605,9 @@ function EconomyService.StartIncomeTickLoop()
 				local income = EconomyService.GetPlacedIncomePerSecond(state)
 				if income > 0 then
 					PlayerData.AddCash(state, income)
+					-- The Earn quests feed on exactly this: cash the pads just
+					-- paid. Sales, quest rewards and trash finds do not count.
+					reportQuest(state, "Earn", income)
 				end
 			end
 		end

@@ -43,13 +43,13 @@ local function notifyPlayer(player: Player, message: string)
 	end
 end
 
--- Mission reporting is always pcall-wrapped: the mission chain is a bonus
+-- Quest reporting is always pcall-wrapped: the quest chain is a bonus
 -- layer and can never be allowed to break the mechanic that feeds it.
-local function reportMission(state: any, actionKey: string)
+local function reportQuest(state: any, actionKey: string, amount: number?)
 	pcall(function()
-		local completed, reward = PlayerData.ReportMissionAction(state, actionKey)
-		if completed then
-			notifyPlayer(state.Player, "MISSION COMPLETE! +" .. GameConfig.FormatCash(reward))
+		local completions = PlayerData.ReportQuestAction(state, actionKey, amount)
+		for _, completion in ipairs(completions) do
+			notifyPlayer(state.Player, "Quest complete: " .. completion.Label .. " +" .. GameConfig.FormatCash(completion.Reward))
 		end
 	end)
 end
@@ -143,7 +143,7 @@ function StealService.BeginCarry(thiefState: any, victimState: any, placed: any)
 	if thiefState == victimState then
 		-- Owner pick-up: the same hoist, but nobody was robbed. The flag rides
 		-- on the carried record so banking knows this was a rearrangement, not
-		-- a steal (no Steal mission credit, and a full base refuses the bank
+		-- a steal (no Steal quest credit, and a full base refuses the bank
 		-- instead of destroying the player's own brainrot).
 		removed.PickedUpOwn = true
 		notifyPlayer(thiefState.Player, "Picked up " .. name .. "! Step on your base floor to set it down on a free pad.")
@@ -199,9 +199,9 @@ function StealService.TryBankCarriedBrainrot(thiefState: any): boolean
 		local name = if character then character.Name else "Brainrot"
 		notifyPlayer(thiefState.Player, "Banked! " .. name .. " now earns at YOUR base.")
 		-- Rearranging your own lineup is not a steal: only a genuine theft
-		-- (somebody else's brainrot) feeds the Steal mission.
+		-- (somebody else's brainrot) feeds the Steal quest.
 		if not carried.PickedUpOwn then
-			reportMission(thiefState, "Steal")
+			reportQuest(thiefState, "Steal")
 		end
 	end
 	return placedOk
@@ -234,7 +234,7 @@ function StealService.TryToggleBaseLock(state: any): boolean
 	end
 	PlayerData.FireStateChanged(state)
 	notifyPlayer(state.Player, "Base LOCKED for " .. tostring(GameConfig.LockDurationSeconds) .. " seconds!")
-	reportMission(state, "Lock")
+	reportQuest(state, "Lock")
 	return true
 end
 

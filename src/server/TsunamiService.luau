@@ -54,6 +54,17 @@ local function notifyPlayer(player: Player, message: string)
 	end
 end
 
+-- Quest reporting is always pcall-wrapped: the quest chain is a bonus
+-- layer and can never be allowed to break the wave that feeds it.
+local function reportQuest(state: any, actionKey: string, amount: number?)
+	pcall(function()
+		local completions = PlayerData.ReportQuestAction(state, actionKey, amount)
+		for _, completion in ipairs(completions) do
+			notifyPlayer(state.Player, "Quest complete: " .. completion.Label .. " +" .. GameConfig.FormatCash(completion.Reward))
+		end
+	end)
+end
+
 -- Safe means: inside your own base plot, or standing on the high hill.
 function TsunamiService.IsPlayerSafeFromWave(player: Player): boolean
 	local character = player.Character
@@ -113,6 +124,11 @@ local function runSweep()
 	if foam then
 		TweenService:Create(foam, TweenInfo.new(duration, Enum.EasingStyle.Linear), { CFrame = CFrame.new(endX, 28.5, 0) }):Play()
 	end
+	-- Survival bookkeeping for the Survive quest: the sweep itself decides who
+	-- got washed (ApplyWaveHitToPlayer below). Everyone still standing with a
+	-- character when the sweep resolves -- safe in a base, up on the hill, or
+	-- saved by a Wave Shield -- counts as having survived this wave.
+	local washedPlayers: { [Player]: boolean } = {}
 	local elapsed = 0
 	local step = 0.1
 	while elapsed < duration do
@@ -132,9 +148,20 @@ local function runSweep()
 						PlayerData.FireStateChanged(state)
 						notifyPlayer(player, "Your WAVE SHIELD saved you from the Big Wave!")
 					else
+						washedPlayers[player] = true
 						TsunamiService.ApplyWaveHitToPlayer(player)
 					end
 				end
+			end
+		end
+	end
+	for _, player in ipairs(Players:GetPlayers()) do
+		local character = player.Character
+		local root = character and character:FindFirstChild("HumanoidRootPart")
+		if root and not washedPlayers[player] then
+			local state = PlayerData.GetState(player)
+			if state then
+				reportQuest(state, "Survive")
 			end
 		end
 	end

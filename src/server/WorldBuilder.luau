@@ -892,6 +892,37 @@ local function buildCandyDecor(worldFolder: Folder)
 	end
 end
 
+-- INDEX SPECIMENS: one clean display copy of every character, built once at
+-- startup into ReplicatedStorage so the client can clone the REAL models into
+-- the Index book's viewport tiles. Specimens carry no floating label and no
+-- prompt, and every part is anchored and touch/collision/query-silent, so a
+-- specimen can never be bought, stolen or animated -- it only poses.
+function WorldBuilder.BuildIndexSpecimens()
+	local existing = ReplicatedStorage:FindFirstChild("IndexSpecimens")
+	if existing then
+		return existing
+	end
+	local folder = Instance.new("Folder")
+	folder.Name = "IndexSpecimens"
+	for _, character in ipairs(BrainrotCatalog.Characters) do
+		local model = WorldBuilder.BuildBrainrotModel(character, "Normal")
+		for _, descendant in ipairs(model:GetDescendants()) do
+			if descendant:IsA("BillboardGui") or descendant:IsA("ProximityPrompt") then
+				descendant:Destroy()
+			elseif descendant:IsA("BasePart") then
+				descendant.Anchored = true
+				descendant.CanCollide = false
+				descendant.CanQuery = false
+				descendant.CanTouch = false
+			end
+		end
+		model.Name = character.Id
+		model.Parent = folder
+	end
+	folder.Parent = ReplicatedStorage
+	return folder
+end
+
 function WorldBuilder.BuildWorld()
 	local worldFolder = Instance.new("Folder")
 	worldFolder.Name = "CandyIslandWorld"

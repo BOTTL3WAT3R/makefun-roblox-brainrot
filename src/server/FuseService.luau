@@ -39,13 +39,13 @@ local function notifyPlayer(player: Player, message: string)
 	end
 end
 
--- Mission reporting is always pcall-wrapped: the mission chain is a bonus
+-- Quest reporting is always pcall-wrapped: the quest chain is a bonus
 -- layer and can never be allowed to break the mechanic that feeds it.
-local function reportMission(state: any, actionKey: string)
+local function reportQuest(state: any, actionKey: string, amount: number?)
 	pcall(function()
-		local completed, reward = PlayerData.ReportMissionAction(state, actionKey)
-		if completed then
-			notifyPlayer(state.Player, "MISSION COMPLETE! +" .. GameConfig.FormatCash(reward))
+		local completions = PlayerData.ReportQuestAction(state, actionKey, amount)
+		for _, completion in ipairs(completions) do
+			notifyPlayer(state.Player, "Quest complete: " .. completion.Label .. " +" .. GameConfig.FormatCash(completion.Reward))
 		end
 	end)
 end
@@ -137,7 +137,7 @@ function FuseService.PerformFuse(state: any, uids: any): boolean
 	if placedOk then
 		local mutationText = if mutationName == "Normal" then "" else ", " .. mutationName
 		notifyPlayer(state.Player, string.format("FUSED! Your 3 %s brainrots became %s (%s%s)!", sharedRarity, resultCharacter.Name, resultRarity, mutationText))
-		reportMission(state, "Fuse")
+		reportQuest(state, "Fuse")
 	end
 	return placedOk
 end

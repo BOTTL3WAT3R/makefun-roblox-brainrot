@@ -1,8 +1,8 @@
 -- Hud.client.luau (LocalScript, StarterPlayerScripts.Client)
 -- Candy Island -- the heads-up display over the 3D world: cash, income per second,
 -- rebirth multiplier and lock state in a panel at the TOP CENTRE (Roblox's own menu
--- buttons cover the top-left corner, so nothing important lives there), a big Big Wave
--- countdown banner under it, a slim mission bar under the banner, a toast line for
+-- buttons cover the top-left corner itself), a big Big Wave
+-- countdown banner under it, a quest panel in the top-left under the menu corner, a toast line for
 -- game news, a static rarity-ladder legend in the bottom-left, and the DASH and
 -- LOCK buttons. Two small animations keep it alive: the cash label pops whenever
 -- the number changes, and the wave banner pulses red while a Big Wave is about to hit.
@@ -152,10 +152,93 @@ local function setBannerPulse(on: boolean)
 	end
 end
 
--- The mission bar: a slim gold line directly under the wave banner, always
--- showing the current mission, its progress and its cash reward.
-local missionLabel = makeLabel("MissionLabel", UDim2.new(0.5, 0, 0, 140), UDim2.fromOffset(680, 34), 20, Color3.fromRGB(255, 215, 110))
-missionLabel.Text = "MISSION 1/6: Buy a brainrot from the belt (0/1)  REWARD $100"
+-- The quest panel: top-left, tucked under Roblox's own menu corner. A header
+-- with the done count, then one row per ACTIVE quest (three at a time):
+-- description on the left, progress and cash reward on the right. Rows are
+-- built once and re-texted from every snapshot, so the per-second income
+-- snapshots never churn the layout.
+local questPanel = Instance.new("Frame")
+questPanel.Name = "QuestPanel"
+questPanel.Position = UDim2.fromOffset(12, 84)
+questPanel.Size = UDim2.fromOffset(304, 196)
+questPanel.BackgroundColor3 = Color3.fromRGB(18, 18, 28)
+questPanel.BackgroundTransparency = 0.25
+questPanel.Parent = gui
+
+local questHeader = Instance.new("TextLabel")
+questHeader.Name = "QuestHeader"
+questHeader.Position = UDim2.fromOffset(10, 4)
+questHeader.Size = UDim2.new(1, -20, 0, 24)
+questHeader.BackgroundTransparency = 1
+questHeader.Text = "QUESTS — 0/12 done"
+questHeader.TextColor3 = Color3.fromRGB(255, 215, 110)
+questHeader.TextSize = 17
+questHeader.Font = Enum.Font.FredokaOne
+questHeader.TextXAlignment = Enum.TextXAlignment.Left
+questHeader.Parent = questPanel
+
+local questRows: { { Frame: Frame, Desc: TextLabel, Meta: TextLabel } } = {}
+for rowIndex = 1, 3 do
+	local rowFrame = Instance.new("Frame")
+	rowFrame.Name = "QuestRow" .. tostring(rowIndex)
+	rowFrame.Position = UDim2.fromOffset(8, 32 + (rowIndex - 1) * 54)
+	rowFrame.Size = UDim2.new(1, -16, 0, 50)
+	rowFrame.BackgroundColor3 = Color3.fromRGB(38, 38, 54)
+	rowFrame.BackgroundTransparency = 0.35
+	rowFrame.Parent = questPanel
+	local desc = Instance.new("TextLabel")
+	desc.Name = "Desc"
+	desc.Position = UDim2.fromOffset(8, 2)
+	desc.Size = UDim2.new(1, -104, 1, -4)
+	desc.BackgroundTransparency = 1
+	desc.Text = ""
+	desc.TextColor3 = Color3.fromRGB(255, 255, 255)
+	desc.TextSize = 15
+	desc.Font = Enum.Font.FredokaOne
+	desc.TextWrapped = true
+	desc.TextXAlignment = Enum.TextXAlignment.Left
+	desc.TextYAlignment = Enum.TextYAlignment.Center
+	desc.Parent = rowFrame
+	local meta = Instance.new("TextLabel")
+	meta.Name = "Meta"
+	meta.AnchorPoint = Vector2.new(1, 0)
+	meta.Position = UDim2.new(1, -8, 0, 2)
+	meta.Size = UDim2.fromOffset(88, 46)
+	meta.BackgroundTransparency = 1
+	meta.Text = ""
+	meta.TextColor3 = Color3.fromRGB(255, 215, 110)
+	meta.TextSize = 15
+	meta.Font = Enum.Font.FredokaOne
+	meta.TextXAlignment = Enum.TextXAlignment.Right
+	meta.TextYAlignment = Enum.TextYAlignment.Center
+	meta.Parent = rowFrame
+	table.insert(questRows, { Frame = rowFrame, Desc = desc, Meta = meta })
+end
+
+local function rebuildQuestPanel(quests: any)
+	if not quests then
+		return
+	end
+	questHeader.Text = string.format("QUESTS — %d/%d done", quests.Done, quests.Total)
+	if quests.AllDone then
+		questRows[1].Frame.Visible = true
+		questRows[1].Desc.Text = "ALL QUESTS DONE!"
+		questRows[1].Meta.Text = ""
+		questRows[2].Frame.Visible = false
+		questRows[3].Frame.Visible = false
+		return
+	end
+	for rowIndex, row in ipairs(questRows) do
+		local quest = quests.Active[rowIndex]
+		if quest then
+			row.Frame.Visible = true
+			row.Desc.Text = quest.Label
+			row.Meta.Text = string.format("%d/%d\n%s", quest.Progress, quest.Target, quest.RewardText)
+		else
+			row.Frame.Visible = false
+		end
+	end
+end
 
 -- The rarity ladder legend: static reference furniture in the bottom-left --
 -- the ten rarities in their catalogue colours, and what each mutation pays.
@@ -265,9 +348,7 @@ remotes:WaitForChild("StateUpdate").OnClientEvent:Connect(function(snapshot: any
 	cashLabel.Text = "CASH: " .. snapshot.CashText
 	incomeLabel.Text = "+$" .. tostring(snapshot.IncomePerSecond) .. "/s"
 	rebirthLabel.Text = "x" .. tostring(snapshot.Multiplier) .. " income"
-	if snapshot.Mission and snapshot.Mission.Text then
-		missionLabel.Text = snapshot.Mission.Text
-	end
+	rebuildQuestPanel(snapshot.Quests)
 	if snapshot.IsLocked then
 		lockButton.Text = "LOCKED " .. tostring(snapshot.LockSecondsLeft) .. "s"
 	else

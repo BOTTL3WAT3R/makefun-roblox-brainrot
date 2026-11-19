@@ -65,6 +65,12 @@ GameConfig.RebirthMultiplierPerRebirth = 1
 -- Sell a brainrot back for a share of what it cost.
 GameConfig.SellRefundFraction = 0.5
 
+-- Collection milestones: the Index counts every brainrot you have EVER owned.
+-- Each milestone reached pays a permanent +10% income (multiplicative with
+-- the rebirth multiplier), up to +40% for the full 48-character cast.
+GameConfig.CollectionMilestones = { 12, 24, 36, 48 }
+GameConfig.CollectionBonusPerMilestone = 0.10
+
 -- Boosts: cash-bought powers that replace the old shop panel. There is NO
 -- direct brainrot purchase any more -- the walking belt is the only shop --
 -- so cash beyond brainrots goes into these four boosts instead. This table

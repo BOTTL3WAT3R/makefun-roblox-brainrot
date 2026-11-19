@@ -4,7 +4,8 @@
 -- plot, keeps leaderstats in step with PlayerData, and starts every service loop:
 -- income, conveyor, the Candy Arena golden-brainrot event, stealing, the Big Wave
 -- cycle, the Rebirth Shrine watch and the AnimationService dressing (egg pulse and
--- belt chase lights). Snapshots carry the player's current mission line for the HUD.
+-- belt chase lights). Snapshots carry the player's active quests and collection
+-- state for the HUD.
 
 local Players = game:GetService("Players")
 local Lighting = game:GetService("Lighting")
@@ -67,6 +68,10 @@ setupCandyMiddayLighting()
 -- 1. The world exists before anyone joins.
 local worldFolder = WorldBuilder.BuildWorld()
 
+-- 1b. One display specimen per character in ReplicatedStorage, so every
+-- client's Index book can show the real 3D models in its viewport tiles.
+WorldBuilder.BuildIndexSpecimens()
+
 -- 2. Remotes: one folder, named events, created here so client and server agree.
 local remoteFolder = Instance.new("Folder")
 remoteFolder.Name = "Remotes"
@@ -113,19 +118,31 @@ local function buildStateSnapshot(state: any)
 			})
 		end
 	end
+	local foundIds = {}
+	for characterId in pairs(state.OwnedEver) do
+		table.insert(foundIds, characterId)
+	end
 	return {
 		Cash = state.Cash,
 		CashText = GameConfig.FormatCash(state.Cash),
 		IncomePerSecond = EconomyService.GetPlacedIncomePerSecond(state),
 		Rebirths = state.Rebirths,
-		Multiplier = PlayerData.GetIncomeMultiplier(state),
+		-- The top-bar multiplier is the honest total of the permanent income
+		-- multipliers: rebirth x collection milestones (the timed Income X2
+		-- boost stays a panel affair). Rounded to 2dp so the label never
+		-- shows float noise like x2.2000000000000002.
+		Multiplier = math.floor(PlayerData.GetIncomeMultiplier(state) * PlayerData.GetCollectionMultiplier(state) * 100 + 0.5) / 100,
 		NextRebirthCost = RebirthService.GetNextRebirthCost(state),
 		BaseIndex = state.BaseIndex,
 		LockSecondsLeft = math.max(0, math.ceil(state.LockEndsAt - os.clock())),
 		IsLocked = PlayerData.IsBaseLocked(state),
 		Carrying = state.Carried ~= nil,
 		CarriedId = if state.Carried then state.Carried.CharacterId else nil,
-		Mission = PlayerData.GetMissionSnapshot(state),
+		Quests = PlayerData.GetQuestSnapshot(state),
+		FoundIds = foundIds,
+		FoundCount = PlayerData.GetFoundCount(state),
+		CollectionBonusPercent = PlayerData.GetCollectionBonusPercent(state),
+		NextMilestoneIn = PlayerData.GetNextMilestoneIn(state),
 		Boosts = {
 			SpeedLeft = PlayerData.GetBoostSecondsLeft(state, "Speed"),
 			IncomeLeft = PlayerData.GetBoostSecondsLeft(state, "Income"),

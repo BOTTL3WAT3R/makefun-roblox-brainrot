@@ -1,8 +1,9 @@
 -- PlayerData.luau (ModuleScript, ServerScriptService.Server)
 -- Candy Island -- all per-player state lives in this one module:
 -- cash, placed brainrots, the brainrot being carried, rebirths and the income multiplier,
--- and the linear mission chain (buy, hatch, lock, fuse, steal, rebirth) that teaches
--- the whole loop one rewarded step at a time.
+-- the twelve-quest chain (three active at a time, each paying cash the moment it
+-- completes) and the owned-ever collection set behind the Index and its income
+-- milestones.
 -- Every other service reads and writes state through here, never in its own tables.
 
 local Players = game:GetService("Players")
@@ -31,23 +32,34 @@ export type PlayerState = {
 	LockEndsAt: number,
 	LockReadyAt: number,
 	NextUid: number,
-	MissionIndex: number,
-	MissionProgress: number,
+	QuestProgress: { [number]: number },
+	QuestCompleted: { [number]: boolean },
+	OwnedEver: { [string]: boolean },
 	BoostEndsAt: { [string]: number },
 	WaveShield: boolean,
 }
 
--- The mission chain, in order. Services report finished actions by Key through
--- ReportMissionAction; only the CURRENT mission's key counts, so the chain
--- teaches one mechanic at a time. Rewards land as cash the moment a mission ends.
-local MISSIONS = {
-	{ Key = "Buy", Label = "Buy a brainrot from the belt", Target = 1, Reward = 100 },
-	{ Key = "Hatch", Label = "Hatch an egg at the Egg Machine", Target = 1, Reward = 250 },
-	{ Key = "Lock", Label = "Lock your base", Target = 1, Reward = 500 },
+-- The quest chain, in order. The first three UNFINISHED quests are active at
+-- once; services report finished actions by Key through ReportQuestAction and
+-- only active quests gain progress, so nothing is ever earned retroactively.
+-- The two Earn quests are fed by the income tick (amount = cash just earned);
+-- every other key counts single actions. Rewards land as cash the moment a
+-- quest completes, and completing one immediately activates the next in line.
+local QUESTS = {
+	{ Key = "Buy", Label = "Buy 3 brainrots from the belt", Target = 3, Reward = 300 },
+	{ Key = "Hatch", Label = "Hatch 2 eggs", Target = 2, Reward = 500 },
+	{ Key = "Lock", Label = "Lock your base", Target = 1, Reward = 400 },
+	{ Key = "Earn", Label = "Earn $5,000 total", Target = 5000, Reward = 750 },
 	{ Key = "Fuse", Label = "Fuse 3 brainrots into 1", Target = 1, Reward = 1000 },
-	{ Key = "Steal", Label = "Steal a brainrot from another base", Target = 1, Reward = 2500 },
-	{ Key = "Rebirth", Label = "Rebirth at the Shrine", Target = 1, Reward = 5000 },
+	{ Key = "Steal", Label = "Steal a brainrot", Target = 1, Reward = 1500 },
+	{ Key = "Survive", Label = "Survive 2 Big Waves", Target = 2, Reward = 1200 },
+	{ Key = "Buy", Label = "Buy 10 brainrots from the belt", Target = 10, Reward = 2000 },
+	{ Key = "Gacha", Label = "Spin the Gacha 2 times", Target = 2, Reward = 2500 },
+	{ Key = "Earn", Label = "Earn $100,000 total", Target = 100000, Reward = 5000 },
+	{ Key = "Rebirth", Label = "Rebirth at the Shrine", Target = 1, Reward = 7500 },
+	{ Key = "Steal", Label = "Steal 3 brainrots", Target = 3, Reward = 10000 },
 }
+local ACTIVE_QUEST_COUNT = 3
 
 local statesByUserId: { [number]: PlayerState } = {}
 local stateChangedEvent: BindableEvent? = nil
@@ -73,8 +85,9 @@ function PlayerData.CreateStateForPlayer(player: Player): PlayerState
 		LockEndsAt = 0,
 		LockReadyAt = 0,
 		NextUid = 1,
-		MissionIndex = 1,
-		MissionProgress = 0,
+		QuestProgress = {},
+		QuestCompleted = {},
+		OwnedEver = {},
 		BoostEndsAt = { Speed = 0, Income = 0, Luck = 0 },
 		WaveShield = false,
 	}
@@ -182,45 +195,126 @@ function PlayerData.IsBaseLocked(state: PlayerState): boolean
 	return os.clock() < state.LockEndsAt
 end
 
--- Reports one finished gameplay action ("Buy", "Hatch", "Lock", "Fuse", "Steal",
--- "Rebirth") against the mission chain. Counts only when it matches the current
--- mission; on completion the reward is added as cash and the chain advances.
--- Returns (completed, reward) so the calling service can toast the player.
-function PlayerData.ReportMissionAction(state: PlayerState, actionKey: string): (boolean, number)
-	local mission = MISSIONS[state.MissionIndex]
-	if not mission or mission.Key ~= actionKey then
-		return false, 0
+-- The indexes of the currently active quests: the first ACTIVE_QUEST_COUNT
+-- unfinished ones, in chain order. Completing a quest slides the window, so
+-- the next quest in line activates the moment the previous one pays out.
+local function activeQuestIndexes(state: PlayerState): { number }
+	local indexes = {}
+	for index in ipairs(QUESTS) do
+		if not state.QuestCompleted[index] then
+			table.insert(indexes, index)
+			if #indexes >= ACTIVE_QUEST_COUNT then
+				break
+			end
+		end
 	end
-	state.MissionProgress += 1
-	if state.MissionProgress >= mission.Target then
-		local reward = mission.Reward
-		state.MissionIndex += 1
-		state.MissionProgress = 0
-		state.Cash += reward
-		PlayerData.FireStateChanged(state)
-		return true, reward
-	end
-	PlayerData.FireStateChanged(state)
-	return false, 0
+	return indexes
 end
 
--- The mission line for the HUD: either the current mission with its progress
--- and reward, or the victory line once the whole chain is done.
-function PlayerData.GetMissionSnapshot(state: PlayerState): { Text: string, Done: boolean }
-	local mission = MISSIONS[state.MissionIndex]
-	if not mission then
-		return { Text = "ALL MISSIONS COMPLETE - you rule Candy Island!", Done = true }
+-- Reports one finished gameplay action against the quest chain. Keys:
+-- "Buy", "Hatch", "Lock", "Fuse", "Steal", "Rebirth", "Gacha", "Survive" count
+-- single actions (amount defaults to 1); "Earn" is fed by the income tick with
+-- amount = the cash that tick just paid. Only ACTIVE quests matching the key
+-- gain progress -- the active set is snapshotted first, so a quest activated
+-- BY this very action never counts it retroactively. On completion the reward
+-- is added as cash at once. Returns the completions ({ Label, Reward }) so the
+-- calling service can toast each one.
+function PlayerData.ReportQuestAction(state: PlayerState, actionKey: string, amount: number?): { { Label: string, Reward: number } }
+	local completions: { { Label: string, Reward: number } } = {}
+	local step = amount or 1
+	if step <= 0 then
+		return completions
 	end
-	local text = string.format(
-		"MISSION %d/%d: %s (%d/%d)  REWARD %s",
-		state.MissionIndex,
-		#MISSIONS,
-		mission.Label,
-		state.MissionProgress,
-		mission.Target,
-		GameConfig.FormatCash(mission.Reward)
-	)
-	return { Text = text, Done = false }
+	local changed = false
+	for _, index in ipairs(activeQuestIndexes(state)) do
+		local quest = QUESTS[index]
+		if quest.Key == actionKey then
+			local progress = math.min((state.QuestProgress[index] or 0) + step, quest.Target)
+			if progress ~= (state.QuestProgress[index] or 0) then
+				state.QuestProgress[index] = progress
+				changed = true
+			end
+			if progress >= quest.Target then
+				state.QuestCompleted[index] = true
+				state.Cash += quest.Reward
+				changed = true
+				table.insert(completions, { Label = quest.Label, Reward = quest.Reward })
+			end
+		end
+	end
+	if changed then
+		PlayerData.FireStateChanged(state)
+	end
+	return completions
+end
+
+-- The quest block for the HUD snapshot: how many are done, and one row per
+-- active quest (description, progress, target, formatted reward).
+function PlayerData.GetQuestSnapshot(state: PlayerState)
+	local done = 0
+	for index in ipairs(QUESTS) do
+		if state.QuestCompleted[index] then
+			done += 1
+		end
+	end
+	local active = {}
+	for _, index in ipairs(activeQuestIndexes(state)) do
+		local quest = QUESTS[index]
+		table.insert(active, {
+			Label = quest.Label,
+			Progress = math.min(state.QuestProgress[index] or 0, quest.Target),
+			Target = quest.Target,
+			RewardText = GameConfig.FormatCash(quest.Reward),
+		})
+	end
+	return { Done = done, Total = #QUESTS, AllDone = done >= #QUESTS, Active = active }
+end
+
+-- The collection: every character the player has owned at least once (bought,
+-- hatched, spun, fused, grabbed or banked from a steal) is marked the moment
+-- it lands on a pad, and the mark is permanent -- selling or losing the
+-- brainrot never un-finds it. Milestones over the found count pay a permanent
+-- income bonus, multiplicative with the rebirth multiplier.
+function PlayerData.MarkOwned(state: PlayerState, characterId: string)
+	state.OwnedEver[characterId] = true
+end
+
+function PlayerData.GetFoundCount(state: PlayerState): number
+	local count = 0
+	for _ in pairs(state.OwnedEver) do
+		count += 1
+	end
+	return count
+end
+
+function PlayerData.GetMilestonesReached(state: PlayerState): number
+	local found = PlayerData.GetFoundCount(state)
+	local reached = 0
+	for _, milestone in ipairs(GameConfig.CollectionMilestones) do
+		if found >= milestone then
+			reached += 1
+		end
+	end
+	return reached
+end
+
+function PlayerData.GetCollectionMultiplier(state: PlayerState): number
+	return 1 + PlayerData.GetMilestonesReached(state) * GameConfig.CollectionBonusPerMilestone
+end
+
+function PlayerData.GetCollectionBonusPercent(state: PlayerState): number
+	return PlayerData.GetMilestonesReached(state) * math.floor(GameConfig.CollectionBonusPerMilestone * 100)
+end
+
+-- How many more finds until the next milestone pays out, or nil at the cap.
+function PlayerData.GetNextMilestoneIn(state: PlayerState): number?
+	local found = PlayerData.GetFoundCount(state)
+	for _, milestone in ipairs(GameConfig.CollectionMilestones) do
+		if found < milestone then
+			return milestone - found
+		end
+	end
+	return nil
 end
 
 function PlayerData.WipeForRebirth(state: PlayerState)

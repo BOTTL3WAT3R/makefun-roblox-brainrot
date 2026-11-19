@@ -4,7 +4,7 @@
 [![rank](https://make.fun/badge/roblox-brainrot-01/BOTTL3WAT3R/makefun-roblox-brainrot/rank.svg)](https://make.fun/bounty/roblox-brainrot-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=roblox-brainrot-01)
 [![reward](https://make.fun/badge/roblox-brainrot-01/BOTTL3WAT3R/makefun-roblox-brainrot/reward.svg)](https://make.fun/bounty/roblox-brainrot-01?utm_source=github&utm_medium=readme&utm_campaign=roblox-brainrot-01)
 
-**Candy Island** — a 3D Roblox brainrot game set on a bright candy island at sunny midday: pastel pink frosting ground, a chocolate shelter hill, lollipop trees, candy-cane poles, gumdrops and sprinkles. The layout follows the big steal-a-brainrot games: one long chocolate conveyor spine runs through the middle of the island with the eight player bases flanking it on both sides, the **Candy Arena** spawn ring just south of the belt, the Egg Machine and the Rebirth Shrine capping the belt's two ends. Buy absurd meme-born characters that each earn cash every second, stand them on the candy pads at your base, climb a ladder of 48 original brainrots across ten rarities and four mutations, steal brainrots from other players' unlocked bases and dash home with the catch — and when the Big Wave warning sounds, run for your base or the chocolate hill, or the strawberry soda wave takes what you are carrying and washes you back to spawn. A six-mission chain under the wave banner teaches the whole loop (buy, hatch, lock, fuse, steal, rebirth) and pays cash for every step, every few minutes a **golden brainrot** appears in the Candy Arena for whoever grabs it first, and the **Index** collection grid lights up in rarity colours for every brainrot you own. There is no shop list — the belt is the only place to buy — so spare cash goes into **boosts**: speed, a one-save wave shield, double income and a luck charm that bends the egg and fuse odds your way. And for the rich, a **Gacha Capsule** west of the arena spins $10,000 into anything from Rare to Secret — never a Common. The world stays readable at a glance — one candy colour per zone, one pastel colour per base — because all the motion lives on the brainrots: they walk the shop belt, bob on their pads, the rarest ones spin, and the valuable ones sparkle.
+**Candy Island** — a 3D Roblox brainrot game set on a bright candy island at sunny midday: pastel pink frosting ground, a chocolate shelter hill, lollipop trees, candy-cane poles, gumdrops and sprinkles. The layout follows the big steal-a-brainrot games: one long chocolate conveyor spine runs through the middle of the island with the eight player bases flanking it on both sides, the **Candy Arena** spawn ring just south of the belt, the Egg Machine and the Rebirth Shrine capping the belt's two ends. Buy absurd meme-born characters that each earn cash every second, stand them on the candy pads at your base, climb a ladder of 48 original brainrots across ten rarities and four mutations, steal brainrots from other players' unlocked bases and dash home with the catch — and when the Big Wave warning sounds, run for your base or the chocolate hill, or the strawberry soda wave takes what you are carrying and washes you back to spawn. A twelve-quest chain in the top-left panel (three active at a time: buy, hatch, lock, earn, fuse, steal, survive the wave, spin the gacha, rebirth) pays cash for every step of the loop, every few minutes a **golden brainrot** appears in the Candy Arena for whoever grabs it first, and the **Index** is a collection book whose tiles show each brainrot's real 3D model — full colour once you have owned it, a dark silhouette while it is still out there — with permanent income milestones for every 12 finds. There is no shop list — the belt is the only place to buy — so spare cash goes into **boosts**: speed, a one-save wave shield, double income and a luck charm that bends the egg and fuse odds your way. And for the rich, a **Gacha Capsule** west of the arena spins $10,000 into anything from Rare to Secret — never a Common. The world stays readable at a glance — one candy colour per zone, one pastel colour per base — because all the motion lives on the brainrots: they walk the shop belt, bob on their pads, the rarest ones spin, and the valuable ones sparkle.
 
 ## Run it
 
@@ -41,7 +41,7 @@ place link, place id and universe id in `PLAY.json`, and upload an icon and a th
    hoisted above your head (you are slower while carrying). Reach your own base floor to
    bank it. Victims can chase you down — and the Big Wave ends the run for both of you.
    On your *own* brainrots the same prompt reads **Pick Up**: hoist one overhead and
-   bank it on a free pad to rearrange your lineup (no Steal mission credit for moving
+   bank it on a free pad to rearrange your lineup (no Steal quest credit for moving
    your own, and a full base refuses the bank instead of dropping it).
 5. **Defend:** step on your own base's red **LOCK** pad (or press the LOCK BASE button —
    it works from anywhere) to raise laser walls for 60 seconds. Your base's sign counts
@@ -53,8 +53,12 @@ place link, place id and universe id in `PLAY.json`, and upload an icon and a th
 7. **Rebirth:** at the gold **Rebirth Shrine** at the belt's east end, pay the cost to
    reset your cash and brainrots for a permanent +100% income multiplier (x2, x3, x4...).
    Costs grow 8x per rebirth.
-8. **Index:** press **INDEX** to open your collection grid — all 48 brainrots, lit up in
-   their rarity colour once you own them, greyed out while they are still out there glowing.
+8. **Index:** press **INDEX** to open your collection book — all 48 brainrots grouped
+   under their rarity headers, each tile posing the character's real 3D model. Own a
+   brainrot once (buy, hatch, spin, fuse, grab or steal it) and its tile lights up with
+   its name and income forever; the ones still missing stand as dark silhouettes named
+   "???". Every 12 finds pays a **permanent +10% income** milestone (up to +40% for
+   the full cast), tracked in the book's footer and stacked into the top-bar multiplier.
 9. **Fuse:** at the purple **Fuse Machine** by the arena, press **FUSE** and pick any 3
    brainrots of the *same* rarity from your base: they are consumed and bubble up into 1
    random brainrot of the *next* rarity, with a kinder mutation roll than the egg
@@ -77,9 +81,11 @@ place link, place id and universe id in `PLAY.json`, and upload an icon and a th
     character with the Gold mutation) appears on the arena ring under a beam of golden
     light. First player to run up and grab it keeps it — if your base has a free pad.
     Unclaimed, it fades after 30 seconds.
-13. **Missions:** the gold bar under the wave banner always shows your current mission —
-    buy, hatch, lock, fuse, steal, rebirth — and pays cash ($100 up to $5,000) the
-    moment you finish each one. Clear all six and you rule Candy Island.
+13. **Quests:** the panel in the top-left always shows your three active quests —
+    buy from the belt, hatch, lock, earn cash, fuse, steal, survive Big Waves, spin
+    the gacha, rebirth — each with its progress and cash reward ($300 up to $10,000),
+    paid the moment you finish it, which immediately activates the next quest in
+    line. Clear all twelve and you rule Candy Island.
 14. **Candy Playground:** behind the north bases, a pastel-pink safety mat holds a working
     playground — climb the steps and slide down the **slide**, sit on the **swings**,
     tip the **seesaw** by standing on one end, ride the spinning **merry-go-round**,
@@ -164,14 +170,14 @@ Rojo project — `src/` maps into the place, and `game.rbxl` is built from it:
 - `src/server/Main.server.luau` — bootstrap: bright midday Lighting (soft bloom, light atmosphere), builds the world, creates RemoteEvents, assigns bases, starts all loops
 - `src/server/WorldBuilder.luau` — builds the 3D world from Parts: pink frosting island on a cream rim in a bright blue sea, the conveyor spine (one long chocolate belt through the middle), 8 candy-trimmed bases flanking it north and south with pads and lock lasers, the Candy Arena spawn ring, pink egg machine and caramel rebirth shrine capping the belt's ends, lavender Fuse Machine cauldron and the pink Gacha Capsule flanking the arena, chocolate high hill with a melted cap, lollipop trees, candy-cane poles, gumdrops and sprinkles, the strawberry Big Wave wall with its foam crest, and every brainrot model with its floating label
 - `src/server/AnimationService.luau` — the animation layer: one Heartbeat loop bobs every placed brainrot (Mythic and up also spin) and strides the belt brainrots down the conveyor with a walking gait, sparkle emitters for Legendary+ and mutated brainrots, the pulsing egg dome and the conveyor chase lights
-- `src/server/PlayerData.luau` — all per-player state in one place: cash, placed/carried brainrots, rebirths, multiplier, and the six-mission chain (progress, rewards, the HUD mission line)
+- `src/server/PlayerData.luau` — all per-player state in one place: cash, placed/carried brainrots, rebirths, multiplier, the twelve-quest chain (three active at a time, per-quest progress, rewards) and the owned-ever collection set behind the Index milestones
 - `src/server/EconomyService.luau` — income tick, walking-belt buying with price tags, egg hatching, premium gacha capsule spins with island-wide jackpot announcements, placing, selling, the four cash boosts, and the Candy Arena golden-brainrot event loop
 - `src/server/StealService.luau` — E-prompt stealing with the catch carried overhead, base lock (pad + HUD button, sign counts the lock down), dash, banking a stolen brainrot
 - `src/server/TsunamiService.luau` — Big Wave cycle: calm, warning countdown, tweened sweep, safe zones
 - `src/server/RebirthService.luau` — rebirth: cost check, reset, permanent multiplier
 - `src/server/FuseService.luau` — the Fuse Machine: validates 3 same-rarity placed brainrots server-side, consumes them, and places 1 random brainrot of the next rarity with a boosted mutation roll
-- `src/client/Hud.client.luau` — ScreenGui HUD: cash (pops when it changes), $/s, multiplier, Big Wave banner (pulses red under 10s), the mission bar, the rarity-ladder legend with mutation multipliers, DASH/LOCK buttons (kept clear of the top-left corner)
-- `src/client/ShopUI.client.luau` — boost panel, my-base panel with sell buttons, the Index collection grid, the Fuse picker panel, egg, rebirth and gacha buttons
+- `src/client/Hud.client.luau` — ScreenGui HUD: cash (pops when it changes), $/s, multiplier, Big Wave banner (pulses red under 10s), the top-left quest panel (three active quests with progress and rewards), the rarity-ladder legend with mutation multipliers, DASH/LOCK buttons
+- `src/client/ShopUI.client.luau` — boost panel, my-base panel with sell buttons, the Index collection book (viewport tiles with the real 3D models, silhouettes, milestone footer), the Fuse picker panel, egg, rebirth and gacha buttons
 - `src/world/` — static 3D structures as Rojo model files (plaza arch, shop stall, rarity pedestals)
 
 Client and server talk only through the RemoteEvents the server bootstrap creates under
