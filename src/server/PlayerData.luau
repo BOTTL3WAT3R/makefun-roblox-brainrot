@@ -1,5 +1,5 @@
 -- PlayerData.luau (ModuleScript, ServerScriptService.Server)
--- Neon Shores -- all per-player state lives in this one module:
+-- Candy Island -- all per-player state lives in this one module:
 -- cash, placed brainrots, the brainrot being carried, rebirths and the income multiplier,
 -- and the linear mission chain (buy, hatch, lock, fuse, steal, rebirth) that teaches
 -- the whole loop one rewarded step at a time.
@@ -209,7 +209,7 @@ end
 function PlayerData.GetMissionSnapshot(state: PlayerState): { Text: string, Done: boolean }
 	local mission = MISSIONS[state.MissionIndex]
 	if not mission then
-		return { Text = "ALL MISSIONS COMPLETE - you rule Neon Shores!", Done = true }
+		return { Text = "ALL MISSIONS COMPLETE - you rule Candy Island!", Done = true }
 	end
 	local text = string.format(
 		"MISSION %d/%d: %s (%d/%d)  REWARD %s",

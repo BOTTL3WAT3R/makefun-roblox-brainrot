@@ -1,5 +1,5 @@
 -- ShopUI.client.luau (LocalScript, StarterPlayerScripts.Client)
--- Neon Shores -- the panels over the 3D world: a BOOST panel selling four
+-- Candy Island -- the panels over the 3D world: a BOOST panel selling four
 -- cash-bought powers (speed, wave shield, income x2, luck -- there is no shop
 -- list any more: the walking belt is the only way to buy a brainrot), a MY BASE
 -- panel listing what you own with a SELL button each, an INDEX panel grid of
@@ -22,7 +22,7 @@ local player = Players.LocalPlayer
 local remotes = ReplicatedStorage:WaitForChild("Remotes")
 
 local gui = Instance.new("ScreenGui")
-gui.Name = "NeonPanels"
+gui.Name = "CandyPanels"
 gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 

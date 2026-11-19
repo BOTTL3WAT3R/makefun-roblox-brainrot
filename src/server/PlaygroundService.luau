@@ -1,5 +1,5 @@
 -- PlaygroundService.luau (ModuleScript, ServerScriptService.Server)
--- Neon Shores -- the runtime behaviour for the Neon Playground (built by
+-- Candy Island -- the runtime behaviour for the Candy Playground (built by
 -- WorldBuilder.buildPlayground): one Heartbeat loop rocks the swings, spins
 -- the merry-go-round and tips the seesaw toward whoever stands on it, plus
 -- the two touch/prompt interactions -- the bounce pad launch and the trash

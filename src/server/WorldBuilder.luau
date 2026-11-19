@@ -1,14 +1,14 @@
 -- WorldBuilder.luau (ModuleScript, ServerScriptService.Server)
--- Neon Shores -- builds the whole 3D world from primitive Parts at runtime: a compact
--- tropical island at golden hour (see the Lighting setup in Main.server) laid out like
+-- Candy Island -- builds the whole 3D world from primitive Parts at runtime: a compact
+-- candy island at bright midday (see the Lighting setup in Main.server) laid out like
 -- the big steal-a-brainrot games: ONE long conveyor spine through the middle with the
--- eight player bases flanking it on both sides, the glowing Neon Arena (spawn) just
+-- eight player bases flanking it on both sides, the Candy Arena (spawn) just
 -- south of the belt, the Egg Machine and Rebirth Shrine capping the belt's two ends,
 -- the Fuse Machine and the premium Gacha Capsule flanking the arena east and west,
--- and dark slate ground so every neon sign, pad and laser glows. Neon zone colours
--- throughout (orange belt, pink egg, gold shrine, purple fuse, green hill), palm trees
--- with glowfruit, and one vivid neon colour per player base. Big short signs, and all
--- the motion lives on the brainrots themselves (see AnimationService).
+-- all on pastel pink frosting ground with a chocolate shelter hill. Candy zone colours
+-- throughout (chocolate belt, pink egg, caramel shrine, lavender fuse), lollipop trees,
+-- candy-cane poles, gumdrops and sprinkles, and one pastel candy colour per player
+-- base. Big short signs, and all the motion lives on the brainrots (see AnimationService).
 -- Every sign uses a BillboardGui with large readable text, and MaxDistance is kept
 -- short so signs never pile up across the map.
 
@@ -31,17 +31,17 @@ WorldBuilder.HighGroundTopY = 26
 local BASE_SPACING = 64
 local PADS_PER_BASE = GameConfig.MaxPlacedPerBase
 
--- One vivid neon colour per base slot: pads and floor trim wear it, so every base
--- reads as its own glowing territory in a screenshot.
+-- One pastel candy colour per base slot: pads and floor trim wear it, so every
+-- base reads as its own sweet territory in a screenshot.
 local BASE_SLOT_COLORS = {
-	Color3.fromRGB(255, 90, 90),
-	Color3.fromRGB(255, 160, 60),
-	Color3.fromRGB(255, 230, 80),
-	Color3.fromRGB(110, 255, 120),
-	Color3.fromRGB(60, 220, 255),
-	Color3.fromRGB(110, 140, 255),
-	Color3.fromRGB(200, 110, 255),
-	Color3.fromRGB(255, 110, 200),
+	Color3.fromRGB(255, 150, 200),
+	Color3.fromRGB(255, 190, 130),
+	Color3.fromRGB(255, 235, 130),
+	Color3.fromRGB(150, 240, 180),
+	Color3.fromRGB(140, 200, 255),
+	Color3.fromRGB(195, 160, 255),
+	Color3.fromRGB(235, 160, 255),
+	Color3.fromRGB(255, 130, 160),
 }
 
 local function makePart(parent: Instance, name: string, size: Vector3, position: Vector3, color: Color3, material: Enum.Material?): Part
@@ -242,8 +242,8 @@ local function buildBasePlot(parent: Folder, index: number, origin: Vector3, fac
 
 	local slotColor = BASE_SLOT_COLORS[((index - 1) % #BASE_SLOT_COLORS) + 1]
 	local floor = makePart(baseFolder, "BaseFloor", Vector3.new(44, 1, 44), origin + Vector3.new(0, 0.5, 0),
-		Color3.fromRGB(52, 54, 68), Enum.Material.SmoothPlastic)
-	-- Neon trim ring around the floor, in the base's slot colour.
+		Color3.fromRGB(255, 244, 230), Enum.Material.SmoothPlastic)
+	-- Candy trim ring around the floor, in the base's slot colour.
 	makePart(baseFolder, "TrimN", Vector3.new(44, 0.3, 1.2), origin + Vector3.new(0, 1.05, -21.4), slotColor, Enum.Material.Neon)
 	makePart(baseFolder, "TrimS", Vector3.new(44, 0.3, 1.2), origin + Vector3.new(0, 1.05, 21.4), slotColor, Enum.Material.Neon)
 	makePart(baseFolder, "TrimE", Vector3.new(1.2, 0.3, 44), origin + Vector3.new(21.4, 1.05, 0), slotColor, Enum.Material.Neon)
@@ -317,7 +317,7 @@ function WorldBuilder.SetBaseLasersVisible(base: any, visible: boolean)
 end
 
 -- One palm tree: a slightly tilted cylinder trunk, six flat leaves fanned from the
--- top, and (on some palms) a glowing neon "glowfruit" sphere hanging by the crown.
+-- top, and (on some palms) a glowing candy "glowfruit" sphere hanging by the crown.
 local function buildPalm(parent: Folder, name: string, position: Vector3, withGlowfruit: boolean, glowColor: Color3)
 	local trunk = Instance.new("Part")
 	trunk.Name = name .. "Trunk"
@@ -369,7 +369,7 @@ local function buildBench(parent: Folder, name: string, position: Vector3, faceT
 		Vector3.new(position.X, 0, position.Z),
 		Vector3.new(faceTarget.X, 0, faceTarget.Z)
 	)
-	local dark = Color3.fromRGB(46, 48, 62)
+	local dark = Color3.fromRGB(94, 58, 32)
 	local function add(className: string, partName: string, size: Vector3, offset: Vector3, color: Color3, material: Enum.Material?)
 		local part: any = Instance.new(className)
 		part.Name = partName
@@ -388,7 +388,7 @@ local function buildBench(parent: Folder, name: string, position: Vector3, faceT
 	-- CFrame.lookAt aims local -Z at the target, so the sitter's back is +Z.
 	add("Seat", "Seat", Vector3.new(5.5, 0.7, 1.9), Vector3.new(0, 1.9, 0), dark, Enum.Material.SmoothPlastic)
 	add("Part", "Backrest", Vector3.new(5.5, 2.4, 0.45), Vector3.new(0, 3.6, 1.1), dark, Enum.Material.SmoothPlastic)
-	add("Part", "Trim", Vector3.new(5.5, 0.3, 0.3), Vector3.new(0, 1.45, -1), Color3.fromRGB(40, 230, 255), Enum.Material.Neon)
+	add("Part", "Trim", Vector3.new(5.5, 0.3, 0.3), Vector3.new(0, 1.45, -1), Color3.fromRGB(255, 130, 190), Enum.Material.Neon)
 	for _, x in ipairs({ -2.3, 2.3 }) do
 		add("Part", "Leg", Vector3.new(0.55, 1.6, 0.55), Vector3.new(x, 0.8, 0.55), dark, nil)
 		add("Part", "Leg", Vector3.new(0.55, 1.6, 0.55), Vector3.new(x, 0.8, -0.55), dark, nil)
@@ -396,7 +396,7 @@ local function buildBench(parent: Folder, name: string, position: Vector3, faceT
 	return bench
 end
 
--- THE NEON PLAYGROUND: a pure fun layer on the empty north strip behind the
+-- THE CANDY PLAYGROUND: a pure fun layer on the empty north strip behind the
 -- north base row (the plots end at z=-104, the island edge is z=-130, so the
 -- strip z=-111..-127 fits a safety mat with room to spare). Real usable kit --
 -- a slide you actually slide down, swings that swing with you on them, a
@@ -408,20 +408,20 @@ local function buildPlayground(worldFolder: Folder)
 	folder.Name = "Playground"
 	folder.Parent = worldFolder
 
-	local dark = Color3.fromRGB(46, 48, 62)
-	local neonCyan = Color3.fromRGB(40, 230, 255)
-	local orange = Color3.fromRGB(255, 140, 40)
+	local dark = Color3.fromRGB(94, 58, 32)
+	local lavender = Color3.fromRGB(190, 160, 255)
+	local orange = Color3.fromRGB(255, 185, 120)
 
-	-- The safety mat: one soft teal slab so the whole zone reads as one place.
-	makePart(folder, "SafetyMat", Vector3.new(190, 0.35, 16), Vector3.new(0, 0.18, -119), Color3.fromRGB(35, 175, 165), Enum.Material.SmoothPlastic)
-	local matEdge = makePart(folder, "MatEdge", Vector3.new(190, 0.25, 0.9), Vector3.new(0, 0.45, -111.4), neonCyan, Enum.Material.Neon)
+	-- The safety mat: one soft pastel-pink slab so the whole zone reads as one place.
+	makePart(folder, "SafetyMat", Vector3.new(190, 0.35, 16), Vector3.new(0, 0.18, -119), Color3.fromRGB(255, 190, 220), Enum.Material.SmoothPlastic)
+	local matEdge = makePart(folder, "MatEdge", Vector3.new(190, 0.25, 0.9), Vector3.new(0, 0.45, -111.4), Color3.fromRGB(255, 255, 255), Enum.Material.Neon)
 	matEdge.CanCollide = false
 
 	-- The zone sign, on the grass lane south of the mat, facing the bases.
-	makePart(folder, "PlaygroundPostW", Vector3.new(0.8, 9, 0.8), Vector3.new(-8, 4.5, -109), neonCyan, Enum.Material.Neon)
-	makePart(folder, "PlaygroundPostE", Vector3.new(0.8, 9, 0.8), Vector3.new(8, 4.5, -109), neonCyan, Enum.Material.Neon)
+	makePart(folder, "PlaygroundPostW", Vector3.new(0.8, 9, 0.8), Vector3.new(-8, 4.5, -109), lavender, Enum.Material.Neon)
+	makePart(folder, "PlaygroundPostE", Vector3.new(0.8, 9, 0.8), Vector3.new(8, 4.5, -109), lavender, Enum.Material.Neon)
 	local signBoard = makePart(folder, "PlaygroundSignBoard", Vector3.new(19, 4, 0.6), Vector3.new(0, 8.5, -109), dark, Enum.Material.SmoothPlastic)
-	makeSign(folder, "PlaygroundSign", signBoard, "NEON PLAYGROUND", Color3.fromRGB(120, 255, 235), Vector3.new(0, 5, 0))
+	makeSign(folder, "PlaygroundSign", signBoard, "CANDY PLAYGROUND", Color3.fromRGB(255, 170, 220), Vector3.new(0, 5, 0))
 
 	-- SLIDE at (-70, -116): blocky steps climb the north side to a railed
 	-- platform 9 studs up; the wedge chute falls away southward at ~35
@@ -429,7 +429,7 @@ local function buildPlayground(worldFolder: Folder)
 	local slide = Instance.new("Folder")
 	slide.Name = "Slide"
 	slide.Parent = folder
-	makePart(slide, "SlidePlatform", Vector3.new(6.5, 1, 6.5), Vector3.new(-70, 8.5, -119.5), neonCyan, Enum.Material.SmoothPlastic)
+	makePart(slide, "SlidePlatform", Vector3.new(6.5, 1, 6.5), Vector3.new(-70, 8.5, -119.5), Color3.fromRGB(150, 240, 200), Enum.Material.SmoothPlastic)
 	for _, dx in ipairs({ -2.6, 2.6 }) do
 		for _, dz in ipairs({ -2.6, 2.6 }) do
 			makePart(slide, "SlideLeg", Vector3.new(0.7, 8, 0.7), Vector3.new(-70 + dx, 4, -119.5 + dz), dark, Enum.Material.SmoothPlastic)
@@ -446,7 +446,7 @@ local function buildPlayground(worldFolder: Folder)
 	chute.Name = "SlideChute"
 	chute.Size = Vector3.new(5, 9, 13.5)
 	chute.Position = Vector3.new(-70, 4.5, -109.5)
-	chute.Color = orange
+	chute.Color = Color3.fromRGB(255, 130, 180)
 	chute.Material = Enum.Material.SmoothPlastic
 	chute.Anchored = true
 	chute.TopSurface = Enum.SurfaceType.Smooth
@@ -454,18 +454,18 @@ local function buildPlayground(worldFolder: Folder)
 	chute.CustomPhysicalProperties = PhysicalProperties.new(0.7, 0, 0, 0, 0)
 	chute.Parent = slide
 	for _, dx in ipairs({ -2.45, 2.45 }) do
-		local rail = makePart(slide, "ChuteRail", Vector3.new(0.45, 0.6, 14.2), Vector3.new(-70 + dx, 5.6, -109.5), neonCyan, Enum.Material.SmoothPlastic)
+		local rail = makePart(slide, "ChuteRail", Vector3.new(0.45, 0.6, 14.2), Vector3.new(-70 + dx, 5.6, -109.5), lavender, Enum.Material.SmoothPlastic)
 		rail.CFrame = CFrame.new(-70 + dx, 5.6, -109.5) * CFrame.Angles(math.rad(34), 0, 0)
 	end
 	makePart(slide, "SlideLanding", Vector3.new(6, 0.4, 4.5), Vector3.new(-70, 0.2, -100.3), orange, Enum.Material.SmoothPlastic)
 
-	-- SWINGS at (-25, -118): an A-frame with a neon top bar and two real Seat
+	-- SWINGS at (-25, -118): an A-frame with a lavender top bar and two real Seat
 	-- swings. Each swing is a Model whose PrimaryPart sits ON the bar, so
 	-- PlaygroundService can rock the whole model around the bar axis.
 	local swingsFolder = Instance.new("Folder")
 	swingsFolder.Name = "Swings"
 	swingsFolder.Parent = folder
-	makePart(swingsFolder, "SwingBar", Vector3.new(19, 0.8, 0.8), Vector3.new(-25, 10.2, -118), neonCyan, Enum.Material.Neon)
+	makePart(swingsFolder, "SwingBar", Vector3.new(19, 0.8, 0.8), Vector3.new(-25, 10.2, -118), lavender, Enum.Material.Neon)
 	for _, endX in ipairs({ -33.5, -16.5 }) do
 		for _, side in ipairs({ -1, 1 }) do
 			local leg = makePart(swingsFolder, "SwingLeg", Vector3.new(0.7, 11.5, 0.7), Vector3.new(endX, 5.1, -118 + side * 2.5), dark, Enum.Material.SmoothPlastic)
@@ -529,7 +529,7 @@ local function buildPlayground(worldFolder: Folder)
 		makePart(seesaw, "HandleGrip", Vector3.new(0.25, 0.25, 1.6), Vector3.new(25 + dx, 3.8, -116), dark, Enum.Material.Metal)
 	end
 
-	-- MERRY-GO-ROUND at (75, -116): a slate deck on a pink neon rim, centre
+	-- MERRY-GO-ROUND at (75, -116): a chocolate deck on a pink candy rim, centre
 	-- pole and four handle posts; PlaygroundService spins the model and
 	-- riders standing on the deck are carried around with it.
 	local merry = Instance.new("Model")
@@ -550,7 +550,7 @@ local function buildPlayground(worldFolder: Folder)
 	local merryDeck = makePart(merry, "Deck", Vector3.new(1.2, 18, 18), Vector3.new(75, 1, -116), dark, Enum.Material.SmoothPlastic)
 	merryDeck.Shape = Enum.PartType.Cylinder
 	merryDeck.Orientation = Vector3.new(0, 0, 90)
-	local merryPole = makePart(merry, "CentrePole", Vector3.new(5, 1.1, 1.1), Vector3.new(75, 3.4, -116), neonCyan, Enum.Material.Neon)
+	local merryPole = makePart(merry, "CentrePole", Vector3.new(5, 1.1, 1.1), Vector3.new(75, 3.4, -116), lavender, Enum.Material.Neon)
 	merryPole.Shape = Enum.PartType.Cylinder
 	merryPole.Orientation = Vector3.new(0, 0, 90)
 	for postIndex = 1, 4 do
@@ -571,15 +571,15 @@ local function buildPlayground(worldFolder: Folder)
 	makeSign(folder, "BounceSign", bouncePost, "BOUNCE!", Color3.fromRGB(255, 150, 220), Vector3.new(0, 5, 0))
 
 	-- TRASH CAN by the Fuse Machine, on the path every player walks: a
-	-- grey-green bin with a dark lid and a neon band, and a ProximityPrompt
+	-- mint bin with a chocolate lid and a pink band, and a ProximityPrompt
 	-- that PlaygroundService turns into a once-a-minute cash rummage.
-	local trashBody = makePart(folder, "TrashCan", Vector3.new(3.4, 3.2, 3.2), Vector3.new(44, 1.7, 22), Color3.fromRGB(105, 125, 105), Enum.Material.Metal)
+	local trashBody = makePart(folder, "TrashCan", Vector3.new(3.4, 3.2, 3.2), Vector3.new(44, 1.7, 22), Color3.fromRGB(140, 200, 160), Enum.Material.Metal)
 	trashBody.Shape = Enum.PartType.Cylinder
 	trashBody.Orientation = Vector3.new(0, 0, 90)
 	local trashLid = makePart(folder, "TrashLid", Vector3.new(0.5, 3.7, 3.7), Vector3.new(44, 3.55, 22), dark, Enum.Material.Metal)
 	trashLid.Shape = Enum.PartType.Cylinder
 	trashLid.Orientation = Vector3.new(0, 0, 90)
-	local trashBand = makePart(folder, "TrashBand", Vector3.new(0.45, 3.35, 3.35), Vector3.new(44, 2.5, 22), Color3.fromRGB(110, 255, 120), Enum.Material.Neon)
+	local trashBand = makePart(folder, "TrashBand", Vector3.new(0.45, 3.35, 3.35), Vector3.new(44, 2.5, 22), Color3.fromRGB(255, 150, 200), Enum.Material.Neon)
 	trashBand.Shape = Enum.PartType.Cylinder
 	trashBand.Orientation = Vector3.new(0, 0, 90)
 	trashBand.CanCollide = false
@@ -592,7 +592,7 @@ local function buildPlayground(worldFolder: Folder)
 	prompt.RequiresLineOfSight = false
 	prompt.Parent = trashBody
 
-	-- BENCHES around the Neon Arena, each with a real Seat, facing the ring:
+	-- BENCHES around the Candy Arena, each with a real Seat, facing the ring:
 	-- two flanking the arena-to-belt path, one west, one south past the road.
 	local arenaCentre = Vector3.new(0, 0, 28)
 	buildBench(folder, "BenchNW", Vector3.new(-14, 0, -2), arenaCentre)
@@ -612,51 +612,137 @@ local function buildPlayground(worldFolder: Folder)
 	}
 end
 
+-- CANDY DECOR: pure dressing built from primitives -- lollipop trees scattered
+-- on the open lanes and rim, candy-cane poles along the belt ends and paths,
+-- gumdrops sprinkled on the cream rim, and sprinkles scattered over the two
+-- frosting paths. Everything is anchored; only the lollipop trunks collide.
+local function buildCandyDecor(worldFolder: Folder)
+	local folder = Instance.new("Folder")
+	folder.Name = "CandyDecor"
+	folder.Parent = worldFolder
+
+	local candyColors = {
+		Color3.fromRGB(255, 120, 180),
+		Color3.fromRGB(190, 130, 255),
+		Color3.fromRGB(130, 240, 180),
+		Color3.fromRGB(255, 180, 130),
+		Color3.fromRGB(255, 240, 150),
+	}
+
+	-- Lollipop trees: a thin white trunk, a big vertical candy disc and a
+	-- smaller white centre disc -- a swirl lollipop from any angle. Each disc
+	-- faces a different direction so some always face the camera.
+	local lollipopSpots = {
+		Vector3.new(-124, 0, -8), Vector3.new(124, 0, 8), Vector3.new(-124, 0, 64),
+		Vector3.new(124, 0, -64), Vector3.new(-70, 0, -44), Vector3.new(70, 0, 44),
+		Vector3.new(-40, 0, 118), Vector3.new(40, 0, 118), Vector3.new(-110, 0, -118),
+		Vector3.new(110, 0, -118),
+	}
+	for index, spot in ipairs(lollipopSpots) do
+		local color = candyColors[((index - 1) % #candyColors) + 1]
+		local trunk = makePart(folder, "LollipopTrunk" .. tostring(index), Vector3.new(7, 0.9, 0.9), spot + Vector3.new(0, 3.5, 0), Color3.fromRGB(255, 255, 255), Enum.Material.SmoothPlastic)
+		trunk.Shape = Enum.PartType.Cylinder
+		trunk.Orientation = Vector3.new(0, 0, 90)
+		local facing = (index - 1) * 36
+		local disc = makePart(folder, "LollipopDisc" .. tostring(index), Vector3.new(0.7, 5.2, 5.2), spot + Vector3.new(0, 7.8, 0), color, Enum.Material.SmoothPlastic)
+		disc.Shape = Enum.PartType.Cylinder
+		disc.Orientation = Vector3.new(0, facing, 0)
+		disc.CanCollide = false
+		local centre = makePart(folder, "LollipopCentre" .. tostring(index), Vector3.new(0.85, 2.2, 2.2), spot + Vector3.new(0, 7.8, 0), Color3.fromRGB(255, 255, 255), Enum.Material.SmoothPlastic)
+		centre.Shape = Enum.PartType.Cylinder
+		centre.Orientation = Vector3.new(0, facing, 0)
+		centre.CanCollide = false
+	end
+
+	-- Candy-cane poles: a red/white alternating stack of six short cylinders,
+	-- standing at the belt's two ends and along both frosting paths.
+	local caneSpots = {
+		Vector3.new(-100, 0, -36), Vector3.new(100, 0, -36), Vector3.new(-100, 0, -4),
+		Vector3.new(100, 0, -4), Vector3.new(-64, 0, 44), Vector3.new(64, 0, 44),
+		Vector3.new(-64, 0, -44), Vector3.new(64, 0, -44),
+	}
+	for index, spot in ipairs(caneSpots) do
+		for segment = 1, 6 do
+			local color = if segment % 2 == 1 then Color3.fromRGB(255, 255, 255) else Color3.fromRGB(255, 80, 80)
+			local piece = makePart(folder, "CandyCane" .. tostring(index) .. "_" .. tostring(segment), Vector3.new(1, 1.1, 1.1), spot + Vector3.new(0, segment - 0.5, 0), color, Enum.Material.SmoothPlastic)
+			piece.Shape = Enum.PartType.Cylinder
+			piece.Orientation = Vector3.new(0, 0, 90)
+			piece.CanCollide = false
+		end
+	end
+
+	-- Gumdrops: small squashed pastel spheres dotted along the cream rim.
+	local gumdropSpots = {
+		Vector3.new(133, 0, -60), Vector3.new(-133, 0, -60), Vector3.new(133, 0, 60),
+		Vector3.new(-133, 0, 60), Vector3.new(60, 0, 133), Vector3.new(-60, 0, 133),
+		Vector3.new(60, 0, -133), Vector3.new(-60, 0, -133), Vector3.new(133, 0, 120),
+		Vector3.new(-133, 0, -120), Vector3.new(20, 0, 133), Vector3.new(-20, 0, -133),
+		Vector3.new(133, 0, -120), Vector3.new(-133, 0, 120),
+	}
+	for index, spot in ipairs(gumdropSpots) do
+		local drop = makePart(folder, "Gumdrop" .. tostring(index), Vector3.new(1.8, 1.3, 1.8), spot + Vector3.new(0, 0.35, 0), candyColors[((index - 1) % #candyColors) + 1], Enum.Material.SmoothPlastic)
+		drop.Shape = Enum.PartType.Ball
+		drop.CanCollide = false
+	end
+
+	-- Sprinkles: tiny flat candy sticks scattered over the two frosting paths
+	-- (deterministic pseudo-random spots, kept off the belt and the plots).
+	for index = 1, 24 do
+		local onNorth = index <= 12
+		local laneIndex = if onNorth then index else index - 12
+		local x = -115 + (laneIndex - 1) * 21 + ((laneIndex * 37) % 9) - 4
+		local z = (if onNorth then -52 else 52) + ((laneIndex * 29) % 9) - 4
+		local sprinkle = makePart(folder, "Sprinkle" .. tostring(index), Vector3.new(1.5, 0.14, 0.5), Vector3.new(x, 0.55, z), candyColors[((index - 1) % #candyColors) + 1], Enum.Material.SmoothPlastic)
+		sprinkle.Orientation = Vector3.new(0, (index * 47) % 180, 0)
+		sprinkle.CanCollide = false
+	end
+end
+
 function WorldBuilder.BuildWorld()
 	local worldFolder = Instance.new("Folder")
-	worldFolder.Name = "NeonShoresWorld"
+	worldFolder.Name = "CandyIslandWorld"
 	worldFolder.Parent = Workspace
 
-	-- Island: a warm grass top on a slightly wider sand rim, floating in a deep
+	-- Island: a pastel pink frosting top on a slightly wider cream rim, floating in a bright
 	-- teal sea. The sand rim's top sits just below the grass top, so the island
 	-- edge reads as a beach from any camera angle.
-	makePart(worldFolder, "IslandSandRim", Vector3.new(276, 4, 276), Vector3.new(0, -2.25, 0), Color3.fromRGB(245, 205, 140), Enum.Material.Sand)
-	makePart(worldFolder, "IslandGround", Vector3.new(260, 4, 260), Vector3.new(0, -2, 0), Color3.fromRGB(92, 192, 82), Enum.Material.Grass)
-	local sea = makePart(worldFolder, "Sea", Vector3.new(900, 2, 900), Vector3.new(0, -5, 0), Color3.fromRGB(16, 95, 125), Enum.Material.SmoothPlastic)
+	makePart(worldFolder, "IslandSandRim", Vector3.new(276, 4, 276), Vector3.new(0, -2.25, 0), Color3.fromRGB(255, 240, 214), Enum.Material.Sand)
+	makePart(worldFolder, "IslandGround", Vector3.new(260, 4, 260), Vector3.new(0, -2, 0), Color3.fromRGB(255, 183, 213), Enum.Material.SmoothPlastic)
+	local sea = makePart(worldFolder, "Sea", Vector3.new(900, 2, 900), Vector3.new(0, -5, 0), Color3.fromRGB(30, 145, 205), Enum.Material.SmoothPlastic)
 	sea.Transparency = 0.25
 
-	-- THE NEON ARENA: the spawn plaza, a glowing ring just south of the belt.
-	-- A dark slate disc (built from flat cylinders) floats on a wider cyan neon
-	-- disc so the rim glows, with a pink neon inlay ring around the spawn point.
+	-- THE CANDY ARENA: the spawn plaza, a candy ring just south of the belt.
+	-- A cream-white disc (built from flat cylinders) floats on a wider hot-pink
+	-- disc so the rim pops, with a white inlay ring and a hot-pink core around
+	-- the spawn point.
 	-- Every few minutes a golden brainrot appears here (EconomyService's arena
 	-- event), so the ring is kept empty on purpose -- it is a stage, not a plaza.
-	local neonCyan = Color3.fromRGB(40, 230, 255)
-	local arenaGlow = makePart(worldFolder, "ArenaGlowBase", Vector3.new(0.5, 54, 54), Vector3.new(0, 0.25, 28), neonCyan, Enum.Material.Neon)
+	local arenaGlow = makePart(worldFolder, "ArenaGlowBase", Vector3.new(0.5, 54, 54), Vector3.new(0, 0.25, 28), Color3.fromRGB(255, 90, 170), Enum.Material.Neon)
 	arenaGlow.Shape = Enum.PartType.Cylinder
 	arenaGlow.Orientation = Vector3.new(0, 0, 90)
-	local arenaDisc = makePart(worldFolder, "ArenaDisc", Vector3.new(0.6, 52, 52), Vector3.new(0, 0.55, 28), Color3.fromRGB(46, 48, 62), Enum.Material.Concrete)
+	local arenaDisc = makePart(worldFolder, "ArenaDisc", Vector3.new(0.6, 52, 52), Vector3.new(0, 0.55, 28), Color3.fromRGB(255, 250, 244), Enum.Material.SmoothPlastic)
 	arenaDisc.Shape = Enum.PartType.Cylinder
 	arenaDisc.Orientation = Vector3.new(0, 0, 90)
-	local arenaRing = makePart(worldFolder, "ArenaInnerRing", Vector3.new(0.25, 34, 34), Vector3.new(0, 0.92, 28), Color3.fromRGB(255, 110, 200), Enum.Material.Neon)
+	local arenaRing = makePart(worldFolder, "ArenaInnerRing", Vector3.new(0.25, 34, 34), Vector3.new(0, 0.92, 28), Color3.fromRGB(255, 255, 255), Enum.Material.Neon)
 	arenaRing.Shape = Enum.PartType.Cylinder
 	arenaRing.Orientation = Vector3.new(0, 0, 90)
 	arenaRing.CanCollide = false
-	local arenaCore = makePart(worldFolder, "ArenaCore", Vector3.new(0.3, 26, 26), Vector3.new(0, 1, 28), Color3.fromRGB(52, 54, 68), Enum.Material.Concrete)
+	local arenaCore = makePart(worldFolder, "ArenaCore", Vector3.new(0.3, 26, 26), Vector3.new(0, 1, 28), Color3.fromRGB(255, 130, 195), Enum.Material.SmoothPlastic)
 	arenaCore.Shape = Enum.PartType.Cylinder
 	arenaCore.Orientation = Vector3.new(0, 0, 90)
 	WorldBuilder.ArenaPosition = Vector3.new(0, 0, 28)
 	-- The title sign stands on two posts over the arena's north side, facing the belt.
-	makePart(worldFolder, "TitlePostW", Vector3.new(0.8, 12, 0.8), Vector3.new(-13, 6, 6), Color3.fromRGB(255, 240, 90), Enum.Material.Neon)
-	makePart(worldFolder, "TitlePostE", Vector3.new(0.8, 12, 0.8), Vector3.new(13, 6, 6), Color3.fromRGB(255, 240, 90), Enum.Material.Neon)
-	local titleBoard = makePart(worldFolder, "TitleBoard", Vector3.new(30, 5, 0.6), Vector3.new(0, 10.5, 6), Color3.fromRGB(30, 30, 44), Enum.Material.SmoothPlastic)
-	makeSign(worldFolder, "TitleSign", titleBoard, "NEON SHORES", Color3.fromRGB(255, 240, 90), Vector3.new(0, 5, 0))
+	makePart(worldFolder, "TitlePostW", Vector3.new(0.8, 12, 0.8), Vector3.new(-13, 6, 6), Color3.fromRGB(255, 90, 170), Enum.Material.Neon)
+	makePart(worldFolder, "TitlePostE", Vector3.new(0.8, 12, 0.8), Vector3.new(13, 6, 6), Color3.fromRGB(255, 90, 170), Enum.Material.Neon)
+	local titleBoard = makePart(worldFolder, "TitleBoard", Vector3.new(30, 5, 0.6), Vector3.new(0, 10.5, 6), Color3.fromRGB(120, 60, 90), Enum.Material.SmoothPlastic)
+	makeSign(worldFolder, "TitleSign", titleBoard, "CANDY ISLAND", Color3.fromRGB(255, 240, 90), Vector3.new(0, 5, 0))
 	local arenaPost = makePart(worldFolder, "ArenaSignPost", Vector3.new(0.8, 8, 0.8), Vector3.new(0, 4, 53), Color3.fromRGB(255, 110, 200), Enum.Material.Neon)
-	makeSign(worldFolder, "ArenaSign", arenaPost, "NEON ARENA\nGOLDEN BRAINROTS APPEAR HERE!", Color3.fromRGB(255, 190, 90), Vector3.new(0, 6, 0))
+	makeSign(worldFolder, "ArenaSign", arenaPost, "CANDY ARENA\nGOLDEN BRAINROTS APPEAR HERE!", Color3.fromRGB(255, 190, 90), Vector3.new(0, 6, 0))
 	local spawn = Instance.new("SpawnLocation")
 	spawn.Name = "MainSpawn"
 	spawn.Size = Vector3.new(8, 1, 8)
 	spawn.Position = Vector3.new(0, 1.5, 28)
-	spawn.Color = Color3.fromRGB(255, 255, 255)
+	spawn.Color = Color3.fromRGB(255, 150, 200)
 	spawn.Anchored = true
 	spawn.Neutral = true
 	spawn.Parent = worldFolder
@@ -664,17 +750,17 @@ function WorldBuilder.BuildWorld()
 	-- PURPLE ZONE: the Fuse Machine, a dark cauldron of glowing purple brew at
 	-- the arena's east edge. Feed it 3 brainrots of one rarity (from the
 	-- FUSE panel) and it bubbles up 1 of the next rarity.
-	makePart(worldFolder, "FusePad", Vector3.new(13, 0.4, 13), Vector3.new(34, 0.2, 30), Color3.fromRGB(46, 48, 62), Enum.Material.Concrete)
-	local cauldron = makePart(worldFolder, "FuseCauldron", Vector3.new(5, 7, 7), Vector3.new(34, 2.5, 30), Color3.fromRGB(38, 36, 50), Enum.Material.Metal)
+	makePart(worldFolder, "FusePad", Vector3.new(13, 0.4, 13), Vector3.new(34, 0.2, 30), Color3.fromRGB(255, 244, 230), Enum.Material.SmoothPlastic)
+	local cauldron = makePart(worldFolder, "FuseCauldron", Vector3.new(5, 7, 7), Vector3.new(34, 2.5, 30), Color3.fromRGB(120, 90, 180), Enum.Material.Metal)
 	cauldron.Shape = Enum.PartType.Cylinder
 	cauldron.Orientation = Vector3.new(0, 0, 90)
-	local brew = makePart(worldFolder, "FuseBrew", Vector3.new(0.5, 6, 6), Vector3.new(34, 5.1, 30), Color3.fromRGB(190, 90, 255), Enum.Material.Neon)
+	local brew = makePart(worldFolder, "FuseBrew", Vector3.new(0.5, 6, 6), Vector3.new(34, 5.1, 30), Color3.fromRGB(200, 130, 255), Enum.Material.Neon)
 	brew.Shape = Enum.PartType.Cylinder
 	brew.Orientation = Vector3.new(0, 0, 90)
 	brew.CanCollide = false
 	makeSign(worldFolder, "FuseSign", cauldron, "FUSE MACHINE\n3 SAME RARITY = 1 RARITY UP", Color3.fromRGB(215, 150, 255), Vector3.new(0, 9, 0))
-	makePart(worldFolder, "FusePostW", Vector3.new(0.8, 9, 0.8), Vector3.new(28, 4.5, 30), Color3.fromRGB(190, 90, 255), Enum.Material.Neon)
-	makePart(worldFolder, "FusePostE", Vector3.new(0.8, 9, 0.8), Vector3.new(40, 4.5, 30), Color3.fromRGB(190, 90, 255), Enum.Material.Neon)
+	makePart(worldFolder, "FusePostW", Vector3.new(0.8, 9, 0.8), Vector3.new(28, 4.5, 30), Color3.fromRGB(180, 140, 255), Enum.Material.Neon)
+	makePart(worldFolder, "FusePostE", Vector3.new(0.8, 9, 0.8), Vector3.new(40, 4.5, 30), Color3.fromRGB(180, 140, 255), Enum.Material.Neon)
 	WorldBuilder.FuseMachinePosition = Vector3.new(34, 0, 30)
 
 	-- MAGENTA ZONE: the Gacha Capsule, mirror of the Fuse Machine at the
@@ -683,8 +769,8 @@ function WorldBuilder.BuildWorld()
 	-- glass dome full of bright mini capsules on a chunky base, with a crank
 	-- and a prize slot on its front. One spin costs real money and never,
 	-- ever lands a Common (EconomyService.RollGacha).
-	makePart(worldFolder, "GachaPad", Vector3.new(13, 0.4, 13), Vector3.new(-44, 0.2, 30), Color3.fromRGB(46, 48, 62), Enum.Material.Concrete)
-	local gachaBase = makePart(worldFolder, "GachaBase", Vector3.new(9, 4.5, 9), Vector3.new(-44, 2.25, 30), Color3.fromRGB(38, 36, 50), Enum.Material.Metal)
+	makePart(worldFolder, "GachaPad", Vector3.new(13, 0.4, 13), Vector3.new(-44, 0.2, 30), Color3.fromRGB(255, 244, 230), Enum.Material.SmoothPlastic)
+	local gachaBase = makePart(worldFolder, "GachaBase", Vector3.new(9, 4.5, 9), Vector3.new(-44, 2.25, 30), Color3.fromRGB(255, 140, 200), Enum.Material.SmoothPlastic)
 	makePart(worldFolder, "GachaTrim", Vector3.new(9.6, 0.5, 9.6), Vector3.new(-44, 4.4, 30), Color3.fromRGB(255, 110, 220), Enum.Material.Neon)
 	local gachaDome = Instance.new("Part")
 	gachaDome.Name = "GachaDome"
@@ -698,10 +784,10 @@ function WorldBuilder.BuildWorld()
 	gachaDome.Parent = worldFolder
 	-- The prize stock: ten mini capsules in toy colours, floating in the dome.
 	local capsuleColors = {
-		Color3.fromRGB(255, 110, 200), Color3.fromRGB(60, 225, 255), Color3.fromRGB(255, 230, 80),
-		Color3.fromRGB(110, 255, 120), Color3.fromRGB(255, 150, 60), Color3.fromRGB(170, 90, 255),
-		Color3.fromRGB(255, 90, 90), Color3.fromRGB(170, 255, 90), Color3.fromRGB(120, 200, 255),
-		Color3.fromRGB(255, 90, 160),
+		Color3.fromRGB(255, 170, 210), Color3.fromRGB(170, 225, 255), Color3.fromRGB(255, 240, 170),
+		Color3.fromRGB(180, 245, 195), Color3.fromRGB(255, 205, 170), Color3.fromRGB(215, 185, 255),
+		Color3.fromRGB(255, 170, 170), Color3.fromRGB(210, 250, 170), Color3.fromRGB(170, 210, 255),
+		Color3.fromRGB(255, 170, 220),
 	}
 	local capsuleOffsets = {
 		Vector3.new(2.3, 5.4, 0), Vector3.new(1.15, 5.4, 1.99), Vector3.new(-1.15, 5.4, 1.99),
@@ -726,27 +812,28 @@ function WorldBuilder.BuildWorld()
 	makePart(worldFolder, "GachaPostE", Vector3.new(0.8, 9, 0.8), Vector3.new(-38, 4.5, 30), Color3.fromRGB(255, 110, 220), Enum.Material.Neon)
 	WorldBuilder.GachaMachinePosition = Vector3.new(-44, 0, 30)
 
-	-- A short paved connector from the arena's north edge to the belt platform,
-	-- edged with cyan neon strips, and two straight roads running between the
-	-- belt and each row of bases.
-	makePart(worldFolder, "ArenaToBelt", Vector3.new(16, 0.4, 14), Vector3.new(0, 0.2, -3), Color3.fromRGB(52, 54, 68), Enum.Material.Concrete)
-	makePart(worldFolder, "PathEdgeE", Vector3.new(1.2, 0.25, 14), Vector3.new(7.4, 0.45, -3), neonCyan, Enum.Material.Neon)
-	makePart(worldFolder, "PathEdgeW", Vector3.new(1.2, 0.25, 14), Vector3.new(-7.4, 0.45, -3), neonCyan, Enum.Material.Neon)
-	makePart(worldFolder, "RoadNorth", Vector3.new(252, 0.4, 16), Vector3.new(0, 0.2, -52), Color3.fromRGB(60, 62, 76), Enum.Material.Asphalt)
-	makePart(worldFolder, "RoadSouth", Vector3.new(252, 0.4, 16), Vector3.new(0, 0.2, 52), Color3.fromRGB(60, 62, 76), Enum.Material.Asphalt)
+	-- A short frosting connector from the arena's north edge to the belt platform,
+	-- edged with white candy strips, and two straight frosting paths running
+	-- between the belt and each row of bases.
+	makePart(worldFolder, "ArenaToBelt", Vector3.new(16, 0.4, 14), Vector3.new(0, 0.2, -3), Color3.fromRGB(255, 228, 238), Enum.Material.SmoothPlastic)
+	makePart(worldFolder, "PathEdgeE", Vector3.new(1.2, 0.25, 14), Vector3.new(7.4, 0.45, -3), Color3.fromRGB(255, 255, 255), Enum.Material.Neon)
+	makePart(worldFolder, "PathEdgeW", Vector3.new(1.2, 0.25, 14), Vector3.new(-7.4, 0.45, -3), Color3.fromRGB(255, 255, 255), Enum.Material.Neon)
+	makePart(worldFolder, "RoadNorth", Vector3.new(252, 0.4, 16), Vector3.new(0, 0.2, -52), Color3.fromRGB(255, 232, 240), Enum.Material.SmoothPlastic)
+	makePart(worldFolder, "RoadSouth", Vector3.new(252, 0.4, 16), Vector3.new(0, 0.2, 52), Color3.fromRGB(255, 232, 240), Enum.Material.SmoothPlastic)
 
-	-- ORANGE ZONE: the conveyor spine. One long belt runs east-west through the
-	-- middle of the island and the bases flank it on both sides. Brainrots walk
-	-- its full length (EconomyService strides them from x -80 to x 80), big sign
-	-- over the middle, a chase-light pad row along the belt's front edge, and a
-	-- neon orange beacon post marking the zone.
-	makePart(worldFolder, "BeltPlatform", Vector3.new(192, 1, 22), Vector3.new(0, 0.25, -20), Color3.fromRGB(255, 150, 60), Enum.Material.SmoothPlastic)
-	local belt = makePart(worldFolder, "ConveyorBelt", Vector3.new(184, 2, 10), Vector3.new(0, 1, -20), Color3.fromRGB(50, 50, 60), Enum.Material.Metal)
-	makeSign(worldFolder, "ShopSign", belt, "SHOP BELT - WALK IN TO BUY", Color3.fromRGB(255, 165, 50), Vector3.new(0, 10, 0))
-	makePart(worldFolder, "BeltBeacon", Vector3.new(0.8, 11, 0.8), Vector3.new(100, 5.5, -32), Color3.fromRGB(255, 150, 40), Enum.Material.Neon)
+	-- CHOCOLATE ZONE: the conveyor spine. One long belt runs east-west through
+	-- the middle of the island and the bases flank it on both sides. Brainrots
+	-- walk its full length (EconomyService strides them from x -80 to x 80), big
+	-- sign over the middle, a chase-light pad row along the belt's front edge,
+	-- and a candy-red beacon post marking the zone. The belt stays dark
+	-- chocolate so the walkers and their labels keep their contrast.
+	makePart(worldFolder, "BeltPlatform", Vector3.new(192, 1, 22), Vector3.new(0, 0.25, -20), Color3.fromRGB(120, 72, 38), Enum.Material.SmoothPlastic)
+	local belt = makePart(worldFolder, "ConveyorBelt", Vector3.new(184, 2, 10), Vector3.new(0, 1, -20), Color3.fromRGB(74, 44, 24), Enum.Material.SmoothPlastic)
+	makeSign(worldFolder, "ShopSign", belt, "SHOP BELT - WALK IN TO BUY", Color3.fromRGB(255, 240, 170), Vector3.new(0, 10, 0))
+	makePart(worldFolder, "BeltBeacon", Vector3.new(0.8, 11, 0.8), Vector3.new(100, 5.5, -32), Color3.fromRGB(255, 90, 100), Enum.Material.Neon)
 	for slotIndex = 1, GameConfig.ConveyorMaxOnBelt do
 		local slotPosition = Vector3.new(-72 + (slotIndex - 1) * 24, 0.95, -11.5)
-		local slotPad = makePart(worldFolder, "ConveyorSlot" .. tostring(slotIndex), Vector3.new(9, 0.4, 9), slotPosition, Color3.fromRGB(255, 140, 40), Enum.Material.Neon)
+		local slotPad = makePart(worldFolder, "ConveyorSlot" .. tostring(slotIndex), Vector3.new(9, 0.4, 9), slotPosition, Color3.fromRGB(255, 170, 205), Enum.Material.Neon)
 		table.insert(WorldBuilder.ConveyorSlots, { Pad = slotPad, Position = slotPosition + Vector3.new(0, 1, 0) })
 	end
 
@@ -764,18 +851,18 @@ function WorldBuilder.BuildWorld()
 	eggDome.CanCollide = false
 	eggDome.Parent = worldFolder
 	makeSign(worldFolder, "EggSign", eggBase, "EGG MACHINE\nHATCH: " .. GameConfig.FormatCash(GameConfig.EggPrice), Color3.fromRGB(255, 120, 230), Vector3.new(0, 10, 0))
-	makePart(worldFolder, "EggBeacon", Vector3.new(0.8, 11, 0.8), Vector3.new(-122, 5.5, -20), Color3.fromRGB(255, 120, 220), Enum.Material.Neon)
+	makePart(worldFolder, "EggBeacon", Vector3.new(0.8, 11, 0.8), Vector3.new(-122, 5.5, -20), Color3.fromRGB(120, 255, 190), Enum.Material.Neon)
 	WorldBuilder.EggMachinePosition = Vector3.new(-108, 0, -4)
 
-	-- GOLD ZONE: the rebirth shrine caps the belt's EAST end, golden steps up
-	-- to a glowing crystal.
+	-- CARAMEL ZONE: the rebirth shrine caps the belt's EAST end, caramel steps
+	-- up to a glowing cream crystal.
 	for step = 1, 3 do
-		makePart(worldFolder, "ShrineStep" .. tostring(step), Vector3.new(20 - step * 3, 1, 20 - step * 3), Vector3.new(108, step * 0.5, -20), Color3.fromRGB(255, 200, 70), Enum.Material.Metal)
+		makePart(worldFolder, "ShrineStep" .. tostring(step), Vector3.new(20 - step * 3, 1, 20 - step * 3), Vector3.new(108, step * 0.5, -20), Color3.fromRGB(235, 180, 95), Enum.Material.Metal)
 	end
-	local crystal = makePart(worldFolder, "RebirthCrystal", Vector3.new(4, 8, 4), Vector3.new(108, 7, -20), Color3.fromRGB(150, 255, 255), Enum.Material.Neon)
+	local crystal = makePart(worldFolder, "RebirthCrystal", Vector3.new(4, 8, 4), Vector3.new(108, 7, -20), Color3.fromRGB(255, 240, 200), Enum.Material.Neon)
 	crystal.Orientation = Vector3.new(0, 45, 0)
 	makeSign(worldFolder, "RebirthSign", crystal, "REBIRTH SHRINE\nRESET FOR +100% INCOME", Color3.fromRGB(255, 215, 80), Vector3.new(0, 9, 0))
-	makePart(worldFolder, "ShrineBeacon", Vector3.new(0.8, 11, 0.8), Vector3.new(122, 5.5, -20), Color3.fromRGB(255, 205, 60), Enum.Material.Neon)
+	makePart(worldFolder, "ShrineBeacon", Vector3.new(0.8, 11, 0.8), Vector3.new(122, 5.5, -20), Color3.fromRGB(240, 190, 90), Enum.Material.Neon)
 	WorldBuilder.RebirthShrinePosition = Vector3.new(108, 0, -4)
 
 	-- Eight base plots FLANK the belt: four on the north side facing south
@@ -791,40 +878,46 @@ function WorldBuilder.BuildWorld()
 		buildBasePlot(basesFolder, index, origin, facing)
 	end
 
-	-- GREEN ZONE: the high hill, a grass ridge along the south beach between
-	-- the south bases and the sea. Stand up here and the Big Wave cannot take you.
-	local hill = makePart(worldFolder, "ShelterHill", Vector3.new(56, WorldBuilder.HighGroundTopY, 20), Vector3.new(0, WorldBuilder.HighGroundTopY / 2, 114), Color3.fromRGB(92, 192, 82), Enum.Material.Grass)
-	makeSign(worldFolder, "ShelterSign", hill, "HIGH HILL\nSAFE FROM THE BIG WAVE", Color3.fromRGB(120, 255, 140), Vector3.new(0, 16, 0))
-	makePart(worldFolder, "HillBeacon", Vector3.new(0.8, 11, 0.8), Vector3.new(34, 5.5, 114), Color3.fromRGB(110, 255, 120), Enum.Material.Neon)
+	-- CHOCOLATE ZONE: the high hill, a chocolate ridge along the south beach
+	-- between the south bases and the sea, with a lighter melted-chocolate cap.
+	-- Stand up here and the Big Wave cannot take you.
+	local hill = makePart(worldFolder, "ShelterHill", Vector3.new(56, WorldBuilder.HighGroundTopY, 20), Vector3.new(0, WorldBuilder.HighGroundTopY / 2, 114), Color3.fromRGB(111, 66, 35), Enum.Material.SmoothPlastic)
+	makePart(worldFolder, "HillCap", Vector3.new(56.6, 1.2, 20.6), Vector3.new(0, WorldBuilder.HighGroundTopY + 0.3, 114), Color3.fromRGB(150, 95, 55), Enum.Material.SmoothPlastic)
+	makeSign(worldFolder, "ShelterSign", hill, "HIGH HILL\nSAFE FROM THE BIG WAVE", Color3.fromRGB(255, 240, 200), Vector3.new(0, 16, 0))
+	makePart(worldFolder, "HillBeacon", Vector3.new(0.8, 11, 0.8), Vector3.new(34, 5.5, 114), Color3.fromRGB(255, 130, 190), Enum.Material.Neon)
 
 	-- Palm trees in neat clusters: the beach rim, the arena sides and the gaps
 	-- between belt and bases -- never under a base plot, the belt or the arena.
-	-- Every other palm carries a neon glowfruit.
+	-- Every other palm carries a candy glowfruit.
 	local palmSpots = {
 		{ Position = Vector3.new(-120, 0, -40), Glow = true, Color = Color3.fromRGB(255, 120, 220) },
 		{ Position = Vector3.new(120, 0, -44), Glow = false, Color = Color3.fromRGB(255, 220, 80) },
-		{ Position = Vector3.new(-120, 0, 40), Glow = true, Color = Color3.fromRGB(60, 225, 255) },
+		{ Position = Vector3.new(-120, 0, 40), Glow = true, Color = Color3.fromRGB(170, 140, 255) },
 		{ Position = Vector3.new(124, 0, 36), Glow = false, Color = Color3.fromRGB(255, 220, 80) },
 		{ Position = Vector3.new(-48, 0, -38), Glow = false, Color = Color3.fromRGB(255, 220, 80) },
 		{ Position = Vector3.new(48, 0, -38), Glow = true, Color = Color3.fromRGB(255, 220, 80) },
 		{ Position = Vector3.new(-60, 0, 20), Glow = true, Color = Color3.fromRGB(255, 220, 80) },
-		{ Position = Vector3.new(60, 0, 20), Glow = false, Color = Color3.fromRGB(60, 225, 255) },
+		{ Position = Vector3.new(60, 0, 20), Glow = false, Color = Color3.fromRGB(170, 140, 255) },
 		{ Position = Vector3.new(0, 0, -38), Glow = true, Color = Color3.fromRGB(255, 120, 220) },
 		{ Position = Vector3.new(-88, 0, 120), Glow = false, Color = Color3.fromRGB(255, 120, 220) },
-		{ Position = Vector3.new(88, 0, 120), Glow = true, Color = Color3.fromRGB(60, 225, 255) },
+		{ Position = Vector3.new(88, 0, 120), Glow = true, Color = Color3.fromRGB(170, 140, 255) },
 		{ Position = Vector3.new(-124, 0, 20), Glow = false, Color = Color3.fromRGB(255, 220, 80) },
 	}
 	for palmIndex, spot in ipairs(palmSpots) do
 		buildPalm(worldFolder, "Palm" .. tostring(palmIndex), spot.Position, spot.Glow, spot.Color)
 	end
 
-	-- The Neon Playground fills the dead north strip behind the north bases,
+	-- The Candy Playground fills the dead north strip behind the north bases,
 	-- and its benches ring the arena (built inside buildPlayground).
 	buildPlayground(worldFolder)
 
-	-- The Big Wave wall itself: a huge sheet of water with a white foam crest,
-	-- tweened smoothly across the island by TsunamiService.
-	local wall = makePart(worldFolder, "TsunamiWall", Vector3.new(280, 30, 6), Vector3.new(-165, 12, 0), Color3.fromRGB(30, 110, 230), Enum.Material.SmoothPlastic)
+	-- Candy dressing over the whole island: lollipop trees, candy-cane poles,
+	-- gumdrops on the rim and sprinkles on the paths.
+	buildCandyDecor(worldFolder)
+
+	-- The Big Wave wall itself: a huge sheet of strawberry-pink soda with a
+	-- white foam crest, tweened smoothly across the island by TsunamiService.
+	local wall = makePart(worldFolder, "TsunamiWall", Vector3.new(280, 30, 6), Vector3.new(-165, 12, 0), Color3.fromRGB(255, 110, 160), Enum.Material.SmoothPlastic)
 	wall.Transparency = 0.3
 	wall.CanCollide = false
 	WorldBuilder.TsunamiWall = wall

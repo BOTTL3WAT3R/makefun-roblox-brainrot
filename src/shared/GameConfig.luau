@@ -1,12 +1,12 @@
 -- GameConfig.luau (ModuleScript, ReplicatedStorage.Shared)
--- Neon Shores -- every tunable number for the whole game lives here,
+-- Candy Island -- every tunable number for the whole game lives here,
 -- so the economy, the steal rules, the Big Wave cycle and the rebirth ladder stay in one place.
 
 local GameConfig = {}
 
 -- Game identity
-GameConfig.GameTitle = "Neon Shores"
-GameConfig.WorldName = "Neon Shores"
+GameConfig.GameTitle = "Candy Island"
+GameConfig.WorldName = "Candy Island"
 GameConfig.Tagline = "Buy the glow. Guard the glow. Outrun the Big Wave."
 GameConfig.StartingCash = 100
 GameConfig.MaxPlacedPerBase = 10

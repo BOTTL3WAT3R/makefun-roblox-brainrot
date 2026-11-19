@@ -1,8 +1,8 @@
 -- EconomyService.luau (ModuleScript, ServerScriptService.Server)
--- Neon Shores -- the cash engine: the per-second income tick for every
+-- Candy Island -- the cash engine: the per-second income tick for every
 -- placed brainrot, buying from the walking shop belt, hatching eggs with a mutation
 -- roll, spinning the premium gacha capsule by the arena, placing a fresh brainrot
--- on a free base pad, selling one back, and the Neon
+-- on a free base pad, selling one back, and the Candy
 -- Arena event that drops a golden brainrot on the spawn ring every few minutes.
 -- Every model it spawns is handed to AnimationService so it bobs (and spins /
 -- sparkles when rare).
@@ -397,7 +397,7 @@ function EconomyService.StartConveyorLoop()
 	end)
 end
 
--- NEON ARENA EVENT: every 150 seconds (while anyone is playing) a GOLDEN
+-- CANDY ARENA EVENT: every 150 seconds (while anyone is playing) a GOLDEN
 -- brainrot -- a random Epic-or-higher character wearing the Gold mutation --
 -- appears on the arena ring under a beam of golden light. It is touch-driven
 -- like belt buying: the first player to grab it keeps it on a free base pad.
@@ -462,7 +462,7 @@ local function spawnArenaBrainrot()
 			Spin = shouldSpin(character.Rarity),
 		})
 	end)
-	notifyAllPlayers("A GOLDEN " .. character.Name .. " appeared in the NEON ARENA! First to grab it keeps it!")
+	notifyAllPlayers("A GOLDEN " .. character.Name .. " appeared in the CANDY ARENA! First to grab it keeps it!")
 
 	local claimed = false
 	local function cleanup()

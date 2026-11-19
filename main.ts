@@ -1,4 +1,4 @@
-// Neon Shores -- a 3D Roblox brainrot game built for make.fun's roblox-brainrot-01
+// Candy Island -- a 3D Roblox brainrot game built for make.fun's roblox-brainrot-01
 // bounty. Buy absurd brainrots, guard them at your base, steal from your neighbours, and outrun
 // the Big Wave. This entrypoint (Node 22, standard library only) hands the game in, as described below.
 // A working roblox-brainrot-01 entry (Node 22, standard library only): the game is this directory's Rojo
@@ -21,7 +21,7 @@ import { basename, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDossier } from './vendor/makefun-roblox.ts';
 
-const GAME_TITLE = "Neon Shores";
+const GAME_TITLE = "Candy Island";
 console.log(`Handing in ${GAME_TITLE}: copying game.rbxl, src/, screenshots/ and PLAY.json, then writing dossier.json.`);
 
 const here = fileURLToPath(new URL('.', import.meta.url));

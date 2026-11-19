@@ -1,5 +1,5 @@
 -- AnimationService.luau (ModuleScript, ServerScriptService.Server)
--- Neon Shores -- the animation layer. The world itself stays deliberately simple;
+-- Candy Island -- the animation layer. The world itself stays deliberately simple;
 -- all the motion lives on the collectibles, like the big tycoon games do it:
 --   * every placed brainrot gently bobs, and the top rarities (Mythic and above)
 --     also slowly spin, driven by ONE Heartbeat loop for the whole game;
@@ -235,10 +235,17 @@ function AnimationService.StartEggPulse(domePart: BasePart?)
 	tween:Play()
 end
 
--- Conveyor chase lights: one pad glows bright at a time, cycling fast (0.15s per
--- step) along the belt's front edge, echoing the walkers striding past above it.
-local BELT_DIM = Color3.fromRGB(255, 140, 40)
-local BELT_BRIGHT = Color3.fromRGB(255, 244, 190)
+-- Conveyor chase lights: the pads wear a pastel candy palette (pink, mint, baby
+-- blue, lavender, peach) and one pad flashes white at a time, cycling fast
+-- (0.15s per step) along the belt's front edge, echoing the walkers above it.
+local BELT_COLORS = {
+	Color3.fromRGB(255, 170, 205),
+	Color3.fromRGB(170, 240, 195),
+	Color3.fromRGB(170, 215, 255),
+	Color3.fromRGB(215, 185, 255),
+	Color3.fromRGB(255, 205, 165),
+}
+local BELT_BRIGHT = Color3.fromRGB(255, 255, 255)
 
 function AnimationService.StartBeltLights(slots: { any }?)
 	if not slots or #slots == 0 then
@@ -250,7 +257,7 @@ function AnimationService.StartBeltLights(slots: { any }?)
 			for index, slot in ipairs(slots) do
 				local pad = slot and slot.Pad
 				if pad and pad.Parent then
-					pad.Color = if index == highlight then BELT_BRIGHT else BELT_DIM
+					pad.Color = if index == highlight then BELT_BRIGHT else BELT_COLORS[((index - 1) % #BELT_COLORS) + 1]
 				end
 			end
 			highlight += 1

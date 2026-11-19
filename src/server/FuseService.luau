@@ -1,5 +1,5 @@
 -- FuseService.luau (ModuleScript, ServerScriptService.Server)
--- Neon Shores -- the Fuse Machine by the plaza: hand over 3 placed brainrots of
+-- Candy Island -- the Fuse Machine by the plaza: hand over 3 placed brainrots of
 -- the SAME rarity and they are consumed into 1 random brainrot of the NEXT
 -- rarity tier, with a mutation roll kinder than the egg's (55% Normal, 25% Gold,
 -- 13% Diamond, 7% Rainbow -- or 40/32/18/10 under a Lucky Charm boost). Fusing is free; Transcendent, the top

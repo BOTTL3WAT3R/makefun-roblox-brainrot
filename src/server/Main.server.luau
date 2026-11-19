@@ -1,8 +1,8 @@
 -- Main.server.luau (Script, ServerScriptService.Server)
--- Neon Shores -- the server bootstrap. It sets the golden-hour lighting, builds the
+-- Candy Island -- the server bootstrap. It sets the bright midday lighting, builds the
 -- world, creates the RemoteEvents the client talks through, hands each player a base
 -- plot, keeps leaderstats in step with PlayerData, and starts every service loop:
--- income, conveyor, the Neon Arena golden-brainrot event, stealing, the Big Wave
+-- income, conveyor, the Candy Arena golden-brainrot event, stealing, the Big Wave
 -- cycle, the Rebirth Shrine watch and the AnimationService dressing (egg pulse and
 -- belt chase lights). Snapshots carry the player's current mission line for the HUD.
 
@@ -26,14 +26,14 @@ local RebirthService = require(ServerModules:WaitForChild("RebirthService"))
 local AnimationService = require(ServerModules:WaitForChild("AnimationService"))
 local PlaygroundService = require(ServerModules:WaitForChild("PlaygroundService"))
 
--- 0. Golden hour: the sun sits low, the air is peachy, and only the neon is bright
--- enough to bloom. This is the single biggest screenshot win in the game.
-local function setupGoldenHourLighting()
-	Lighting.ClockTime = 16.9
-	Lighting.Brightness = 2
-	Lighting.Ambient = Color3.fromRGB(161, 117, 97)
-	Lighting.OutdoorAmbient = Color3.fromRGB(176, 129, 106)
-	Lighting.FogColor = Color3.fromRGB(252, 183, 140)
+-- 0. Candy midday: a bright blue sky and soft candy light, with only a whisper
+-- of bloom -- the pastel colours do the talking now, not the glow.
+local function setupCandyMiddayLighting()
+	Lighting.ClockTime = 13.8
+	Lighting.Brightness = 3
+	Lighting.Ambient = Color3.fromRGB(180, 205, 235)
+	Lighting.OutdoorAmbient = Color3.fromRGB(200, 222, 245)
+	Lighting.FogColor = Color3.fromRGB(190, 226, 252)
 	Lighting.FogStart = 150
 	Lighting.FogEnd = 900
 	for _, child in ipairs(Lighting:GetChildren()) do
@@ -42,27 +42,27 @@ local function setupGoldenHourLighting()
 		end
 	end
 	local bloom = Instance.new("BloomEffect")
-	bloom.Name = "NeonBloom"
-	bloom.Intensity = 0.6
+	bloom.Name = "CandyBloom"
+	bloom.Intensity = 0.15
 	bloom.Size = 24
 	bloom.Threshold = 0.85
 	bloom.Parent = Lighting
 	local sunRays = Instance.new("SunRaysEffect")
-	sunRays.Name = "DuskSunRays"
-	sunRays.Intensity = 0.08
+	sunRays.Name = "MiddaySunRays"
+	sunRays.Intensity = 0.02
 	sunRays.Spread = 0.8
 	sunRays.Parent = Lighting
 	local atmosphere = Instance.new("Atmosphere")
-	atmosphere.Name = "DuskAtmosphere"
-	atmosphere.Density = 0.25
+	atmosphere.Name = "MiddayAtmosphere"
+	atmosphere.Density = 0.2
 	atmosphere.Offset = 0.1
-	atmosphere.Color = Color3.fromRGB(255, 199, 158)
-	atmosphere.Decay = Color3.fromRGB(209, 140, 102)
-	atmosphere.Glare = 0.3
-	atmosphere.Haze = 1.5
+	atmosphere.Color = Color3.fromRGB(235, 245, 255)
+	atmosphere.Decay = Color3.fromRGB(190, 215, 240)
+	atmosphere.Glare = 0.15
+	atmosphere.Haze = 1
 	atmosphere.Parent = Lighting
 end
-setupGoldenHourLighting()
+setupCandyMiddayLighting()
 
 -- 1. The world exists before anyone joins.
 local worldFolder = WorldBuilder.BuildWorld()
@@ -203,7 +203,7 @@ local function onPlayerAdded(player: Player)
 		pushStateToPlayer(player)
 	end)
 
-	remotes.Notify:FireClient(player, "Welcome to Neon Shores! Buy a brainrot from the belt, guard it at your base, and outrun the Big Wave!")
+	remotes.Notify:FireClient(player, "Welcome to Candy Island! Buy a brainrot from the belt, guard it at your base, and outrun the Big Wave!")
 	pushStateToPlayer(player)
 end
 

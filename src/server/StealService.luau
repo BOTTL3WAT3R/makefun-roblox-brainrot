@@ -1,5 +1,5 @@
 -- StealService.luau (ModuleScript, ServerScriptService.Server)
--- Neon Shores -- the tension engine: press E on another player's unlocked
+-- Candy Island -- the tension engine: press E on another player's unlocked
 -- brainrot (a ProximityPrompt rides on every placed model, like the big games)
 -- to rip it off its pad and carry it hoisted above your head, slowed down, while
 -- its owner chases you. Reach your own base to keep it. A locked base raises

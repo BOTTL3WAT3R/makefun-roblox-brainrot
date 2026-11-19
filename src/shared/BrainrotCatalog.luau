@@ -1,5 +1,5 @@
 -- BrainrotCatalog.luau (ModuleScript, ReplicatedStorage.Shared)
--- Neon Shores -- the full original cast of 42 absurd meme characters.
+-- Candy Island -- the full original cast of 42 absurd meme characters.
 -- Every brainrot is built from primitive Parts at runtime: a body, a head and one silly
 -- accessory, painted from the colour recipe below. No character here copies any other game:
 -- the names, shapes and jokes are this game's own.

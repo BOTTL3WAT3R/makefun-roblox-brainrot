@@ -1,5 +1,5 @@
 -- Hud.client.luau (LocalScript, StarterPlayerScripts.Client)
--- Neon Shores -- the heads-up display over the 3D world: cash, income per second,
+-- Candy Island -- the heads-up display over the 3D world: cash, income per second,
 -- rebirth multiplier and lock state in a panel at the TOP CENTRE (Roblox's own menu
 -- buttons cover the top-left corner, so nothing important lives there), a big Big Wave
 -- countdown banner under it, a slim mission bar under the banner, a toast line for
@@ -19,7 +19,7 @@ local player = Players.LocalPlayer
 local remotes = ReplicatedStorage:WaitForChild("Remotes")
 
 local gui = Instance.new("ScreenGui")
-gui.Name = "NeonHud"
+gui.Name = "CandyHud"
 gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
@@ -178,7 +178,7 @@ end)
 
 -- Roblox's default camera scripts swallow some keys, so the dash is bound through
 -- ContextActionService, which hears LeftShift even while the camera is listening.
-ContextActionService:BindAction("NeonDash", function(_actionName, inputState)
+ContextActionService:BindAction("CandyDash", function(_actionName, inputState)
 	if inputState == Enum.UserInputState.Begin then
 		remotes:WaitForChild("RequestDash"):FireServer()
 	end
