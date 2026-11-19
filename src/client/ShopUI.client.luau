@@ -3,7 +3,8 @@
 -- the whole cast by rarity with prices and income (buying sends the brainrot straight to a
 -- free pad at your base), a MY BASE panel listing what you own with a SELL button each, an
 -- INDEX panel grid of the whole 36-character cast that lights up in rarity colours for the
--- ones you own, and the EGG and REBIRTH buttons. Panels open from the right-hand side,
+-- ones you own, a FUSE panel that trades 3 same-rarity brainrots up a tier, and the EGG
+-- and REBIRTH buttons. Panels open from the right-hand side,
 -- away from the top-left corner where Roblox draws its own menu.
 
 local Players = game:GetService("Players")
@@ -206,6 +207,196 @@ end
 
 remotes:WaitForChild("StateUpdate").OnClientEvent:Connect(rebuildIndexPanel)
 
+-- Fuse panel: pick 3 placed brainrots of the same rarity and trade them up
+-- into 1 of the next rarity. The grid mirrors the latest state snapshot; the
+-- server re-validates everything, so this panel is only ever a picker.
+local fusePanel = Instance.new("Frame")
+fusePanel.Name = "FusePanel"
+fusePanel.AnchorPoint = Vector2.new(1, 0)
+fusePanel.Position = UDim2.new(1, -14, 0, 90)
+fusePanel.Size = UDim2.fromOffset(380, 460)
+fusePanel.BackgroundColor3 = Color3.fromRGB(22, 22, 34)
+fusePanel.BackgroundTransparency = 0.1
+fusePanel.Visible = false
+fusePanel.Parent = gui
+
+local fuseTitle = Instance.new("TextLabel")
+fuseTitle.Name = "FuseTitle"
+fuseTitle.Size = UDim2.new(1, 0, 0, 44)
+fuseTitle.BackgroundTransparency = 1
+fuseTitle.Text = "FUSE MACHINE"
+fuseTitle.TextColor3 = Color3.fromRGB(215, 150, 255)
+fuseTitle.TextSize = 26
+fuseTitle.Font = Enum.Font.FredokaOne
+fuseTitle.Parent = fusePanel
+
+local fuseHint = Instance.new("TextLabel")
+fuseHint.Name = "FuseHint"
+fuseHint.Position = UDim2.fromOffset(10, 44)
+fuseHint.Size = UDim2.new(1, -20, 0, 38)
+fuseHint.BackgroundTransparency = 1
+fuseHint.Text = "Pick 3 brainrots of the same rarity -> get 1 of the next rarity!"
+fuseHint.TextColor3 = Color3.fromRGB(200, 200, 215)
+fuseHint.TextSize = 15
+fuseHint.Font = Enum.Font.FredokaOne
+fuseHint.TextWrapped = true
+fuseHint.Parent = fusePanel
+
+local fuseScroll = Instance.new("ScrollingFrame")
+fuseScroll.Name = "FuseGrid"
+fuseScroll.Position = UDim2.fromOffset(6, 86)
+fuseScroll.Size = UDim2.new(1, -12, 1, -142)
+fuseScroll.BackgroundTransparency = 1
+fuseScroll.BorderSizePixel = 0
+fuseScroll.ScrollBarThickness = 8
+fuseScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+fuseScroll.CanvasSize = UDim2.fromOffset(0, 0)
+fuseScroll.Parent = fusePanel
+local fuseLayout = Instance.new("UIGridLayout")
+fuseLayout.CellSize = UDim2.fromOffset(118, 86)
+fuseLayout.CellPadding = UDim2.fromOffset(6, 6)
+fuseLayout.SortOrder = Enum.SortOrder.LayoutOrder
+fuseLayout.Parent = fuseScroll
+
+local fuseAction = Instance.new("TextButton")
+fuseAction.Name = "FuseAction"
+fuseAction.AnchorPoint = Vector2.new(0, 1)
+fuseAction.Position = UDim2.new(0, 6, 1, -6)
+fuseAction.Size = UDim2.new(1, -12, 0, 44)
+fuseAction.BackgroundColor3 = Color3.fromRGB(70, 70, 85)
+fuseAction.TextColor3 = Color3.fromRGB(255, 255, 255)
+fuseAction.TextSize = 19
+fuseAction.Font = Enum.Font.FredokaOne
+fuseAction.Text = "FUSE (0/3)"
+fuseAction.Active = false
+fuseAction.AutoButtonColor = false
+fuseAction.Parent = fusePanel
+
+local fuseSelection: { [number]: boolean } = {}
+local fusePlaced: { any } = {}
+local fuseCells: { TextButton } = {}
+
+local function selectedFuseUids(): { number }
+	local uids = {}
+	for uid in pairs(fuseSelection) do
+		table.insert(uids, uid)
+	end
+	return uids
+end
+
+local function refreshFuseAction()
+	local uids = selectedFuseUids()
+	local sharedRarity: string? = nil
+	local mixed = false
+	for _, placed in ipairs(fusePlaced) do
+		if fuseSelection[placed.Uid] then
+			if sharedRarity == nil then
+				sharedRarity = placed.Rarity
+			elseif placed.Rarity ~= sharedRarity then
+				mixed = true
+			end
+		end
+	end
+	if #uids < 3 then
+		fuseAction.Text = "FUSE (" .. tostring(#uids) .. "/3)"
+		fuseAction.BackgroundColor3 = Color3.fromRGB(70, 70, 85)
+		fuseAction.Active = false
+	elseif mixed then
+		fuseAction.Text = "NEED 3 OF SAME RARITY"
+		fuseAction.BackgroundColor3 = Color3.fromRGB(120, 60, 60)
+		fuseAction.Active = false
+	elseif sharedRarity == "Brainrot God" then
+		fuseAction.Text = "MAX RARITY - CANNOT FUSE"
+		fuseAction.BackgroundColor3 = Color3.fromRGB(120, 60, 60)
+		fuseAction.Active = false
+	else
+		fuseAction.Text = "FUSE (3/3)"
+		fuseAction.BackgroundColor3 = Color3.fromRGB(150, 90, 220)
+		fuseAction.Active = true
+	end
+end
+
+local function refreshFuseCells()
+	for _, cell in ipairs(fuseCells) do
+		local uid = cell:GetAttribute("Uid")
+		local rarity = cell:GetAttribute("Rarity")
+		local label = cell:FindFirstChildOfClass("TextLabel")
+		if uid and fuseSelection[uid] then
+			cell.BackgroundColor3 = BrainrotCatalog.RarityColors[rarity] or Color3.fromRGB(150, 90, 220)
+			if label then
+				label.TextColor3 = Color3.fromRGB(20, 20, 28)
+			end
+		else
+			cell.BackgroundColor3 = Color3.fromRGB(42, 42, 56)
+			if label then
+				label.TextColor3 = Color3.fromRGB(200, 200, 215)
+			end
+		end
+	end
+	refreshFuseAction()
+end
+
+local function rebuildFusePanel(snapshot: any)
+	fusePlaced = snapshot.Placed
+	local stillPlaced: { [number]: boolean } = {}
+	for _, placed in ipairs(snapshot.Placed) do
+		stillPlaced[placed.Uid] = true
+	end
+	for uid in pairs(fuseSelection) do
+		if not stillPlaced[uid] then
+			fuseSelection[uid] = nil
+		end
+	end
+	for _, cell in ipairs(fuseCells) do
+		cell:Destroy()
+	end
+	fuseCells = {}
+	for cellIndex, placed in ipairs(snapshot.Placed) do
+		local cell = Instance.new("TextButton")
+		cell.Name = "FuseCell_" .. tostring(placed.Uid)
+		cell.LayoutOrder = cellIndex
+		cell.BackgroundColor3 = Color3.fromRGB(42, 42, 56)
+		cell.Text = ""
+		cell.AutoButtonColor = false
+		cell:SetAttribute("Uid", placed.Uid)
+		cell:SetAttribute("Rarity", placed.Rarity)
+		local label = Instance.new("TextLabel")
+		label.Size = UDim2.new(1, -8, 1, -8)
+		label.Position = UDim2.fromOffset(4, 4)
+		label.BackgroundTransparency = 1
+		local mutationText = if placed.Mutation == "Normal" then "" else " " .. placed.Mutation
+		label.Text = string.format("%s%s\n%s\n$%d/s", placed.Name, mutationText, placed.Rarity, placed.IncomePerSecond)
+		label.TextColor3 = Color3.fromRGB(200, 200, 215)
+		label.TextSize = 14
+		label.Font = Enum.Font.FredokaOne
+		label.TextWrapped = true
+		label.Parent = cell
+		cell.Activated:Connect(function()
+			if fuseSelection[placed.Uid] then
+				fuseSelection[placed.Uid] = nil
+			elseif #selectedFuseUids() < 3 then
+				fuseSelection[placed.Uid] = true
+			end
+			refreshFuseCells()
+		end)
+		cell.Parent = fuseScroll
+		table.insert(fuseCells, cell)
+	end
+	refreshFuseCells()
+end
+
+remotes:WaitForChild("StateUpdate").OnClientEvent:Connect(rebuildFusePanel)
+
+fuseAction.Activated:Connect(function()
+	local uids = selectedFuseUids()
+	if #uids ~= 3 then
+		return
+	end
+	fuseSelection = {}
+	remotes:WaitForChild("FuseBrainrots"):FireServer(uids)
+	refreshFuseCells()
+end)
+
 -- Side buttons: SHOP, MY BASE, EGG and REBIRTH, stacked down the right edge.
 local function makeSideButton(name: string, yOffset: number, text: string, color: Color3, onClick: () -> ()): TextButton
 	local button = Instance.new("TextButton")
@@ -227,12 +418,14 @@ makeSideButton("ShopButton", 90, "SHOP", Color3.fromRGB(60, 170, 80), function()
 	shopPanel.Visible = not shopPanel.Visible
 	basePanel.Visible = false
 	indexPanel.Visible = false
+	fusePanel.Visible = false
 end)
 
 makeSideButton("BaseButton", 152, "MY BASE", Color3.fromRGB(80, 120, 220), function()
 	basePanel.Visible = not basePanel.Visible
 	shopPanel.Visible = false
 	indexPanel.Visible = false
+	fusePanel.Visible = false
 end)
 
 makeSideButton("EggButton", 214, "EGG " .. GameConfig.FormatCash(GameConfig.EggPrice), Color3.fromRGB(230, 90, 180), function()
@@ -247,6 +440,14 @@ makeSideButton("IndexButton", 338, "INDEX", Color3.fromRGB(150, 90, 220), functi
 	indexPanel.Visible = not indexPanel.Visible
 	shopPanel.Visible = false
 	basePanel.Visible = false
+	fusePanel.Visible = false
+end)
+
+makeSideButton("FuseButton", 400, "FUSE", Color3.fromRGB(170, 70, 230), function()
+	fusePanel.Visible = not fusePanel.Visible
+	shopPanel.Visible = false
+	basePanel.Visible = false
+	indexPanel.Visible = false
 end)
 
 remotes:WaitForChild("StateUpdate").OnClientEvent:Connect(function(snapshot: any)

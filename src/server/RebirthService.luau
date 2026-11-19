@@ -65,7 +65,7 @@ end
 
 -- Stepping up to the shrine's crystal offers the rebirth; the REBIRTH button confirms it.
 function RebirthService.WatchShrineProximity()
-	local shrinePosition = Vector3.new(-45, 0, -104)
+	local shrinePosition = Vector3.new(-38, 0, -56)
 	task.spawn(function()
 		while true do
 			task.wait(1)

@@ -21,7 +21,6 @@ local EconomyService = {}
 
 local rng = Random.new()
 local remotes: { [string]: RemoteEvent } = {}
-local conveyorCharacters: { [number]: { Character: any, Model: Model } } = {}
 
 function EconomyService.BindRemotes(remoteFolder: Folder)
 	for _, child in ipairs(remoteFolder:GetChildren()) do
@@ -160,66 +159,80 @@ function EconomyService.SellPlacedBrainrot(state: any, uid: number): boolean
 	return true
 end
 
--- Conveyor belt: keep fresh brainrots rolling past the shop row; walking into one buys it.
+-- Conveyor belt: brainrots WALK the belt from the west end to the east end,
+-- like the big steal-a-brainrot games. Walking into one mid-stride buys it;
+-- reaching the far end unclaimed despawns it. Travel time is the lifetime.
+local BELT_Z = -92
+local BELT_Y = 2
+local BELT_START_X = -52
+local BELT_END_X = 52
+local BELT_WALK_SPEED = 6
+
+local beltWalkers: { [Model]: { Character: any, Model: Model } } = {}
+local beltWalkerCount = 0
+
+local function removeBeltWalker(model: Model)
+	if beltWalkers[model] then
+		beltWalkers[model] = nil
+		beltWalkerCount -= 1
+	end
+end
+
 local function spawnConveyorBrainrot()
-	for slotIndex, slot in ipairs(WorldBuilder.ConveyorSlots) do
-		if conveyorCharacters[slotIndex] == nil then
-			local character = BrainrotCatalog.Characters[rng:NextInteger(1, #BrainrotCatalog.Characters)]
-			local model = WorldBuilder.BuildBrainrotModel(character, "Normal")
-			model:PivotTo(CFrame.new(slot.Position))
-			for _, piece in ipairs(model:GetDescendants()) do
-				if piece:IsA("BasePart") then
-					piece.Anchored = true
-				end
-			end
-			local priceSign = model:FindFirstChild("IncomeLabel", true)
-			model.Parent = Workspace
-			pcall(function()
-				AnimationService.Register(model, {
-					Rarity = character.Rarity,
-					Mutation = "Normal",
-					Spin = character.Rarity == "Mythic" or character.Rarity == "Brainrot God",
-				})
-			end)
-			conveyorCharacters[slotIndex] = { Character = character, Model = model }
-			task.delay(GameConfig.ConveyorLifetimeSeconds, function()
-				local current = conveyorCharacters[slotIndex]
-				if current and current.Model == model then
-					conveyorCharacters[slotIndex] = nil
-					pcall(function()
-						AnimationService.Unregister(model)
-					end)
-					model:Destroy()
-				end
-			end)
-			-- Touching the belt brainrot buys it, if the walker can pay and has a free pad.
-			local body = model:FindFirstChild("Body")
-			if body then
-				body.Touched:Connect(function(hit)
-					local characterModel = hit.Parent
-					local humanoid = characterModel and characterModel:FindFirstChildOfClass("Humanoid")
-					if not humanoid then
-						return
-					end
-					local player = Players:GetPlayerFromCharacter(characterModel)
-					if not player then
-						return
-					end
-					local state = PlayerData.GetState(player)
-					if not state then
-						return
-					end
-					if EconomyService.BuyCharacter(state, character.Id) then
-						conveyorCharacters[slotIndex] = nil
-						pcall(function()
-							AnimationService.Unregister(model)
-						end)
-						model:Destroy()
-					end
-				end)
-			end
-			return
+	if beltWalkerCount >= GameConfig.ConveyorMaxOnBelt then
+		return
+	end
+	local character = BrainrotCatalog.Characters[rng:NextInteger(1, #BrainrotCatalog.Characters)]
+	local model = WorldBuilder.BuildBrainrotModel(character, "Normal")
+	model:PivotTo(CFrame.new(Vector3.new(BELT_START_X, BELT_Y, BELT_Z)) * CFrame.Angles(0, math.rad(-90), 0))
+	for _, piece in ipairs(model:GetDescendants()) do
+		if piece:IsA("BasePart") then
+			piece.Anchored = true
 		end
+	end
+	model.Parent = Workspace
+	beltWalkers[model] = { Character = character, Model = model }
+	beltWalkerCount += 1
+	pcall(function()
+		AnimationService.RegisterWalker(model, {
+			Speed = BELT_WALK_SPEED,
+			EndX = BELT_END_X,
+			Rarity = character.Rarity,
+			Mutation = "Normal",
+			OnArrive = function(arrivedModel: Model)
+				removeBeltWalker(arrivedModel)
+				arrivedModel:Destroy()
+			end,
+		})
+	end)
+	-- Touching the walking brainrot buys it, if the player can pay and has a free pad.
+	local body = model:FindFirstChild("Body")
+	if body then
+		body.Touched:Connect(function(hit)
+			if not beltWalkers[model] then
+				return
+			end
+			local characterModel = hit.Parent
+			local humanoid = characterModel and characterModel:FindFirstChildOfClass("Humanoid")
+			if not humanoid then
+				return
+			end
+			local player = Players:GetPlayerFromCharacter(characterModel)
+			if not player then
+				return
+			end
+			local state = PlayerData.GetState(player)
+			if not state then
+				return
+			end
+			if EconomyService.BuyCharacter(state, character.Id) then
+				removeBeltWalker(model)
+				pcall(function()
+					AnimationService.Unregister(model)
+				end)
+				model:Destroy()
+			end
+		end)
 	end
 end
 

@@ -19,6 +19,7 @@ local PlayerData = require(ServerModules:WaitForChild("PlayerData"))
 local WorldBuilder = require(ServerModules:WaitForChild("WorldBuilder"))
 local EconomyService = require(ServerModules:WaitForChild("EconomyService"))
 local StealService = require(ServerModules:WaitForChild("StealService"))
+local FuseService = require(ServerModules:WaitForChild("FuseService"))
 local TsunamiService = require(ServerModules:WaitForChild("TsunamiService"))
 local RebirthService = require(ServerModules:WaitForChild("RebirthService"))
 local AnimationService = require(ServerModules:WaitForChild("AnimationService"))
@@ -71,7 +72,7 @@ remoteFolder.Parent = ReplicatedStorage
 
 local remoteNames = {
 	"BuyBrainrot", "HatchEgg", "SellBrainrot", "ToggleLock", "RequestRebirth",
-	"RequestDash", "StateUpdate", "Notify", "WaveUpdate",
+	"RequestDash", "StateUpdate", "Notify", "WaveUpdate", "FuseBrainrots",
 }
 local remotes: { [string]: RemoteEvent } = {}
 for _, remoteName in ipairs(remoteNames) do
@@ -83,6 +84,7 @@ end
 
 EconomyService.BindRemotes(remoteFolder)
 StealService.BindRemotes(remoteFolder)
+FuseService.BindRemotes(remoteFolder)
 TsunamiService.BindRemotes(remoteFolder, Instance.new("BindableEvent"))
 RebirthService.BindRemotes(remoteFolder)
 
@@ -263,6 +265,16 @@ end)
 
 remotes.RequestDash.OnServerEvent:Connect(function(player: Player)
 	StealService.TryDash(player)
+end)
+
+remotes.FuseBrainrots.OnServerEvent:Connect(function(player: Player, uids: any)
+	if typeof(uids) ~= "table" then
+		return
+	end
+	local state = PlayerData.GetState(player)
+	if state then
+		FuseService.PerformFuse(state, uids)
+	end
 end)
 
 -- 6. Start every loop.

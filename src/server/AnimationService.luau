@@ -1,12 +1,15 @@
 -- AnimationService.luau (ModuleScript, ServerScriptService.Server)
 -- Neon Shores -- the animation layer. The world itself stays deliberately simple;
 -- all the motion lives on the collectibles, like the big tycoon games do it:
---   * every placed or belt brainrot gently bobs, and Mythic / Brainrot God rarities
---     also slowly spin, driven by ONE Heartbeat loop for the whole game;
+--   * every placed brainrot gently bobs, and Mythic / Brainrot God rarities also
+--     slowly spin, driven by ONE Heartbeat loop for the whole game;
+--   * belt brainrots WALK the conveyor (RegisterWalker): they stride along +X with
+--     a quick bob and a side-to-side sway, faces turned to the travel direction,
+--     and hand themselves back through OnArrive at the end of the belt;
 --   * Legendary-and-up brainrots and every mutated brainrot wear a sparkle emitter,
 --     tinted by mutation (Gold, Diamond, Rainbow) or warm white-gold for rarity alone;
 --   * the egg dome breathes with a looping scale pulse;
---   * the conveyor slot pads chase a bright highlight around the belt, faking motion.
+--   * the conveyor pads chase a bright highlight along the belt's front edge.
 -- Everything here is cheap, nil-safe and pcall-friendly: a missed registration can
 -- never break a mechanic, and a model that leaves the world removes itself.
 
@@ -25,6 +28,20 @@ type AnimEntry = {
 }
 
 local entries: { [Model]: AnimEntry } = {}
+
+type WalkerEntry = {
+	Model: Model,
+	Primary: BasePart,
+	X: number,
+	Y: number,
+	Z: number,
+	Speed: number,
+	EndX: number,
+	Phase: number,
+	OnArrive: ((Model) -> ())?,
+}
+
+local walkers: { [Model]: WalkerEntry } = {}
 local elapsed = 0
 local loopStarted = false
 
@@ -32,6 +49,12 @@ local SPARKLE_TEXTURE = "rbxassetid://6490895960"
 local SPIN_RADIANS_PER_SECOND = 0.6
 local BOB_AMPLITUDE = 0.18
 local BOB_SPEED = 2.2
+local WALK_BOB_AMPLITUDE = 0.12
+local WALK_BOB_SPEED = 10
+local WALK_SWAY_AMPLITUDE = 0.06
+local WALK_SWAY_SPEED = 5
+-- Brainrot models face -Z out of the builder; this turn points them down +X.
+local WALK_FACING = CFrame.Angles(0, math.rad(-90), 0)
 
 local function sparkleColorFor(rarity: string?, mutationName: string?): ColorSequence?
 	if mutationName == "Gold" then
@@ -99,6 +122,35 @@ local function startLoopIfNeeded()
 				end
 			end
 		end
+		-- Walkers stride along +X; arrivals are collected and fired after the
+		-- loop so OnArrive can safely destroy its own model mid-frame.
+		local arrived: { WalkerEntry } = {}
+		for model, walker in pairs(walkers) do
+			if model.Parent == nil or walker.Primary.Parent == nil then
+				walkers[model] = nil
+			else
+				walker.X += walker.Speed * deltaTime
+				local bob = math.sin(elapsed * WALK_BOB_SPEED + walker.Phase) * WALK_BOB_AMPLITUDE
+				local sway = math.sin(elapsed * WALK_SWAY_SPEED + walker.Phase) * WALK_SWAY_AMPLITUDE
+				local ok = pcall(function()
+					model:PivotTo(CFrame.new(walker.X, walker.Y + bob, walker.Z) * WALK_FACING * CFrame.Angles(0, 0, sway))
+				end)
+				if not ok then
+					walkers[model] = nil
+				elseif walker.X >= walker.EndX then
+					walkers[model] = nil
+					table.insert(arrived, walker)
+				end
+			end
+		end
+		for _, walker in ipairs(arrived) do
+			if walker.OnArrive then
+				local onArrive = walker.OnArrive
+				task.spawn(function()
+					pcall(onArrive, walker.Model)
+				end)
+			end
+		end
 	end)
 end
 
@@ -125,9 +177,40 @@ function AnimationService.Register(model: Model?, opts: { [string]: any }?)
 	startLoopIfNeeded()
 end
 
+-- Register a brainrot as a belt walker: the Heartbeat loop strides it along +X
+-- from wherever it currently stands until its pivot passes opts.EndX, then calls
+-- opts.OnArrive(model) exactly once. opts: { Speed, EndX, OnArrive, Rarity, Mutation }
+function AnimationService.RegisterWalker(model: Model?, opts: { [string]: any }?)
+	if not model or not model:IsA("Model") then
+		return
+	end
+	local primary = model.PrimaryPart or model:FindFirstChild("Body")
+	if not primary or not primary:IsA("BasePart") then
+		return
+	end
+	local options = opts or {}
+	local pivot = model:GetPivot()
+	walkers[model] = {
+		Model = model,
+		Primary = primary,
+		X = pivot.Position.X,
+		Y = pivot.Position.Y,
+		Z = pivot.Position.Z,
+		Speed = options.Speed or 6,
+		EndX = options.EndX or pivot.Position.X + 100,
+		Phase = math.random() * math.pi * 2,
+		OnArrive = options.OnArrive,
+	}
+	attachSparkles(primary, options.Rarity, options.Mutation)
+	startLoopIfNeeded()
+end
+
+-- Removes a model from BOTH registries (placed bobbers and belt walkers), so any
+-- removal path -- sell, steal, buy, despawn -- only ever calls this one function.
 function AnimationService.Unregister(model: Model?)
 	if model then
 		entries[model] = nil
+		walkers[model] = nil
 	end
 end
 
@@ -144,8 +227,8 @@ function AnimationService.StartEggPulse(domePart: BasePart?)
 	tween:Play()
 end
 
--- Conveyor chase lights: one slot pad glows bright at a time, cycling fast enough
--- (0.15s per step) that the belt reads as moving even though the brainrots stand still.
+-- Conveyor chase lights: one pad glows bright at a time, cycling fast (0.15s per
+-- step) along the belt's front edge, echoing the walkers striding past above it.
 local BELT_DIM = Color3.fromRGB(255, 140, 40)
 local BELT_BRIGHT = Color3.fromRGB(255, 244, 190)
 

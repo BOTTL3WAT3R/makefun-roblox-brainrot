@@ -15,10 +15,10 @@ GameConfig.BaseCount = 8
 -- Economy tick: placed brainrots pay their income once per tick.
 GameConfig.IncomeTickSeconds = 1
 
--- Shop conveyor: a new brainrot rolls onto the belt every few seconds.
-GameConfig.ConveyorSpawnSeconds = 4
-GameConfig.ConveyorMaxOnBelt = 6
-GameConfig.ConveyorLifetimeSeconds = 25
+-- Shop conveyor: a new brainrot steps onto the belt every few seconds and
+-- walks its length; the walk itself is its lifetime on the belt.
+GameConfig.ConveyorSpawnSeconds = 3.5
+GameConfig.ConveyorMaxOnBelt = 7
 
 -- Egg machine: hatching costs cash and rolls a rarity, then a mutation.
 GameConfig.EggPrice = 250

@@ -93,8 +93,8 @@ local function runSweep()
 	notifyAll("BIG WAVE! RUN TO YOUR BASE OR HIGH GROUND!")
 	local wall = WorldBuilder.TsunamiWall
 	local foam = WorldBuilder.TsunamiFoam
-	local startX = -260
-	local endX = 260
+	local startX = -190
+	local endX = 190
 	local distance = endX - startX
 	local duration = distance / GameConfig.TsunamiWallSpeed
 	-- The wall glides on a linear TweenService tween instead of stepping, and the
@@ -114,7 +114,7 @@ local function runSweep()
 		for _, player in ipairs(Players:GetPlayers()) do
 			local character = player.Character
 			local root = character and character:FindFirstChild("HumanoidRootPart")
-			if root and math.abs(root.Position.X - x) < 5 and root.Position.Z > -230 and root.Position.Z < 230 then
+			if root and math.abs(root.Position.X - x) < 5 and root.Position.Z > -165 and root.Position.Z < 165 then
 				if not TsunamiService.IsPlayerSafeFromWave(player) then
 					TsunamiService.ApplyWaveHitToPlayer(player)
 				end
