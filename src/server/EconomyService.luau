@@ -324,41 +324,18 @@ local function removeBeltWalker(model: Model)
 	end
 end
 
--- A small bright price tag under the walker's name label: the reference games
--- shout the buy price, so a passing brainrot can be judged at a glance. It is a
--- child of the model, so it walks, bobs and despawns with it for free.
-local function attachPriceTag(model: Model, character: any)
-	local body = model:FindFirstChild("Body")
-	if not body or not body:IsA("BasePart") then
-		return
-	end
-	local tag = Instance.new("BillboardGui")
-	tag.Name = "PriceTag"
-	tag.Adornee = body
-	tag.Size = UDim2.fromOffset(220, 54)
-	tag.StudsOffset = Vector3.new(0, 3.1, 0)
-	tag.AlwaysOnTop = true
-	tag.MaxDistance = 90
-	local label = Instance.new("TextLabel")
-	label.Name = "PriceText"
-	label.Size = UDim2.fromScale(1, 1)
-	label.BackgroundTransparency = 0.25
-	label.BackgroundColor3 = Color3.fromRGB(10, 40, 16)
-	label.Text = "BUY " .. GameConfig.FormatCash(character.Price)
-	label.TextColor3 = Color3.fromRGB(120, 255, 140)
-	label.TextScaled = true
-	label.Font = Enum.Font.FredokaOne
-	label.Parent = tag
-	tag.Parent = model
-end
+-- Walkers alternate between two label heights (5.2 / 6.6 studs) so a full belt
+-- reads as two tidy bands of labels instead of one stacked pile.
+local beltSpawnCount = 0
 
 local function spawnConveyorBrainrot()
 	if beltWalkerCount >= GameConfig.ConveyorMaxOnBelt then
 		return
 	end
 	local character = BrainrotCatalog.Characters[rng:NextInteger(1, #BrainrotCatalog.Characters)]
-	local model = WorldBuilder.BuildBrainrotModel(character, "Normal")
-	attachPriceTag(model, character)
+	beltSpawnCount += 1
+	local labelHeight = if beltSpawnCount % 2 == 0 then 5.2 else 6.6
+	local model = WorldBuilder.BuildBrainrotModel(character, "Normal", { BuyPrice = character.Price, LabelHeight = labelHeight })
 	model:PivotTo(CFrame.new(Vector3.new(BELT_START_X, BELT_Y, BELT_Z)) * CFrame.Angles(0, math.rad(-90), 0))
 	for _, piece in ipairs(model:GetDescendants()) do
 		if piece:IsA("BasePart") then

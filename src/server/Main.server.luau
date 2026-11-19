@@ -317,6 +317,7 @@ end)
 -- 6. Start every loop.
 StealService.WatchBases()
 StealService.StartStealWatchLoop()
+StealService.StartLockSignLoop()
 EconomyService.StartIncomeTickLoop()
 EconomyService.StartConveyorLoop()
 EconomyService.StartArenaEventLoop()

@@ -101,7 +101,11 @@ end
 
 -- Builds one brainrot character model from its catalog recipe: body, head, eyes and one
 -- accessory, plus a floating label with its name, rarity and income per second.
-function WorldBuilder.BuildBrainrotModel(character: any, mutationName: string): Model
+-- labelOptions is for belt walkers only: BuyPrice merges a green BUY line into the
+-- SAME billboard (a second stacked billboard per walker piled up unreadably), and
+-- LabelHeight staggers neighbouring walkers' labels into two bands. Placed
+-- brainrots pass nil and keep the plain two-line label.
+function WorldBuilder.BuildBrainrotModel(character: any, mutationName: string, labelOptions: { BuyPrice: number?, LabelHeight: number? }?): Model
 	local model = Instance.new("Model")
 	model.Name = character.Id
 
@@ -201,12 +205,29 @@ function WorldBuilder.BuildBrainrotModel(character: any, mutationName: string): 
 
 	local income = BrainrotCatalog.GetIncomePerSecond(character, mutationName)
 	local mutationText = if mutationName == "Normal" then "" else " " .. string.upper(mutationName)
-	local labelText = string.format("%s%s\n%s - $%d/s", character.Name, mutationText, character.Rarity, income)
 	local rarityColor = BrainrotCatalog.RarityColors[character.Rarity] or Color3.fromRGB(255, 255, 255)
-	-- A smaller, higher label than the world signs: two clean lines (name, then
-	-- rarity and income) that stay readable without piling onto the next brainrot.
-	local incomeLabel = makeSign(model, "IncomeLabel", body, labelText, rarityColor, Vector3.new(0, 5.2, 0), 90)
-	incomeLabel.Size = UDim2.fromOffset(300, 92)
+	local buyPrice = labelOptions and labelOptions.BuyPrice
+	if buyPrice then
+		-- Walker label: three lines in ONE billboard -- name, rarity/income, and the
+		-- buy price in bright green via RichText (the rest keeps the rarity colour).
+		local labelText = string.format(
+			"%s%s\n%s - $%d/s\n<font color=\"rgb(120, 255, 140)\">BUY %s</font>",
+			character.Name, mutationText, character.Rarity, income, GameConfig.FormatCash(buyPrice)
+		)
+		local walkerLabel = makeSign(model, "IncomeLabel", body, labelText, rarityColor,
+			Vector3.new(0, (labelOptions and labelOptions.LabelHeight) or 5.2, 0), 60)
+		walkerLabel.Size = UDim2.fromOffset(280, 120)
+		local walkerText = walkerLabel:FindFirstChild("SignText")
+		if walkerText then
+			walkerText.RichText = true
+		end
+	else
+		-- Placed label: two clean lines (name, then rarity and income) that stay
+		-- readable without piling onto the next brainrot.
+		local labelText = string.format("%s%s\n%s - $%d/s", character.Name, mutationText, character.Rarity, income)
+		local incomeLabel = makeSign(model, "IncomeLabel", body, labelText, rarityColor, Vector3.new(0, 5.2, 0), 90)
+		incomeLabel.Size = UDim2.fromOffset(300, 92)
+	end
 
 	return model
 end
@@ -260,14 +281,32 @@ local function buildBasePlot(parent: Folder, index: number, origin: Vector3, fac
 	return record
 end
 
-function WorldBuilder.SetBaseOwnerSign(base: any, ownerName: string?)
+-- The base billboard: owner's name on top (or "BASE n / FREE" while unowned),
+-- and while the base is locked a second line counts the lock down, so a lock
+-- is visible from across the island and not just on the owner's HUD.
+function WorldBuilder.RefreshBaseSign(base: any, lockSecondsLeft: number?)
 	local sign = base.Folder:FindFirstChild("BaseSign")
-	if sign then
-		local label = sign:FindFirstChild("SignText")
-		if label then
-			label.Text = if ownerName then string.upper(ownerName) .. "'S BASE" else "BASE " .. tostring(base.Index) .. "\nFREE"
-		end
+	if not sign then
+		return
 	end
+	local label = sign:FindFirstChild("SignText")
+	if not label then
+		return
+	end
+	local ownerName = base.OwnerName
+	local topLine = if ownerName then string.upper(ownerName) .. "'S BASE" else "BASE " .. tostring(base.Index)
+	if lockSecondsLeft then
+		label.Text = topLine .. "\nLOCKED " .. tostring(lockSecondsLeft) .. "s"
+	elseif ownerName then
+		label.Text = topLine
+	else
+		label.Text = topLine .. "\nFREE"
+	end
+end
+
+function WorldBuilder.SetBaseOwnerSign(base: any, ownerName: string?)
+	base.OwnerName = ownerName
+	WorldBuilder.RefreshBaseSign(base, nil)
 end
 
 function WorldBuilder.SetBaseLasersVisible(base: any, visible: boolean)

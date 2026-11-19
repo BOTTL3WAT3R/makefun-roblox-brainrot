@@ -27,19 +27,23 @@ place link, place id and universe id in `PLAY.json`, and upload an icon and a th
    and get your own base plot — the eight bases flank the conveyor on both sides, every
    base glows in its own neon colour, and your name is on its sign.
 2. The orange **Shop Belt** runs straight through the middle of the island: brainrots
-   walk down the conveyor spine one after another, each wearing a green **BUY** price
-   tag — walk into one to buy it before it strides off the far end. That chase is the
+   walk down the conveyor spine one after another, each wearing ONE floating label
+   with its name, rarity, $/s and a green **BUY** price line — walk into one to buy it
+   before it strides off the far end. That chase is the
    only shop there is: no list, no menu purchase, the belt or nothing. It appears on a
    glowing pad at your base and starts earning cash every
    second — its floating label shows its name, rarity and $/s.
 3. Stand by the pink **Egg Machine** at the belt's west end and press **EGG** to hatch
    a random brainrot: rarities roll from Common to Transcendent, and mutations
    multiply income (Gold x2, Diamond x4, Rainbow x8).
-4. **Steal:** walk into a brainrot on another player's *unlocked* base to rip it off its pad
-   and carry it on your back (you are slower while carrying). Reach your own base floor to
+4. **Steal:** every placed brainrot wears an **E** prompt with its name — press **E** on a
+   brainrot on another player's *unlocked* base to rip it off its pad and carry it
+   hoisted above your head (you are slower while carrying). Reach your own base floor to
    bank it. Victims can chase you down — and the Big Wave ends the run for both of you.
-5. **Defend:** step on your base's red **LOCK** button (or the LOCK BASE button) to raise
-   laser walls for 60 seconds. Nobody can steal from a locked base.
+5. **Defend:** step on your own base's red **LOCK** pad (or press the LOCK BASE button —
+   it works from anywhere) to raise laser walls for 60 seconds. Your base's sign counts
+   down "LOCKED 60s" while it holds, and stepping on somebody else's pad tells you whose
+   it is instead of failing silently. Nobody can steal from a locked base.
 6. **Big Wave:** every 120 seconds a warning counts down, then a wall of water with a white
    foam crest sweeps the island. If it catches you in the open, you lose the brainrot you
    are carrying and wash back to spawn. Your base and the green high hill are safe.
@@ -85,7 +89,8 @@ place link, place id and universe id in `PLAY.json`, and upload an icon and a th
 
 - **WASD / joystick** — move through the 3D world (standard Roblox character controls)
 - **Left Shift or the DASH button** — 3-second speed burst (dash home with a stolen brainrot!)
-- **Walk into** belt brainrots, placed brainrots, lock buttons and base floors to interact
+- **Walk into** belt brainrots and base floors to interact; **step on** your own base's red LOCK pad to lock it
+- **E** — steal: the prompt floats on every placed brainrot (name + "Steal")
 - **Hold E** at the trash can by the Fuse Machine — rummage for loose cash, once a minute
 - **BOOST / MY BASE / INDEX / FUSE / GACHA / EGG / REBIRTH buttons** — panels and actions, top-right and bottom-centre
 
@@ -152,7 +157,7 @@ Rojo project — `src/` maps into the place, and `game.rbxl` is built from it:
 - `src/server/AnimationService.luau` — the animation layer: one Heartbeat loop bobs every placed brainrot (Mythic and up also spin) and strides the belt brainrots down the conveyor with a walking gait, sparkle emitters for Legendary+ and mutated brainrots, the pulsing egg dome and the conveyor chase lights
 - `src/server/PlayerData.luau` — all per-player state in one place: cash, placed/carried brainrots, rebirths, multiplier, and the six-mission chain (progress, rewards, the HUD mission line)
 - `src/server/EconomyService.luau` — income tick, walking-belt buying with price tags, egg hatching, premium gacha capsule spins with island-wide jackpot announcements, placing, selling, the four cash boosts, and the Neon Arena golden-brainrot event loop
-- `src/server/StealService.luau` — carry/steal, base lock lasers, dash, banking a stolen brainrot
+- `src/server/StealService.luau` — E-prompt stealing with the catch carried overhead, base lock (pad + HUD button, sign counts the lock down), dash, banking a stolen brainrot
 - `src/server/TsunamiService.luau` — Big Wave cycle: calm, warning countdown, tweened sweep, safe zones
 - `src/server/RebirthService.luau` — rebirth: cost check, reset, permanent multiplier
 - `src/server/FuseService.luau` — the Fuse Machine: validates 3 same-rarity placed brainrots server-side, consumes them, and places 1 random brainrot of the next rarity with a boosted mutation roll
