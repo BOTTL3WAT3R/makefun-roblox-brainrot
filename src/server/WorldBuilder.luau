@@ -316,20 +316,44 @@ function WorldBuilder.SetBaseLasersVisible(base: any, visible: boolean)
 	end
 end
 
+-- The walkable ground height at a spot, derived from the geometry BuildWorld
+-- itself creates: the shelter hill's cap is the highest surface, then the
+-- island top (y 0), then the sand rim whose top sits just below it. Decor
+-- placed anywhere on the island snaps its base to this instead of assuming
+-- flat y 0 ground.
+local function groundHeightAt(x: number, z: number): number
+	if math.abs(x) <= 28.3 and z >= 103.7 and z <= 124.3 then
+		return WorldBuilder.HighGroundTopY + 0.9
+	end
+	if math.abs(x) <= 130 and math.abs(z) <= 130 then
+		return 0
+	end
+	if math.abs(x) <= 138 and math.abs(z) <= 138 then
+		return -0.25
+	end
+	return 0
+end
+
 -- One palm tree: a slightly tilted cylinder trunk, six flat leaves fanned from the
 -- top, and (on some palms) a glowing candy "glowfruit" sphere hanging by the crown.
+-- The trunk's base is snapped to the ground height at its spot, and the cylinder
+-- is built the way every other cylinder in this file is: its length runs along
+-- its X axis (Size 10 long, 1.3 thick), stood upright with an 83-degree Z
+-- rotation -- a 7-degree lean -- and centred halfway up the lean, so its foot
+-- lands exactly on the ground point and its top meets the crown.
 local function buildPalm(parent: Folder, name: string, position: Vector3, withGlowfruit: boolean, glowColor: Color3)
+	local base = Vector3.new(position.X, groundHeightAt(position.X, position.Z), position.Z)
 	local trunk = Instance.new("Part")
 	trunk.Name = name .. "Trunk"
 	trunk.Shape = Enum.PartType.Cylinder
-	trunk.Size = Vector3.new(1.3, 10, 1.3)
+	trunk.Size = Vector3.new(10, 1.3, 1.3)
 	trunk.Color = Color3.fromRGB(130, 92, 55)
 	trunk.Anchored = true
 	trunk.TopSurface = Enum.SurfaceType.Smooth
 	trunk.BottomSurface = Enum.SurfaceType.Smooth
-	trunk.CFrame = CFrame.new(position + Vector3.new(0, 5, 0)) * CFrame.Angles(0, 0, math.rad(7))
+	trunk.CFrame = CFrame.new(base + Vector3.new(0.61, 4.96, 0)) * CFrame.Angles(0, 0, math.rad(83))
 	trunk.Parent = parent
-	local crownTop = position + Vector3.new(1.25, 10, 0)
+	local crownTop = base + Vector3.new(1.22, 9.93, 0)
 	for leafIndex = 1, 6 do
 		local leaf = Instance.new("Part")
 		leaf.Name = name .. "Leaf" .. tostring(leafIndex)
@@ -529,9 +553,11 @@ local function buildPlayground(worldFolder: Folder)
 		makePart(seesaw, "HandleGrip", Vector3.new(0.25, 0.25, 1.6), Vector3.new(25 + dx, 3.8, -116), dark, Enum.Material.Metal)
 	end
 
-	-- MERRY-GO-ROUND at (75, -116): a chocolate deck on a pink candy rim, centre
-	-- pole and four handle posts; PlaygroundService spins the model and
-	-- riders standing on the deck are carried around with it.
+	-- MERRY-GO-ROUND at (75, -116): a candy-pink deck on a cream candy rim,
+	-- centre pole, four candy-stripe handle posts and four real seats with
+	-- backrests, so it reads as a ride and not a plain slab. PlaygroundService
+	-- spins the model, carries standing riders around with it, and seated
+	-- riders ride along on their seats' welds.
 	local merry = Instance.new("Model")
 	merry.Name = "MerryGoRound"
 	merry.Parent = folder
@@ -544,10 +570,10 @@ local function buildPlayground(worldFolder: Folder)
 	merryPivot.Anchored = true
 	merryPivot.Parent = merry
 	merry.PrimaryPart = merryPivot
-	local merryRim = makePart(merry, "Rim", Vector3.new(0.7, 19.4, 19.4), Vector3.new(75, 0.55, -116), Color3.fromRGB(255, 110, 200), Enum.Material.Neon)
+	local merryRim = makePart(merry, "Rim", Vector3.new(0.7, 19.4, 19.4), Vector3.new(75, 0.55, -116), Color3.fromRGB(255, 244, 230), Enum.Material.Neon)
 	merryRim.Shape = Enum.PartType.Cylinder
 	merryRim.Orientation = Vector3.new(0, 0, 90)
-	local merryDeck = makePart(merry, "Deck", Vector3.new(1.2, 18, 18), Vector3.new(75, 1, -116), dark, Enum.Material.SmoothPlastic)
+	local merryDeck = makePart(merry, "Deck", Vector3.new(1.2, 18, 18), Vector3.new(75, 1, -116), Color3.fromRGB(255, 130, 200), Enum.Material.SmoothPlastic)
 	merryDeck.Shape = Enum.PartType.Cylinder
 	merryDeck.Orientation = Vector3.new(0, 0, 90)
 	local merryPole = makePart(merry, "CentrePole", Vector3.new(5, 1.1, 1.1), Vector3.new(75, 3.4, -116), lavender, Enum.Material.Neon)
@@ -555,10 +581,46 @@ local function buildPlayground(worldFolder: Folder)
 	merryPole.Orientation = Vector3.new(0, 0, 90)
 	for postIndex = 1, 4 do
 		local angle = math.rad(45 + (postIndex - 1) * 90)
-		local post = makePart(merry, "HandlePost" .. tostring(postIndex), Vector3.new(3, 0.4, 0.4),
-			Vector3.new(75 + math.cos(angle) * 6.2, 3.1, -116 + math.sin(angle) * 6.2), dark, Enum.Material.Metal)
-		post.Shape = Enum.PartType.Cylinder
-		post.Orientation = Vector3.new(0, 0, 90)
+		local postX = 75 + math.cos(angle) * 6.2
+		local postZ = -116 + math.sin(angle) * 6.2
+		local postLower = makePart(merry, "HandlePost" .. tostring(postIndex), Vector3.new(1.5, 0.4, 0.4),
+			Vector3.new(postX, 2.35, postZ), Color3.fromRGB(255, 255, 255), Enum.Material.SmoothPlastic)
+		postLower.Shape = Enum.PartType.Cylinder
+		postLower.Orientation = Vector3.new(0, 0, 90)
+		local postUpper = makePart(merry, "HandlePostTop" .. tostring(postIndex), Vector3.new(1.5, 0.4, 0.4),
+			Vector3.new(postX, 3.85, postZ), Color3.fromRGB(255, 80, 110), Enum.Material.SmoothPlastic)
+		postUpper.Shape = Enum.PartType.Cylinder
+		postUpper.Orientation = Vector3.new(0, 0, 90)
+	end
+	-- Four seats inside the handle posts, facing outward over the deck edge,
+	-- one candy colour each: a Seat box on a short post, with a backrest on
+	-- the centre side. Sitting players face out and hold the striped pole
+	-- in front of them, just like a real carousel.
+	local merrySeatColors = {
+		Color3.fromRGB(255, 130, 200),
+		Color3.fromRGB(150, 240, 200),
+		Color3.fromRGB(255, 235, 130),
+		Color3.fromRGB(195, 160, 255),
+	}
+	for seatIndex = 1, 4 do
+		local angle = math.rad(45 + (seatIndex - 1) * 90)
+		local radial = Vector3.new(math.cos(angle), 0, math.sin(angle))
+		local seatPosition = Vector3.new(75, 2.85, -116) + radial * 5.2
+		local seatFrame = CFrame.lookAt(seatPosition, seatPosition + radial)
+		local seat = Instance.new("Seat")
+		seat.Name = "Seat" .. tostring(seatIndex)
+		seat.Size = Vector3.new(2.4, 0.5, 2.1)
+		seat.Color = merrySeatColors[seatIndex]
+		seat.Material = Enum.Material.SmoothPlastic
+		seat.Anchored = true
+		seat.TopSurface = Enum.SurfaceType.Smooth
+		seat.BottomSurface = Enum.SurfaceType.Smooth
+		seat.CFrame = seatFrame
+		seat.Parent = merry
+		local seatPost = makePart(merry, "SeatPost" .. tostring(seatIndex), Vector3.new(0.5, 1, 0.5), seatPosition, dark, Enum.Material.Metal)
+		seatPost.CFrame = seatFrame * CFrame.new(0, -0.75, 0)
+		local seatBack = makePart(merry, "SeatBack" .. tostring(seatIndex), Vector3.new(2.4, 1.8, 0.4), seatPosition, merrySeatColors[seatIndex], Enum.Material.SmoothPlastic)
+		seatBack.CFrame = seatFrame * CFrame.new(0, 1.05, 1.1)
 	end
 
 	-- BOUNCE PAD on the playground's south edge at (45, -112) -- the strip

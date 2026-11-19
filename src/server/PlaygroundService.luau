@@ -98,35 +98,83 @@ function PlaygroundService.Start()
 		return
 	end
 
-	-- Bounce pad: stepping on the neon disc launches you skyward. Debounced
-	-- per character so standing on it doesn't machine-gun the velocity.
-	local lastBounceAt: { [Model]: number } = {}
-	playground.BouncePad.Touched:Connect(function(hit: BasePart)
-		if hit.Name ~= "HumanoidRootPart" then
-			return
+	-- Bounce pad: a region check in the motion loop below, NOT a Touched
+	-- event. The old Touched handler only accepted hits from a part named
+	-- HumanoidRootPart, but a character standing or landing on the pad only
+	-- ever touches it with its feet and legs -- the root part hovers about
+	-- three studs above whatever the character stands on and never
+	-- intersects the thin disc, so the launch was effectively dead code.
+	-- The region check watches the root's position instead: over the disc
+	-- (which fills its whole radius, so "within radius and airborne" always
+	-- means above the pad) and at standing height above its top face. The
+	-- per-player ready time is a plain timestamp, so the debounce always
+	-- expires on its own and can never strand a player unbounced.
+	local bouncePad = playground.BouncePad
+	local bounceCentre = bouncePad.Position
+	local bounceRadius = bouncePad.Size.Y / 2
+	local bounceTopY = bouncePad.Position.Y + bouncePad.Size.X / 2
+	local bounceReadyAt: { [number]: number } = {}
+
+	local function checkBouncePad(now: number)
+		for _, player in ipairs(Players:GetPlayers()) do
+			if now < (bounceReadyAt[player.UserId] or 0) then
+				continue
+			end
+			local character = player.Character
+			local root = character and character:FindFirstChild("HumanoidRootPart")
+			local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+			if root and humanoid and humanoid.Health > 0 then
+				local relY = root.Position.Y - bounceTopY
+				local dx = root.Position.X - bounceCentre.X
+				local dz = root.Position.Z - bounceCentre.Z
+				if relY > 2.4 and relY < 5 and dx * dx + dz * dz <= bounceRadius * bounceRadius then
+					bounceReadyAt[player.UserId] = now + 0.5
+					local velocity = root.AssemblyLinearVelocity
+					root.AssemblyLinearVelocity = Vector3.new(velocity.X, 65, velocity.Z)
+				end
+			end
 		end
-		local character = hit.Parent
-		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-		if not humanoid or humanoid.Health <= 0 then
-			return
+	end
+
+	-- Merry-go-round riders: the deck is anchored, so PivotTo gives it no
+	-- surface velocity and friction alone leaves standing riders behind
+	-- while the deck turns under them. Rotate every standing rider's root
+	-- around the centre axis by the same delta angle instead (position and
+	-- facing, Y preserved by the vertical axis). The moment a rider steps
+	-- off the deck's radius or height band they are simply not rotated and
+	-- walk away freely. Seated riders are skipped on purpose: their seat's
+	-- weld already carries them with the pivoting model.
+	local merryDeck = playground.MerryGoRound:FindFirstChild("Deck")
+	local merryCentre = playground.MerryPivot
+	local merryDeckTopY = if merryDeck then merryDeck.Position.Y + merryDeck.Size.X / 2 else 1.6
+	local merryRadius = if merryDeck then merryDeck.Size.Y / 2 + 0.2 else 9.2
+
+	local function carryMerryRiders(deltaAngle: number)
+		local orbit = CFrame.new(merryCentre) * CFrame.Angles(0, deltaAngle, 0) * CFrame.new(-merryCentre)
+		for _, player in ipairs(Players:GetPlayers()) do
+			local character = player.Character
+			local root = character and character:FindFirstChild("HumanoidRootPart")
+			local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+			if root and humanoid and humanoid.Health > 0 and not humanoid.Sit then
+				local relY = root.Position.Y - merryDeckTopY
+				local dx = root.Position.X - merryCentre.X
+				local dz = root.Position.Z - merryCentre.Z
+				if relY > 1.2 and relY < 4.4 and dx * dx + dz * dz <= merryRadius * merryRadius then
+					root.CFrame = orbit * root.CFrame
+				end
+			end
 		end
-		local now = os.clock()
-		if now - (lastBounceAt[character] or 0) < 0.6 then
-			return
-		end
-		lastBounceAt[character] = now
-		local velocity = hit.AssemblyLinearVelocity
-		hit.AssemblyLinearVelocity = Vector3.new(velocity.X, 60, velocity.Z)
-	end)
+	end
 
 	-- Trash can: the prompt lives on the bin in Workspace; Triggered is
 	-- server-side by design, no remote needed.
 	playground.TrashPrompt.Triggered:Connect(onTrashRummaged)
 
 	-- The motion loop: swings rock on offset sine phases around their bar
-	-- pivots, the merry-go-round turns at a steady half-radian per second,
-	-- and the seesaw eases toward the tilt its riders ask for (checked on a
-	-- 0.1s throttle, eased every frame so it never snaps).
+	-- pivots, the merry-go-round turns at a steady half-radian per second
+	-- (carrying its standing riders with it), the bounce pad region check
+	-- runs, and the seesaw eases toward the tilt its riders ask for
+	-- (checked on a 0.1s throttle, eased every frame so it never snaps).
 	local seesawAngle = 0
 	local seesawTarget = 0
 	local merryAngle = 0
@@ -137,8 +185,11 @@ function PlaygroundService.Start()
 			local angle = math.rad(18) * math.sin(now * 1.5 + swing.Phase)
 			swing.Model:PivotTo(CFrame.new(swing.Pivot) * CFrame.Angles(angle, 0, 0))
 		end
-		merryAngle += 0.5 * deltaTime
+		local merryDelta = 0.5 * deltaTime
+		merryAngle += merryDelta
 		playground.MerryGoRound:PivotTo(CFrame.new(playground.MerryPivot) * CFrame.Angles(0, merryAngle, 0))
+		carryMerryRiders(merryDelta)
+		checkBouncePad(now)
 		checkAccumulator += deltaTime
 		if checkAccumulator >= 0.1 then
 			checkAccumulator = 0
