@@ -187,8 +187,35 @@ function PlaygroundService.Start()
 	-- instead: seat:Sit welds them exactly like a touch-sit would, so the
 	-- merry-go-round's carry loop (which skips Humanoid.Sit riders) and the
 	-- swings' rocking both carry a prompted sitter on the weld unchanged.
-	-- Pressing E again while seated stands back up: clearing Sit breaks
-	-- the seat weld, and the Jumping state adds the little hop off.
+	-- Pressing E again while seated stands back up -- but clearing Sit
+	-- alone does NOT work: a Seat auto-sits any character still touching
+	-- its cushion, so the old "Sit = false + hop" dropped the player
+	-- straight back onto the same chair and the engine welded them again
+	-- in the same breath (E looked completely dead in playtests). Standing
+	-- therefore DISMOUNTS: break the weld, switch the seat's touch-sit off
+	-- for a moment (Seat.Disabled blocks the engine's auto-sit only --
+	-- scripted Sit() still works, so an eager re-press of E is fine), and
+	-- place the root a clear step in front of the chair using the seat's
+	-- CURRENT world CFrame, which is right even on the turning
+	-- merry-go-round and the rocking swings.
+	local function standFromSeat(player: Player, seat: any, humanoid: Humanoid)
+		humanoid.Sit = false
+		seat.Disabled = true
+		task.delay(1.5, function()
+			seat.Disabled = false
+		end)
+		local character = player.Character
+		local root = character and character:FindFirstChild("HumanoidRootPart")
+		if root then
+			local seatCFrame = seat.CFrame
+			local landing = seatCFrame.Position + seatCFrame.LookVector * 3.5
+			local target = Vector3.new(landing.X, seatCFrame.Position.Y + 3.2, landing.Z)
+			root.CFrame = CFrame.lookAt(target, target + seatCFrame.LookVector)
+			root.AssemblyLinearVelocity = Vector3.zero
+		end
+		humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+	end
+
 	for _, seat in ipairs(playground.Seats or {}) do
 		local sitPrompt = seat:FindFirstChild("SitPrompt")
 		if sitPrompt and sitPrompt:IsA("ProximityPrompt") then
@@ -198,12 +225,20 @@ function PlaygroundService.Start()
 				if not humanoid or humanoid.Health <= 0 then
 					return
 				end
+				-- "Seated in THIS seat" is tested both ways -- the seat's
+				-- Occupant and the humanoid's own SeatPart. Either one
+				-- naming this seat is enough: on the pivoting rides the
+				-- pair can disagree for a frame, and a missed test is a
+				-- dead E press.
 				local occupant = seat.Occupant
-				if occupant == humanoid then
-					humanoid.Sit = false
-					humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+				if occupant == humanoid or humanoid.SeatPart == seat then
+					standFromSeat(player, seat, humanoid)
 				elseif occupant == nil then
-					seat:Sit(humanoid)
+					if humanoid.SeatPart == nil then
+						seat:Sit(humanoid)
+					else
+						notifyPlayer(player, "You are already sitting!")
+					end
 				else
 					notifyPlayer(player, "Someone is sitting there!")
 				end

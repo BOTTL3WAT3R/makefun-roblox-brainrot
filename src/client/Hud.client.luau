@@ -25,15 +25,65 @@ local remotes = ReplicatedStorage:WaitForChild("Remotes")
 -- OwnerUserId attribute (stamped when it was placed) decides which word this
 -- player sees. The server branches on the presser either way -- this is
 -- cosmetics only, never trust.
-ProximityPromptService.PromptShown:Connect(function(prompt: ProximityPrompt)
-	if prompt.Name ~= "StealPrompt" then
-		return
-	end
-	local model = prompt:FindFirstAncestorOfClass("Model")
-	if model and model:GetAttribute("OwnerUserId") == player.UserId then
-		prompt.ActionText = "Pick Up"
+-- The chair prompt is likewise created server-side with one word ("Sit")
+-- for everyone, but once YOU are in the chair the same key is the way
+-- out, so for the seated viewer it reads "Stand Up". The check runs when
+-- the prompt is shown AND whenever the local humanoid's SeatPart changes:
+-- sitting down does not hide and re-show the prompt, so without the
+-- second pass the label would sit stale on "Sit" for the whole ride.
+local shownSitPrompts: { [ProximityPrompt]: boolean } = {}
+
+local function refreshSitPromptLabel(prompt: ProximityPrompt)
+	local seat = prompt.Parent
+	local character = player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if
+		seat
+		and seat:IsA("Seat")
+		and humanoid
+		and (seat.Occupant == humanoid or humanoid.SeatPart == seat)
+	then
+		prompt.ActionText = "Stand Up"
 	else
-		prompt.ActionText = "Steal"
+		prompt.ActionText = "Sit"
+	end
+end
+
+local function refreshShownSitPromptLabels()
+	for prompt in pairs(shownSitPrompts) do
+		refreshSitPromptLabel(prompt)
+	end
+end
+
+local function watchCharacterForSitLabels(character: Model)
+	local humanoid = character:WaitForChild("Humanoid")
+	if humanoid and humanoid:IsA("Humanoid") then
+		humanoid:GetPropertyChangedSignal("SeatPart"):Connect(refreshShownSitPromptLabels)
+	end
+end
+
+if player.Character then
+	watchCharacterForSitLabels(player.Character)
+end
+player.CharacterAdded:Connect(watchCharacterForSitLabels)
+
+ProximityPromptService.PromptShown:Connect(function(prompt: ProximityPrompt)
+	if prompt.Name == "StealPrompt" then
+		local model = prompt:FindFirstAncestorOfClass("Model")
+		if model and model:GetAttribute("OwnerUserId") == player.UserId then
+			prompt.ActionText = "Pick Up"
+		else
+			prompt.ActionText = "Steal"
+		end
+	elseif prompt.Name == "SitPrompt" then
+		shownSitPrompts[prompt] = true
+		refreshSitPromptLabel(prompt)
+	end
+end)
+
+ProximityPromptService.PromptHidden:Connect(function(prompt: ProximityPrompt)
+	if prompt.Name == "SitPrompt" then
+		shownSitPrompts[prompt] = nil
 	end
 end)
 
