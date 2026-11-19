@@ -3,9 +3,11 @@
 -- cash-bought powers (speed, wave shield, income x2, luck -- there is no shop
 -- list any more: the walking belt is the only way to buy a brainrot), a MY BASE
 -- panel listing what you own with a SELL button each, an INDEX panel grid of
--- the whole 36-character cast that lights up in rarity colours for the
--- ones you own, a FUSE panel that trades 3 same-rarity brainrots up a tier, and the EGG
--- and REBIRTH buttons. All four panels (BOOST, MY BASE, INDEX and FUSE) are
+-- the whole 42-character cast that lights up in rarity colours for the
+-- ones you own, a FUSE panel that trades 3 same-rarity brainrots up a tier, and the EGG,
+-- REBIRTH and GACHA buttons (the gacha fires its premium spin straight from
+-- the button -- the capsule machine and the toast are its interface).
+-- All four panels (BOOST, MY BASE, INDEX and FUSE) are
 -- centred modals, so they never sit under the right-hand button column or the
 -- top-left corner where Roblox draws its own menu.
 
@@ -415,7 +417,7 @@ local function refreshFuseAction()
 		fuseAction.Text = "NEED 3 OF SAME RARITY"
 		fuseAction.BackgroundColor3 = Color3.fromRGB(120, 60, 60)
 		fuseAction.Active = false
-	elseif sharedRarity == "Brainrot God" then
+	elseif sharedRarity == BrainrotCatalog.RarityOrder[#BrainrotCatalog.RarityOrder] then
 		fuseAction.Text = "MAX RARITY - CANNOT FUSE"
 		fuseAction.BackgroundColor3 = Color3.fromRGB(120, 60, 60)
 		fuseAction.Active = false
@@ -508,7 +510,8 @@ fuseAction.Activated:Connect(function()
 	refreshFuseCells()
 end)
 
--- Side buttons: BOOST, MY BASE, EGG and REBIRTH, stacked down the right edge.
+-- Side buttons: BOOST, MY BASE, EGG, REBIRTH, INDEX, FUSE and GACHA,
+-- stacked down the right edge.
 local function makeSideButton(name: string, yOffset: number, text: string, color: Color3, onClick: () -> ()): TextButton
 	local button = Instance.new("TextButton")
 	button.Name = name
@@ -559,6 +562,12 @@ makeSideButton("FuseButton", 400, "FUSE", Color3.fromRGB(170, 70, 230), function
 	boostPanel.Visible = false
 	basePanel.Visible = false
 	indexPanel.Visible = false
+end)
+
+-- The gacha button has no panel: like EGG it fires its remote directly, and
+-- the capsule machine plus the result toast are the whole interface.
+makeSideButton("GachaButton", 462, "GACHA " .. GameConfig.FormatCash(GameConfig.GachaPrice), Color3.fromRGB(255, 70, 190), function()
+	remotes:WaitForChild("RollGacha"):FireServer()
 end)
 
 remotes:WaitForChild("StateUpdate").OnClientEvent:Connect(function(snapshot: any)

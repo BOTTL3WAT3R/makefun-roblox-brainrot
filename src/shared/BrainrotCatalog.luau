@@ -1,15 +1,16 @@
 -- BrainrotCatalog.luau (ModuleScript, ReplicatedStorage.Shared)
--- Neon Shores -- the full original cast of 36 absurd meme characters.
+-- Neon Shores -- the full original cast of 42 absurd meme characters.
 -- Every brainrot is built from primitive Parts at runtime: a body, a head and one silly
 -- accessory, painted from the colour recipe below. No character here copies any other game:
 -- the names, shapes and jokes are this game's own.
 --
--- Rarity ladder (weakest to strongest): Common, Rare, Epic, Legendary, Mythic, Brainrot God.
+-- Rarity ladder (weakest to strongest): Common, Rare, Epic, Legendary, Mythic,
+-- Brainrot God, Cosmic, Transcendent.
 -- Mutations multiply income: Normal x1, Gold x2, Diamond x4, Rainbow x8.
 
 local BrainrotCatalog = {}
 
-BrainrotCatalog.RarityOrder = { "Common", "Rare", "Epic", "Legendary", "Mythic", "Brainrot God" }
+BrainrotCatalog.RarityOrder = { "Common", "Rare", "Epic", "Legendary", "Mythic", "Brainrot God", "Cosmic", "Transcendent" }
 
 BrainrotCatalog.RarityColors = {
 	Common = Color3.fromRGB(170, 170, 170),
@@ -18,16 +19,20 @@ BrainrotCatalog.RarityColors = {
 	Legendary = Color3.fromRGB(255, 190, 40),
 	Mythic = Color3.fromRGB(255, 70, 120),
 	["Brainrot God"] = Color3.fromRGB(255, 255, 255),
+	Cosmic = Color3.fromRGB(120, 60, 255),
+	Transcendent = Color3.fromRGB(255, 244, 200),
 }
 
 -- Hatch odds per rarity, in percent. They add up to 100.
 BrainrotCatalog.RarityHatchWeights = {
-	Common = 45,
+	Common = 44.15,
 	Rare = 28,
 	Epic = 15,
 	Legendary = 8,
 	Mythic = 3,
 	["Brainrot God"] = 1,
+	Cosmic = 0.6,
+	Transcendent = 0.25,
 }
 
 BrainrotCatalog.Mutations = {
@@ -148,6 +153,24 @@ BrainrotCatalog.Characters = {
 	{ Id = "grandma_singularity", Name = "Grandma Singularity", Rarity = "Brainrot God", Price = 1200000, IncomePerSecond = 20000,
 		BodyShape = "Ball", Accessory = "Halo", BodyColor = { 200, 170, 220 }, HeadColor = { 215, 190, 235 },
 		AccessoryColor = { 120, 255, 230 }, Tagline = "Her knitting bends spacetime. Her soup bends knees." },
+	{ Id = "captain_quasar_quesadilla", Name = "Captain Quasar Quesadilla", Rarity = "Cosmic", Price = 2800000, IncomePerSecond = 38000,
+		BodyShape = "Cylinder", Accessory = "Antenna", BodyColor = { 52, 34, 105 }, HeadColor = { 74, 50, 140 },
+		AccessoryColor = { 120, 255, 230 }, Tagline = "Sails the cheese seas between the stars." },
+	{ Id = "madame_nebula_noodles", Name = "Madame Nebula Noodles", Rarity = "Cosmic", Price = 3400000, IncomePerSecond = 46000,
+		BodyShape = "Cylinder", Accessory = "Halo", BodyColor = { 40, 26, 88 }, HeadColor = { 92, 56, 158 },
+		AccessoryColor = { 255, 120, 220 }, Tagline = "Her broth contains entire galaxies. Slurp responsibly." },
+	{ Id = "baron_blackhole_bagel", Name = "Baron Blackhole Bagel", Rarity = "Cosmic", Price = 4200000, IncomePerSecond = 58000,
+		BodyShape = "Ball", Accessory = "Crown", BodyColor = { 26, 20, 50 }, HeadColor = { 46, 36, 82 },
+		AccessoryColor = { 120, 60, 255 }, Tagline = "Everything orbits his breakfast. Everything." },
+	{ Id = "seraphim_spaghetti", Name = "Seraphim Spaghetti", Rarity = "Transcendent", Price = 5500000, IncomePerSecond = 75000,
+		BodyShape = "Cylinder", Accessory = "Halo", BodyColor = { 250, 240, 210 }, HeadColor = { 255, 248, 226 },
+		AccessoryColor = { 255, 205, 60 }, Tagline = "Six wings, every one of them al dente." },
+	{ Id = "the_last_brain_cell", Name = "The Last Brain Cell", Rarity = "Transcendent", Price = 6800000, IncomePerSecond = 90000,
+		BodyShape = "Ball", Accessory = "Antenna", BodyColor = { 246, 236, 202 }, HeadColor = { 255, 247, 218 },
+		AccessoryColor = { 255, 170, 60 }, Tagline = "The final one. It is doing its best." },
+	{ Id = "the_big_bang_burrito", Name = "The Big Bang Burrito", Rarity = "Transcendent", Price = 8000000, IncomePerSecond = 110000,
+		BodyShape = "Block", Accessory = "Crown", BodyColor = { 252, 244, 206 }, HeadColor = { 255, 250, 228 },
+		AccessoryColor = { 255, 120, 90 }, Tagline = "It all started with a wrap. It all ends with one too." },
 }
 
 local byId: { [string]: any } = {}

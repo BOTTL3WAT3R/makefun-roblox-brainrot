@@ -1,7 +1,8 @@
 -- EconomyService.luau (ModuleScript, ServerScriptService.Server)
 -- Neon Shores -- the cash engine: the per-second income tick for every
 -- placed brainrot, buying from the walking shop belt, hatching eggs with a mutation
--- roll, placing a fresh brainrot on a free base pad, selling one back, and the Neon
+-- roll, spinning the premium gacha capsule by the arena, placing a fresh brainrot
+-- on a free base pad, selling one back, and the Neon
 -- Arena event that drops a golden brainrot on the spawn ring every few minutes.
 -- Every model it spawns is handed to AnimationService so it bobs (and spins /
 -- sparkles when rare).
@@ -56,6 +57,15 @@ local function reportMission(state: any, actionKey: string)
 	end)
 end
 
+-- The top of the ladder earns the slow spin: Mythic and everything above it
+-- (Brainrot God, Cosmic, Transcendent). Decided by ladder position, not by
+-- name, so new tiers join automatically.
+local function shouldSpin(rarity: string): boolean
+	local rarityIndex = table.find(BrainrotCatalog.RarityOrder, rarity)
+	local mythicIndex = table.find(BrainrotCatalog.RarityOrder, "Mythic")
+	return rarityIndex ~= nil and mythicIndex ~= nil and rarityIndex >= mythicIndex
+end
+
 function EconomyService.GetPlacedIncomePerSecond(state: any): number
 	local total = 0
 	for _, placed in ipairs(state.Placed) do
@@ -104,7 +114,7 @@ function EconomyService.PlaceBrainrotOnPad(state: any, characterId: string, muta
 		AnimationService.Register(model, {
 			Rarity = character.Rarity,
 			Mutation = mutationName,
-			Spin = character.Rarity == "Mythic" or character.Rarity == "Brainrot God",
+			Spin = shouldSpin(character.Rarity),
 		})
 	end)
 
@@ -163,6 +173,65 @@ function EconomyService.HatchEgg(state: any): boolean
 	if placedOk then
 		notifyPlayer(state.Player, string.format("The egg hatched %s (%s, %s)!", character.Name, character.Rarity, mutation.Name))
 		reportMission(state, "Hatch")
+	end
+	return placedOk
+end
+
+-- GACHA CAPSULE: the premium spin west of the arena. Same shape as HatchEgg
+-- (free pad first, cash second, place the winner) but the rarity table in
+-- GameConfig starts at Rare and climbs to Transcendent -- no Commons, ever.
+-- A spin is NOT a hatch and NOT a buy, so it reports no mission action. The
+-- mutation roll is the standard one, bent by the Lucky Charm exactly like
+-- the egg's. Pull Brainrot God or better and the whole island hears about it.
+local function rollGachaRarity(): string
+	local totalWeight = 0
+	for _, rarity in ipairs(BrainrotCatalog.RarityOrder) do
+		totalWeight += GameConfig.GachaRarityWeights[rarity] or 0
+	end
+	local roll = rng:NextNumber(0, totalWeight)
+	local running = 0
+	for _, rarity in ipairs(BrainrotCatalog.RarityOrder) do
+		local weight = GameConfig.GachaRarityWeights[rarity] or 0
+		running += weight
+		if weight > 0 and roll <= running then
+			return rarity
+		end
+	end
+	return "Rare"
+end
+
+function EconomyService.RollGacha(state: any): boolean
+	if not PlayerData.HasFreePad(state) then
+		notifyPlayer(state.Player, "Your base is full! Make room before spinning the capsule.")
+		return false
+	end
+	if not PlayerData.TrySpendCash(state, GameConfig.GachaPrice) then
+		notifyPlayer(state.Player, "The Gacha Capsule needs " .. GameConfig.FormatCash(GameConfig.GachaPrice) .. " per spin.")
+		return false
+	end
+	local rarity = rollGachaRarity()
+	local pool = BrainrotCatalog.GetCharactersOfRarity(rarity)
+	local character = pool[rng:NextInteger(1, #pool)]
+	local mutation
+	if PlayerData.HasBoost(state, "Luck") then
+		mutation = BrainrotCatalog.RollMutation(rng, GameConfig.LuckyHatchMutationWeights)
+	else
+		mutation = BrainrotCatalog.RollMutation(rng)
+	end
+	local placedOk = EconomyService.PlaceBrainrotOnPad(state, character.Id, mutation.Name)
+	if placedOk then
+		local mutationText = if mutation.Name == "Normal" then "" else ", " .. mutation.Name
+		notifyPlayer(state.Player, string.format("GACHA: %s [%s]%s!", character.Name, character.Rarity, mutationText))
+		-- Jackpot theatre: Brainrot God and above gets announced to everyone else.
+		local rarityIndex = table.find(BrainrotCatalog.RarityOrder, character.Rarity)
+		local godIndex = table.find(BrainrotCatalog.RarityOrder, "Brainrot God")
+		if rarityIndex and godIndex and rarityIndex >= godIndex then
+			for _, otherPlayer in ipairs(Players:GetPlayers()) do
+				if otherPlayer ~= state.Player then
+					notifyPlayer(otherPlayer, string.format("%s pulled a %s %s from the GACHA CAPSULE!", state.Player.DisplayName, character.Rarity, character.Name))
+				end
+			end
+		end
 	end
 	return placedOk
 end
@@ -413,7 +482,7 @@ local function spawnArenaBrainrot()
 		AnimationService.Register(model, {
 			Rarity = character.Rarity,
 			Mutation = "Gold",
-			Spin = character.Rarity == "Mythic" or character.Rarity == "Brainrot God",
+			Spin = shouldSpin(character.Rarity),
 		})
 	end)
 	notifyAllPlayers("A GOLDEN " .. character.Name .. " appeared in the NEON ARENA! First to grab it keeps it!")

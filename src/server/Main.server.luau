@@ -73,7 +73,7 @@ remoteFolder.Name = "Remotes"
 remoteFolder.Parent = ReplicatedStorage
 
 local remoteNames = {
-	"BuyBoost", "HatchEgg", "SellBrainrot", "ToggleLock", "RequestRebirth",
+	"BuyBoost", "HatchEgg", "RollGacha", "SellBrainrot", "ToggleLock", "RequestRebirth",
 	"RequestDash", "StateUpdate", "Notify", "WaveUpdate", "FuseBrainrots",
 }
 local remotes: { [string]: RemoteEvent } = {}
@@ -260,6 +260,20 @@ remotes.HatchEgg.OnServerEvent:Connect(function(player: Player)
 		return
 	end
 	EconomyService.HatchEgg(state)
+end)
+
+remotes.RollGacha.OnServerEvent:Connect(function(player: Player)
+	local state = PlayerData.GetState(player)
+	if not state then
+		return
+	end
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if root and WorldBuilder.GachaMachinePosition and (root.Position - WorldBuilder.GachaMachinePosition).Magnitude > 26 then
+		remotes.Notify:FireClient(player, "Walk to the Gacha Capsule west of the arena to spin!")
+		return
+	end
+	EconomyService.RollGacha(state)
 end)
 
 remotes.SellBrainrot.OnServerEvent:Connect(function(player: Player, uid: any)

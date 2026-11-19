@@ -4,6 +4,7 @@
 -- the big steal-a-brainrot games: ONE long conveyor spine through the middle with the
 -- eight player bases flanking it on both sides, the glowing Neon Arena (spawn) just
 -- south of the belt, the Egg Machine and Rebirth Shrine capping the belt's two ends,
+-- the Fuse Machine and the premium Gacha Capsule flanking the arena east and west,
 -- and dark slate ground so every neon sign, pad and laser glows. Neon zone colours
 -- throughout (orange belt, pink egg, gold shrine, purple fuse, green hill), palm trees
 -- with glowfruit, and one vivid neon colour per player base. Big short signs, and all
@@ -636,6 +637,55 @@ function WorldBuilder.BuildWorld()
 	makePart(worldFolder, "FusePostW", Vector3.new(0.8, 9, 0.8), Vector3.new(28, 4.5, 30), Color3.fromRGB(190, 90, 255), Enum.Material.Neon)
 	makePart(worldFolder, "FusePostE", Vector3.new(0.8, 9, 0.8), Vector3.new(40, 4.5, 30), Color3.fromRGB(190, 90, 255), Enum.Material.Neon)
 	WorldBuilder.FuseMachinePosition = Vector3.new(34, 0, 30)
+
+	-- MAGENTA ZONE: the Gacha Capsule, mirror of the Fuse Machine at the
+	-- arena's WEST edge -- nudged further west (x -44, not -34) because the
+	-- arena's west bench and the r27 glow ring crowd the mirrored spot. A
+	-- glass dome full of bright mini capsules on a chunky base, with a crank
+	-- and a prize slot on its front. One spin costs real money and never,
+	-- ever lands a Common (EconomyService.RollGacha).
+	makePart(worldFolder, "GachaPad", Vector3.new(13, 0.4, 13), Vector3.new(-44, 0.2, 30), Color3.fromRGB(46, 48, 62), Enum.Material.Concrete)
+	local gachaBase = makePart(worldFolder, "GachaBase", Vector3.new(9, 4.5, 9), Vector3.new(-44, 2.25, 30), Color3.fromRGB(38, 36, 50), Enum.Material.Metal)
+	makePart(worldFolder, "GachaTrim", Vector3.new(9.6, 0.5, 9.6), Vector3.new(-44, 4.4, 30), Color3.fromRGB(255, 110, 220), Enum.Material.Neon)
+	local gachaDome = Instance.new("Part")
+	gachaDome.Name = "GachaDome"
+	gachaDome.Shape = Enum.PartType.Ball
+	gachaDome.Size = Vector3.new(8.5, 8.5, 8.5)
+	gachaDome.Position = Vector3.new(-44, 7.6, 30)
+	gachaDome.Color = Color3.fromRGB(255, 240, 250)
+	gachaDome.Transparency = 0.3
+	gachaDome.Anchored = true
+	gachaDome.CanCollide = false
+	gachaDome.Parent = worldFolder
+	-- The prize stock: ten mini capsules in toy colours, floating in the dome.
+	local capsuleColors = {
+		Color3.fromRGB(255, 110, 200), Color3.fromRGB(60, 225, 255), Color3.fromRGB(255, 230, 80),
+		Color3.fromRGB(110, 255, 120), Color3.fromRGB(255, 150, 60), Color3.fromRGB(170, 90, 255),
+		Color3.fromRGB(255, 90, 90), Color3.fromRGB(170, 255, 90), Color3.fromRGB(120, 200, 255),
+		Color3.fromRGB(255, 90, 160),
+	}
+	local capsuleOffsets = {
+		Vector3.new(2.3, 5.4, 0), Vector3.new(1.15, 5.4, 1.99), Vector3.new(-1.15, 5.4, 1.99),
+		Vector3.new(-2.3, 5.4, 0), Vector3.new(-1.15, 5.4, -1.99), Vector3.new(1.15, 5.4, -1.99),
+		Vector3.new(1.2, 6.9, 0), Vector3.new(-0.6, 6.9, 1.04), Vector3.new(-0.6, 6.9, -1.04),
+		Vector3.new(0, 8.2, 0),
+	}
+	for capsuleIndex, offset in ipairs(capsuleOffsets) do
+		local capsule = makePart(worldFolder, "GachaCapsule" .. tostring(capsuleIndex), Vector3.new(1.7, 1.7, 1.7), Vector3.new(-44 + offset.X, offset.Y, 30 + offset.Z), capsuleColors[capsuleIndex], Enum.Material.SmoothPlastic)
+		capsule.Shape = Enum.PartType.Ball
+		capsule.CanCollide = false
+	end
+	-- The crank on the front face, and the prize slot under it.
+	local crank = makePart(worldFolder, "GachaCrank", Vector3.new(1.8, 1.2, 1.2), Vector3.new(-41.8, 2.6, 34.9), Color3.fromRGB(150, 150, 160), Enum.Material.Metal)
+	crank.Shape = Enum.PartType.Cylinder
+	crank.Orientation = Vector3.new(0, 90, 0)
+	local crankHandle = makePart(worldFolder, "GachaCrankHandle", Vector3.new(1.1, 1.1, 1.1), Vector3.new(-41.2, 1.7, 35.3), Color3.fromRGB(255, 110, 220), Enum.Material.Neon)
+	crankHandle.Shape = Enum.PartType.Ball
+	makePart(worldFolder, "GachaPrizeSlot", Vector3.new(3.6, 1.7, 0.5), Vector3.new(-44, 1.15, 34.6), Color3.fromRGB(16, 16, 22), Enum.Material.SmoothPlastic)
+	makeSign(worldFolder, "GachaSign", gachaBase, "GACHA CAPSULE\n" .. GameConfig.FormatCash(GameConfig.GachaPrice) .. " PER SPIN - NO COMMONS!", Color3.fromRGB(255, 110, 220), Vector3.new(0, 10, 0))
+	makePart(worldFolder, "GachaPostW", Vector3.new(0.8, 9, 0.8), Vector3.new(-50, 4.5, 30), Color3.fromRGB(255, 110, 220), Enum.Material.Neon)
+	makePart(worldFolder, "GachaPostE", Vector3.new(0.8, 9, 0.8), Vector3.new(-38, 4.5, 30), Color3.fromRGB(255, 110, 220), Enum.Material.Neon)
+	WorldBuilder.GachaMachinePosition = Vector3.new(-44, 0, 30)
 
 	-- A short paved connector from the arena's north edge to the belt platform,
 	-- edged with cyan neon strips, and two straight roads running between the

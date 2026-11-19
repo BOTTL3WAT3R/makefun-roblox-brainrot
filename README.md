@@ -4,7 +4,7 @@
 [![rank](https://make.fun/badge/roblox-brainrot-01/BOTTL3WAT3R/makefun-roblox-brainrot/rank.svg)](https://make.fun/bounty/roblox-brainrot-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=roblox-brainrot-01)
 [![reward](https://make.fun/badge/roblox-brainrot-01/BOTTL3WAT3R/makefun-roblox-brainrot/reward.svg)](https://make.fun/bounty/roblox-brainrot-01?utm_source=github&utm_medium=readme&utm_campaign=roblox-brainrot-01)
 
-**Neon Shores** — a 3D Roblox brainrot game set on a compact tropical island at golden hour, lit by neon. The layout follows the big steal-a-brainrot games: one long conveyor spine runs through the middle of the island with the eight player bases flanking it on both sides, the glowing **Neon Arena** spawn ring just south of the belt, the Egg Machine and the Rebirth Shrine capping the belt's two ends, and dark slate ground so every sign, pad and laser glows. Buy absurd meme-born characters that each earn cash every second, stand them on the glowing pads at your base, climb a ladder of 36 original brainrots across six rarities and four mutations, steal brainrots from other players' unlocked bases and dash home with the catch — and when the Big Wave warning sounds, run for your base or the high hill, or the wave takes what you are carrying and washes you back to spawn. A six-mission chain under the wave banner teaches the whole loop (buy, hatch, lock, fuse, steal, rebirth) and pays cash for every step, every few minutes a **golden brainrot** appears in the Neon Arena for whoever grabs it first, and the **Index** collection grid lights up in rarity colours for every brainrot you own. There is no shop list — the belt is the only place to buy — so spare cash goes into **boosts**: speed, a one-save wave shield, double income and a luck charm that bends the egg and fuse odds your way. The world stays readable at a glance — one neon colour per zone, one vivid colour per base — because all the motion lives on the brainrots: they walk the shop belt, bob on their pads, the rarest ones spin, and the valuable ones sparkle.
+**Neon Shores** — a 3D Roblox brainrot game set on a compact tropical island at golden hour, lit by neon. The layout follows the big steal-a-brainrot games: one long conveyor spine runs through the middle of the island with the eight player bases flanking it on both sides, the glowing **Neon Arena** spawn ring just south of the belt, the Egg Machine and the Rebirth Shrine capping the belt's two ends, and dark slate ground so every sign, pad and laser glows. Buy absurd meme-born characters that each earn cash every second, stand them on the glowing pads at your base, climb a ladder of 42 original brainrots across eight rarities and four mutations, steal brainrots from other players' unlocked bases and dash home with the catch — and when the Big Wave warning sounds, run for your base or the high hill, or the wave takes what you are carrying and washes you back to spawn. A six-mission chain under the wave banner teaches the whole loop (buy, hatch, lock, fuse, steal, rebirth) and pays cash for every step, every few minutes a **golden brainrot** appears in the Neon Arena for whoever grabs it first, and the **Index** collection grid lights up in rarity colours for every brainrot you own. There is no shop list — the belt is the only place to buy — so spare cash goes into **boosts**: speed, a one-save wave shield, double income and a luck charm that bends the egg and fuse odds your way. And for the rich, a **Gacha Capsule** west of the arena spins $10,000 into anything from Rare to Transcendent — never a Common. The world stays readable at a glance — one neon colour per zone, one vivid colour per base — because all the motion lives on the brainrots: they walk the shop belt, bob on their pads, the rarest ones spin, and the valuable ones sparkle.
 
 ## Run it
 
@@ -33,7 +33,7 @@ place link, place id and universe id in `PLAY.json`, and upload an icon and a th
    glowing pad at your base and starts earning cash every
    second — its floating label shows its name, rarity and $/s.
 3. Stand by the pink **Egg Machine** at the belt's west end and press **EGG** to hatch
-   a random brainrot: rarities roll from Common to Brainrot God, and mutations
+   a random brainrot: rarities roll from Common to Transcendent, and mutations
    multiply income (Gold x2, Diamond x4, Rainbow x8).
 4. **Steal:** walk into a brainrot on another player's *unlocked* base to rip it off its pad
    and carry it on your back (you are slower while carrying). Reach your own base floor to
@@ -46,28 +46,34 @@ place link, place id and universe id in `PLAY.json`, and upload an icon and a th
 7. **Rebirth:** at the gold **Rebirth Shrine** at the belt's east end, pay the cost to
    reset your cash and brainrots for a permanent +100% income multiplier (x2, x3, x4...).
    Costs grow 8x per rebirth.
-8. **Index:** press **INDEX** to open your collection grid — all 36 brainrots, lit up in
+8. **Index:** press **INDEX** to open your collection grid — all 42 brainrots, lit up in
    their rarity colour once you own them, greyed out while they are still out there glowing.
 9. **Fuse:** at the purple **Fuse Machine** by the arena, press **FUSE** and pick any 3
    brainrots of the *same* rarity from your base: they are consumed and bubble up into 1
    random brainrot of the *next* rarity, with a kinder mutation roll than the egg
-   (55% Normal, 25% Gold, 13% Diamond, 7% Rainbow). Fusing is free — but Brainrot God
+   (55% Normal, 25% Gold, 13% Diamond, 7% Rainbow). Fusing is free — but Transcendent
    is the top of the ladder and cannot be fused.
-10. **Boosts:** press **BOOST** to spend cash on temporary powers instead of
+10. **Gacha Capsule:** at the magenta capsule machine west of the arena, press
+    **GACHA** to spin **$10,000** on a premium pull — **no Commons, ever**. The odds:
+    Rare 30%, Epic 28%, Legendary 20%, Mythic 12%, Brainrot God 6%, Cosmic 3%,
+    Transcendent 1%, with the usual mutation roll on top (a Lucky Charm bends the
+    mutations, just like at the egg). Pull a Brainrot God or better and the whole
+    island hears about it.
+11. **Boosts:** press **BOOST** to spend cash on temporary powers instead of
     brainrots — **Speed Surge** ($400, walk 50% faster for 60s), **Wave Shield**
     ($800, the next Big Wave cannot wash you, one save), **Income X2** ($2,500,
     double income for 120s) and **Lucky Charm** ($3,000, 90s of kinder mutation
     odds at the Egg Machine — 50/32/13/5 instead of 70/20/8/2, a rarity roll
     tilted up the ladder — and at the Fuse Machine, 40/32/18/10 instead of
     55/25/13/7). Re-buying a running boost refreshes its timer.
-11. **Neon Arena events:** every few minutes a **golden brainrot** (a random Epic-or-better
+12. **Neon Arena events:** every few minutes a **golden brainrot** (a random Epic-or-better
     character with the Gold mutation) appears on the arena ring under a beam of golden
     light. First player to run up and grab it keeps it — if your base has a free pad.
     Unclaimed, it fades after 30 seconds.
-12. **Missions:** the gold bar under the wave banner always shows your current mission —
+13. **Missions:** the gold bar under the wave banner always shows your current mission —
     buy, hatch, lock, fuse, steal, rebirth — and pays cash ($100 up to $5,000) the
     moment you finish each one. Clear all six and you rule Neon Shores.
-13. **Neon Playground:** behind the north bases, a teal safety mat holds a working
+14. **Neon Playground:** behind the north bases, a teal safety mat holds a working
     playground — climb the steps and slide down the **slide**, sit on the **swings**,
     tip the **seesaw** by standing on one end, ride the spinning **merry-go-round**,
     launch off the **bounce pad**, or just sit on a **bench** and watch the arena.
@@ -81,11 +87,11 @@ place link, place id and universe id in `PLAY.json`, and upload an icon and a th
 - **Left Shift or the DASH button** — 3-second speed burst (dash home with a stolen brainrot!)
 - **Walk into** belt brainrots, placed brainrots, lock buttons and base floors to interact
 - **Hold E** at the trash can by the Fuse Machine — rummage for loose cash, once a minute
-- **BOOST / MY BASE / INDEX / FUSE / EGG / REBIRTH buttons** — panels and actions, top-right and bottom-centre
+- **BOOST / MY BASE / INDEX / FUSE / GACHA / EGG / REBIRTH buttons** — panels and actions, top-right and bottom-centre
 
 ## The cast
 
-Thirty-six original characters, built from primitive parts (body, head, eyes, one accessory),
+Forty-two original characters, built from primitive parts (body, head, eyes, one accessory),
 each with a floating name / rarity / $/s label. Prices and income per second:
 
 | Brainrot | Rarity | Price | $/s | The joke |
@@ -126,6 +132,12 @@ each with a floating name / rarity / $/s label. Prices and income per second:
 | Moist Megazord | Brainrot God | $750,000 | 12,000 | Five damp sponges, one soggy titan |
 | The Final Croissant | Brainrot God | $950,000 | 16,000 | All butter. All layers. No mercy |
 | Grandma Singularity | Brainrot God | $1,200,000 | 20,000 | Her knitting bends spacetime. Her soup bends knees |
+| Captain Quasar Quesadilla | Cosmic | $2,800,000 | 38,000 | Sails the cheese seas between the stars |
+| Madame Nebula Noodles | Cosmic | $3,400,000 | 46,000 | Her broth contains entire galaxies |
+| Baron Blackhole Bagel | Cosmic | $4,200,000 | 58,000 | Everything orbits his breakfast. Everything |
+| Seraphim Spaghetti | Transcendent | $5,500,000 | 75,000 | Six wings, every one of them al dente |
+| The Last Brain Cell | Transcendent | $6,800,000 | 90,000 | The final one. It is doing its best |
+| The Big Bang Burrito | Transcendent | $8,000,000 | 110,000 | It all started with a wrap. It all ends with one too |
 
 Mutations on hatch: Normal x1 (70%), Gold x2 (20%), Diamond x4 (8%), Rainbow x8 (2%).
 
@@ -133,19 +145,19 @@ Mutations on hatch: Normal x1 (70%), Gold x2 (20%), Diamond x4 (8%), Rainbow x8 
 
 Rojo project — `src/` maps into the place, and `game.rbxl` is built from it:
 
-- `src/shared/BrainrotCatalog.luau` — the 36-character cast table, rarities, mutations, hatch rolls
+- `src/shared/BrainrotCatalog.luau` — the 42-character cast table, rarities, mutations, hatch rolls
 - `src/shared/GameConfig.luau` — every tunable: tick rate, lock/steal rules, Big Wave cycle, rebirth formula
 - `src/server/Main.server.luau` — bootstrap: golden-hour Lighting (bloom, sun rays, atmosphere), builds the world, creates RemoteEvents, assigns bases, starts all loops
-- `src/server/WorldBuilder.luau` — builds the 3D world from Parts: grass island on a sand rim in a deep teal sea, the conveyor spine (one long belt through the middle), 8 neon-trimmed bases flanking it north and south with pads and lock lasers, the glowing Neon Arena spawn ring, pink egg machine and gold rebirth shrine capping the belt's ends, purple Fuse Machine cauldron, green high hill, palm trees with glowfruit, the Big Wave wall with its foam crest, and every brainrot model with its floating label
-- `src/server/AnimationService.luau` — the animation layer: one Heartbeat loop bobs every placed brainrot (Mythic and Brainrot God also spin) and strides the belt brainrots down the conveyor with a walking gait, sparkle emitters for Legendary+ and mutated brainrots, the pulsing egg dome and the conveyor chase lights
+- `src/server/WorldBuilder.luau` — builds the 3D world from Parts: grass island on a sand rim in a deep teal sea, the conveyor spine (one long belt through the middle), 8 neon-trimmed bases flanking it north and south with pads and lock lasers, the glowing Neon Arena spawn ring, pink egg machine and gold rebirth shrine capping the belt's ends, purple Fuse Machine cauldron and the magenta Gacha Capsule flanking the arena, green high hill, palm trees with glowfruit, the Big Wave wall with its foam crest, and every brainrot model with its floating label
+- `src/server/AnimationService.luau` — the animation layer: one Heartbeat loop bobs every placed brainrot (Mythic and up also spin) and strides the belt brainrots down the conveyor with a walking gait, sparkle emitters for Legendary+ and mutated brainrots, the pulsing egg dome and the conveyor chase lights
 - `src/server/PlayerData.luau` — all per-player state in one place: cash, placed/carried brainrots, rebirths, multiplier, and the six-mission chain (progress, rewards, the HUD mission line)
-- `src/server/EconomyService.luau` — income tick, walking-belt buying with price tags, egg hatching, placing, selling, the four cash boosts, and the Neon Arena golden-brainrot event loop
+- `src/server/EconomyService.luau` — income tick, walking-belt buying with price tags, egg hatching, premium gacha capsule spins with island-wide jackpot announcements, placing, selling, the four cash boosts, and the Neon Arena golden-brainrot event loop
 - `src/server/StealService.luau` — carry/steal, base lock lasers, dash, banking a stolen brainrot
 - `src/server/TsunamiService.luau` — Big Wave cycle: calm, warning countdown, tweened sweep, safe zones
 - `src/server/RebirthService.luau` — rebirth: cost check, reset, permanent multiplier
 - `src/server/FuseService.luau` — the Fuse Machine: validates 3 same-rarity placed brainrots server-side, consumes them, and places 1 random brainrot of the next rarity with a boosted mutation roll
 - `src/client/Hud.client.luau` — ScreenGui HUD: cash (pops when it changes), $/s, multiplier, Big Wave banner (pulses red under 10s), the mission bar, the rarity-ladder legend with mutation multipliers, DASH/LOCK buttons (kept clear of the top-left corner)
-- `src/client/ShopUI.client.luau` — boost panel, my-base panel with sell buttons, the Index collection grid, the Fuse picker panel, egg and rebirth buttons
+- `src/client/ShopUI.client.luau` — boost panel, my-base panel with sell buttons, the Index collection grid, the Fuse picker panel, egg, rebirth and gacha buttons
 - `src/world/` — static 3D structures as Rojo model files (plaza arch, shop stall, rarity pedestals)
 
 Client and server talk only through the RemoteEvents the server bootstrap creates under

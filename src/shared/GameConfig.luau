@@ -24,6 +24,21 @@ GameConfig.ConveyorMaxOnBelt = 7
 GameConfig.EggPrice = 250
 GameConfig.EggHatchSeconds = 3
 
+-- Gacha capsule: the premium spin west of the arena, for players who have
+-- outgrown the $250 egg. Ten thousand a spin and NO Commons, ever -- the
+-- rarity table starts at Rare and climbs all the way to Transcendent, so
+-- every pull lands somewhere exciting. The weights add up to 100.
+GameConfig.GachaPrice = 10000
+GameConfig.GachaRarityWeights = {
+	Rare = 30,
+	Epic = 28,
+	Legendary = 20,
+	Mythic = 12,
+	["Brainrot God"] = 6,
+	Cosmic = 3,
+	Transcendent = 1,
+}
+
 -- Stealing and base defence
 GameConfig.LockDurationSeconds = 60
 GameConfig.LockCooldownSeconds = 15
@@ -76,11 +91,12 @@ end
 
 -- Lucky Charm odds. While the charm is active, hatch and fuse mutation rolls
 -- shift weight away from Normal toward Gold / Diamond / Rainbow, and the
--- hatch rarity roll tilts one notch up the ladder (Common gives up 10 points
--- to Rare, Epic, Legendary and Mythic). The charm is personal: it never
--- touches the shared belt spawns. All tables add up to 100.
+-- hatch rarity roll tilts up the ladder (Common gives up ground to every
+-- tier above it, and even Cosmic and Transcendent double their sliver). The
+-- charm is personal: it never touches the shared belt spawns. All tables
+-- add up to 100.
 GameConfig.LuckyHatchMutationWeights = { Normal = 50, Gold = 32, Diamond = 13, Rainbow = 5 }
-GameConfig.LuckyHatchRarityWeights = { Common = 35, Rare = 32, Epic = 18, Legendary = 10, Mythic = 4, ["Brainrot God"] = 1 }
+GameConfig.LuckyHatchRarityWeights = { Common = 33.3, Rare = 32, Epic = 18, Legendary = 10, Mythic = 4, ["Brainrot God"] = 1, Cosmic = 1.2, Transcendent = 0.5 }
 GameConfig.FuseMutationWeights = { Normal = 55, Gold = 25, Diamond = 13, Rainbow = 7 }
 GameConfig.LuckyFuseMutationWeights = { Normal = 40, Gold = 32, Diamond = 18, Rainbow = 10 }
 

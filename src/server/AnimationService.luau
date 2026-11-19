@@ -1,8 +1,8 @@
 -- AnimationService.luau (ModuleScript, ServerScriptService.Server)
 -- Neon Shores -- the animation layer. The world itself stays deliberately simple;
 -- all the motion lives on the collectibles, like the big tycoon games do it:
---   * every placed brainrot gently bobs, and Mythic / Brainrot God rarities also
---     slowly spin, driven by ONE Heartbeat loop for the whole game;
+--   * every placed brainrot gently bobs, and the top rarities (Mythic and above)
+--     also slowly spin, driven by ONE Heartbeat loop for the whole game;
 --   * belt brainrots WALK the conveyor (RegisterWalker): they stride along +X with
 --     a quick bob and a side-to-side sway, faces turned to the travel direction,
 --     and hand themselves back through OnArrive at the end of the belt;
@@ -15,6 +15,10 @@
 
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+local BrainrotCatalog = require(Shared:WaitForChild("BrainrotCatalog"))
 
 local AnimationService = {}
 
@@ -69,6 +73,10 @@ local function sparkleColorFor(rarity: string?, mutationName: string?): ColorSeq
 			ColorSequenceKeypoint.new(0.75, Color3.fromRGB(90, 160, 255)),
 			ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 110, 255)),
 		})
+	elseif rarity == "Cosmic" or rarity == "Transcendent" then
+		-- The two tiers above Brainrot God sparkle in their own ladder colours:
+		-- galaxy violet for Cosmic, radiant white-gold for Transcendent.
+		return ColorSequence.new(BrainrotCatalog.RarityColors[rarity] or Color3.fromRGB(255, 230, 160))
 	elseif rarity == "Legendary" or rarity == "Mythic" or rarity == "Brainrot God" then
 		return ColorSequence.new(Color3.fromRGB(255, 230, 160))
 	end

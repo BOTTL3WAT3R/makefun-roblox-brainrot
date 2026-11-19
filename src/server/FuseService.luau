@@ -2,8 +2,8 @@
 -- Neon Shores -- the Fuse Machine by the plaza: hand over 3 placed brainrots of
 -- the SAME rarity and they are consumed into 1 random brainrot of the NEXT
 -- rarity tier, with a mutation roll kinder than the egg's (55% Normal, 25% Gold,
--- 13% Diamond, 7% Rainbow -- or 40/32/18/10 under a Lucky Charm boost). Fusing is free; Brainrot God has no tier above it
--- and cannot be fused. Every check happens here on the server -- the client's
+-- 13% Diamond, 7% Rainbow -- or 40/32/18/10 under a Lucky Charm boost). Fusing is free; Transcendent, the top
+-- of the ladder, has no tier above it and cannot be fused. Every check happens here on the server -- the client's
 -- FUSE panel only ever sends 3 uids through the FuseBrainrots remote (created
 -- and wired to PerformFuse in Main.server) and hopes.
 
@@ -86,7 +86,7 @@ function FuseService.PerformFuse(state: any, uids: any): boolean
 		return false
 	end
 	-- Validate everything before consuming anything: 3 distinct uids, all placed
-	-- and owned by this player, all one shared rarity below Brainrot God.
+	-- and owned by this player, all one shared rarity below the top tier.
 	local seen: { [number]: boolean } = {}
 	local chosen: { any } = {}
 	local sharedRarity: string? = nil
@@ -115,7 +115,8 @@ function FuseService.PerformFuse(state: any, uids: any): boolean
 	end
 	local resultRarity = sharedRarity and nextRarity(sharedRarity)
 	if not resultRarity then
-		notifyPlayer(state.Player, "Brainrot God is the top -- there is nothing to fuse into.")
+		local topRarity = BrainrotCatalog.RarityOrder[#BrainrotCatalog.RarityOrder]
+		notifyPlayer(state.Player, topRarity .. " is the top -- there is nothing to fuse into.")
 		return false
 	end
 	-- Consume the three through the same removal path selling uses.
