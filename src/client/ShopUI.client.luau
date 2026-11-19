@@ -4,8 +4,9 @@
 -- free pad at your base), a MY BASE panel listing what you own with a SELL button each, an
 -- INDEX panel grid of the whole 36-character cast that lights up in rarity colours for the
 -- ones you own, a FUSE panel that trades 3 same-rarity brainrots up a tier, and the EGG
--- and REBIRTH buttons. Panels open from the right-hand side,
--- away from the top-left corner where Roblox draws its own menu.
+-- and REBIRTH buttons. The SHOP and MY BASE panels open from the right-hand side,
+-- away from the top-left corner where Roblox draws its own menu; the INDEX and FUSE
+-- panels are centred modals, so they never sit under the right-hand button column.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -121,23 +122,43 @@ remotes:WaitForChild("StateUpdate").OnClientEvent:Connect(rebuildBasePanel)
 -- as MY BASE (placed CharacterIds plus the carried one), so no extra remote.
 local indexPanel = Instance.new("Frame")
 indexPanel.Name = "IndexPanel"
-indexPanel.AnchorPoint = Vector2.new(1, 0)
-indexPanel.Position = UDim2.new(1, -14, 0, 90)
-indexPanel.Size = UDim2.fromOffset(380, 460)
+indexPanel.AnchorPoint = Vector2.new(0.5, 0.5)
+indexPanel.Position = UDim2.new(0.5, 0, 0.5, 0)
+indexPanel.Size = UDim2.fromOffset(560, 460)
 indexPanel.BackgroundColor3 = Color3.fromRGB(22, 22, 34)
 indexPanel.BackgroundTransparency = 0.1
 indexPanel.Visible = false
 indexPanel.Parent = gui
 
+local indexStroke = Instance.new("UIStroke")
+indexStroke.Color = Color3.fromRGB(150, 90, 220)
+indexStroke.Thickness = 2
+indexStroke.Parent = indexPanel
+
 local indexTitle = Instance.new("TextLabel")
 indexTitle.Name = "IndexTitle"
 indexTitle.Size = UDim2.new(1, 0, 0, 44)
 indexTitle.BackgroundTransparency = 1
-indexTitle.Text = "INDEX  0/" .. tostring(#BrainrotCatalog.Characters)
+indexTitle.Text = "BRAINROT INDEX  0/" .. tostring(#BrainrotCatalog.Characters)
 indexTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
 indexTitle.TextSize = 26
 indexTitle.Font = Enum.Font.FredokaOne
 indexTitle.Parent = indexPanel
+
+local indexClose = Instance.new("TextButton")
+indexClose.Name = "IndexClose"
+indexClose.AnchorPoint = Vector2.new(1, 0)
+indexClose.Position = UDim2.new(1, -8, 0, 8)
+indexClose.Size = UDim2.fromOffset(36, 36)
+indexClose.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
+indexClose.TextColor3 = Color3.fromRGB(255, 255, 255)
+indexClose.TextSize = 20
+indexClose.Font = Enum.Font.FredokaOne
+indexClose.Text = "X"
+indexClose.Activated:Connect(function()
+	indexPanel.Visible = false
+end)
+indexClose.Parent = indexPanel
 
 local indexScroll = Instance.new("ScrollingFrame")
 indexScroll.Name = "IndexGrid"
@@ -202,7 +223,7 @@ local function rebuildIndexPanel(snapshot: any)
 			end
 		end
 	end
-	indexTitle.Text = "INDEX  " .. tostring(ownedCount) .. "/" .. tostring(#BrainrotCatalog.Characters)
+	indexTitle.Text = "BRAINROT INDEX  " .. tostring(ownedCount) .. "/" .. tostring(#BrainrotCatalog.Characters)
 end
 
 remotes:WaitForChild("StateUpdate").OnClientEvent:Connect(rebuildIndexPanel)
@@ -212,13 +233,18 @@ remotes:WaitForChild("StateUpdate").OnClientEvent:Connect(rebuildIndexPanel)
 -- server re-validates everything, so this panel is only ever a picker.
 local fusePanel = Instance.new("Frame")
 fusePanel.Name = "FusePanel"
-fusePanel.AnchorPoint = Vector2.new(1, 0)
-fusePanel.Position = UDim2.new(1, -14, 0, 90)
-fusePanel.Size = UDim2.fromOffset(380, 460)
+fusePanel.AnchorPoint = Vector2.new(0.5, 0.5)
+fusePanel.Position = UDim2.new(0.5, 0, 0.5, 0)
+fusePanel.Size = UDim2.fromOffset(560, 460)
 fusePanel.BackgroundColor3 = Color3.fromRGB(22, 22, 34)
 fusePanel.BackgroundTransparency = 0.1
 fusePanel.Visible = false
 fusePanel.Parent = gui
+
+local fuseStroke = Instance.new("UIStroke")
+fuseStroke.Color = Color3.fromRGB(150, 90, 220)
+fuseStroke.Thickness = 2
+fuseStroke.Parent = fusePanel
 
 local fuseTitle = Instance.new("TextLabel")
 fuseTitle.Name = "FuseTitle"
@@ -230,12 +256,27 @@ fuseTitle.TextSize = 26
 fuseTitle.Font = Enum.Font.FredokaOne
 fuseTitle.Parent = fusePanel
 
+local fuseClose = Instance.new("TextButton")
+fuseClose.Name = "FuseClose"
+fuseClose.AnchorPoint = Vector2.new(1, 0)
+fuseClose.Position = UDim2.new(1, -8, 0, 8)
+fuseClose.Size = UDim2.fromOffset(36, 36)
+fuseClose.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
+fuseClose.TextColor3 = Color3.fromRGB(255, 255, 255)
+fuseClose.TextSize = 20
+fuseClose.Font = Enum.Font.FredokaOne
+fuseClose.Text = "X"
+fuseClose.Activated:Connect(function()
+	fusePanel.Visible = false
+end)
+fuseClose.Parent = fusePanel
+
 local fuseHint = Instance.new("TextLabel")
 fuseHint.Name = "FuseHint"
 fuseHint.Position = UDim2.fromOffset(10, 44)
 fuseHint.Size = UDim2.new(1, -20, 0, 38)
 fuseHint.BackgroundTransparency = 1
-fuseHint.Text = "Pick 3 brainrots of the same rarity -> get 1 of the next rarity!"
+fuseHint.Text = "Pick 3 brainrots of the same rarity to get 1 of the next rarity"
 fuseHint.TextColor3 = Color3.fromRGB(200, 200, 215)
 fuseHint.TextSize = 15
 fuseHint.Font = Enum.Font.FredokaOne
@@ -394,6 +435,7 @@ fuseAction.Activated:Connect(function()
 	end
 	fuseSelection = {}
 	remotes:WaitForChild("FuseBrainrots"):FireServer(uids)
+	fusePanel.Visible = false
 	refreshFuseCells()
 end)
 
