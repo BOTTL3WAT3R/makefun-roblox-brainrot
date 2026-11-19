@@ -1,6 +1,8 @@
 -- PlayerData.luau (ModuleScript, ServerScriptService.Server)
 -- Neon Shores -- all per-player state lives in this one module:
--- cash, placed brainrots, the brainrot being carried, rebirths and the income multiplier.
+-- cash, placed brainrots, the brainrot being carried, rebirths and the income multiplier,
+-- and the linear mission chain (buy, hatch, lock, fuse, steal, rebirth) that teaches
+-- the whole loop one rewarded step at a time.
 -- Every other service reads and writes state through here, never in its own tables.
 
 local Players = game:GetService("Players")
@@ -29,6 +31,20 @@ export type PlayerState = {
 	LockEndsAt: number,
 	LockReadyAt: number,
 	NextUid: number,
+	MissionIndex: number,
+	MissionProgress: number,
+}
+
+-- The mission chain, in order. Services report finished actions by Key through
+-- ReportMissionAction; only the CURRENT mission's key counts, so the chain
+-- teaches one mechanic at a time. Rewards land as cash the moment a mission ends.
+local MISSIONS = {
+	{ Key = "Buy", Label = "Buy a brainrot from the belt", Target = 1, Reward = 100 },
+	{ Key = "Hatch", Label = "Hatch an egg at the Egg Machine", Target = 1, Reward = 250 },
+	{ Key = "Lock", Label = "Lock your base", Target = 1, Reward = 500 },
+	{ Key = "Fuse", Label = "Fuse 3 brainrots into 1", Target = 1, Reward = 1000 },
+	{ Key = "Steal", Label = "Steal a brainrot from another base", Target = 1, Reward = 2500 },
+	{ Key = "Rebirth", Label = "Rebirth at the Shrine", Target = 1, Reward = 5000 },
 }
 
 local statesByUserId: { [number]: PlayerState } = {}
@@ -55,6 +71,8 @@ function PlayerData.CreateStateForPlayer(player: Player): PlayerState
 		LockEndsAt = 0,
 		LockReadyAt = 0,
 		NextUid = 1,
+		MissionIndex = 1,
+		MissionProgress = 0,
 	}
 	statesByUserId[player.UserId] = state
 	return state
@@ -135,6 +153,47 @@ end
 
 function PlayerData.IsBaseLocked(state: PlayerState): boolean
 	return os.clock() < state.LockEndsAt
+end
+
+-- Reports one finished gameplay action ("Buy", "Hatch", "Lock", "Fuse", "Steal",
+-- "Rebirth") against the mission chain. Counts only when it matches the current
+-- mission; on completion the reward is added as cash and the chain advances.
+-- Returns (completed, reward) so the calling service can toast the player.
+function PlayerData.ReportMissionAction(state: PlayerState, actionKey: string): (boolean, number)
+	local mission = MISSIONS[state.MissionIndex]
+	if not mission or mission.Key ~= actionKey then
+		return false, 0
+	end
+	state.MissionProgress += 1
+	if state.MissionProgress >= mission.Target then
+		local reward = mission.Reward
+		state.MissionIndex += 1
+		state.MissionProgress = 0
+		state.Cash += reward
+		PlayerData.FireStateChanged(state)
+		return true, reward
+	end
+	PlayerData.FireStateChanged(state)
+	return false, 0
+end
+
+-- The mission line for the HUD: either the current mission with its progress
+-- and reward, or the victory line once the whole chain is done.
+function PlayerData.GetMissionSnapshot(state: PlayerState): { Text: string, Done: boolean }
+	local mission = MISSIONS[state.MissionIndex]
+	if not mission then
+		return { Text = "ALL MISSIONS COMPLETE - you rule Neon Shores!", Done = true }
+	end
+	local text = string.format(
+		"MISSION %d/%d: %s (%d/%d)  REWARD %s",
+		state.MissionIndex,
+		#MISSIONS,
+		mission.Label,
+		state.MissionProgress,
+		mission.Target,
+		GameConfig.FormatCash(mission.Reward)
+	)
+	return { Text = text, Done = false }
 end
 
 function PlayerData.WipeForRebirth(state: PlayerState)

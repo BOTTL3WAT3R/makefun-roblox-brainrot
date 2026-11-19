@@ -38,6 +38,17 @@ local function notifyPlayer(player: Player, message: string)
 	end
 end
 
+-- Mission reporting is always pcall-wrapped: the mission chain is a bonus
+-- layer and can never be allowed to break the mechanic that feeds it.
+local function reportMission(state: any, actionKey: string)
+	pcall(function()
+		local completed, reward = PlayerData.ReportMissionAction(state, actionKey)
+		if completed then
+			notifyPlayer(state.Player, "MISSION COMPLETE! +" .. GameConfig.FormatCash(reward))
+		end
+	end)
+end
+
 local function setWalkSpeed(player: Player, speed: number)
 	local character = player.Character
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
@@ -131,6 +142,7 @@ function StealService.TryBankCarriedBrainrot(thiefState: any): boolean
 		local character = BrainrotCatalog.GetCharacterById(carried.CharacterId)
 		local name = if character then character.Name else "Brainrot"
 		notifyPlayer(thiefState.Player, "Banked! " .. name .. " now earns at YOUR base.")
+		reportMission(thiefState, "Steal")
 	end
 	return placedOk
 end
@@ -157,6 +169,7 @@ function StealService.TryToggleBaseLock(state: any): boolean
 	end
 	PlayerData.FireStateChanged(state)
 	notifyPlayer(state.Player, "Base LOCKED for " .. tostring(GameConfig.LockDurationSeconds) .. " seconds!")
+	reportMission(state, "Lock")
 	return true
 end
 

@@ -74,7 +74,7 @@ function TsunamiService.WashPlayerBackToSpawn(player: Player)
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
 	if root then
-		root.CFrame = CFrame.new(Vector3.new(0, 6, 14))
+		root.CFrame = CFrame.new(Vector3.new(0, 6, 28))
 		root.AssemblyLinearVelocity = Vector3.zero
 	end
 end
@@ -93,8 +93,8 @@ local function runSweep()
 	notifyAll("BIG WAVE! RUN TO YOUR BASE OR HIGH GROUND!")
 	local wall = WorldBuilder.TsunamiWall
 	local foam = WorldBuilder.TsunamiFoam
-	local startX = -190
-	local endX = 190
+	local startX = -165
+	local endX = 165
 	local distance = endX - startX
 	local duration = distance / GameConfig.TsunamiWallSpeed
 	-- The wall glides on a linear TweenService tween instead of stepping, and the

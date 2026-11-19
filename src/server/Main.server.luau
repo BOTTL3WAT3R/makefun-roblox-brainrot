@@ -2,8 +2,9 @@
 -- Neon Shores -- the server bootstrap. It sets the golden-hour lighting, builds the
 -- world, creates the RemoteEvents the client talks through, hands each player a base
 -- plot, keeps leaderstats in step with PlayerData, and starts every service loop:
--- income, conveyor, stealing, the Big Wave cycle, the Rebirth Shrine watch and the
--- AnimationService dressing (egg pulse and belt chase lights).
+-- income, conveyor, the Neon Arena golden-brainrot event, stealing, the Big Wave
+-- cycle, the Rebirth Shrine watch and the AnimationService dressing (egg pulse and
+-- belt chase lights). Snapshots carry the player's current mission line for the HUD.
 
 local Players = game:GetService("Players")
 local Lighting = game:GetService("Lighting")
@@ -27,13 +28,13 @@ local AnimationService = require(ServerModules:WaitForChild("AnimationService"))
 -- 0. Golden hour: the sun sits low, the air is peachy, and only the neon is bright
 -- enough to bloom. This is the single biggest screenshot win in the game.
 local function setupGoldenHourLighting()
-	Lighting.ClockTime = 17.6
+	Lighting.ClockTime = 16.9
 	Lighting.Brightness = 2
-	Lighting.Ambient = Color3.fromRGB(140, 102, 84)
-	Lighting.OutdoorAmbient = Color3.fromRGB(153, 112, 92)
-	Lighting.FogColor = Color3.fromRGB(250, 166, 120)
+	Lighting.Ambient = Color3.fromRGB(161, 117, 97)
+	Lighting.OutdoorAmbient = Color3.fromRGB(176, 129, 106)
+	Lighting.FogColor = Color3.fromRGB(252, 183, 140)
 	Lighting.FogStart = 150
-	Lighting.FogEnd = 700
+	Lighting.FogEnd = 900
 	for _, child in ipairs(Lighting:GetChildren()) do
 		if child:IsA("PostEffect") or child:IsA("Atmosphere") then
 			child:Destroy()
@@ -122,6 +123,7 @@ local function buildStateSnapshot(state: any)
 		IsLocked = PlayerData.IsBaseLocked(state),
 		Carrying = state.Carried ~= nil,
 		CarriedId = if state.Carried then state.Carried.CharacterId else nil,
+		Mission = PlayerData.GetMissionSnapshot(state),
 		Placed = placedSummary,
 	}
 end
@@ -179,7 +181,9 @@ local function onPlayerAdded(player: Player)
 		end
 		if base then
 			task.wait(0.2)
-			root.CFrame = CFrame.new(base.Origin + Vector3.new(0, 4, 20))
+			-- Land between the base and the belt: the base's Facing points from
+			-- its plot toward the conveyor, whichever side of the island it is on.
+			root.CFrame = CFrame.new(base.Origin + Vector3.new(0, 4, 20 * (base.Facing or 1)))
 		end
 		pushStateToPlayer(player)
 	end)
@@ -282,6 +286,7 @@ StealService.WatchBases()
 StealService.StartStealWatchLoop()
 EconomyService.StartIncomeTickLoop()
 EconomyService.StartConveyorLoop()
+EconomyService.StartArenaEventLoop()
 TsunamiService.StartWaveCycleLoop()
 RebirthService.WatchShrineProximity()
 

@@ -11,6 +11,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local BrainrotCatalog = require(Shared:WaitForChild("BrainrotCatalog"))
+local GameConfig = require(Shared:WaitForChild("GameConfig"))
 
 local ServerModules = script.Parent
 local PlayerData = require(ServerModules:WaitForChild("PlayerData"))
@@ -35,6 +36,17 @@ local function notifyPlayer(player: Player, message: string)
 	if remote then
 		remote:FireClient(player, message)
 	end
+end
+
+-- Mission reporting is always pcall-wrapped: the mission chain is a bonus
+-- layer and can never be allowed to break the mechanic that feeds it.
+local function reportMission(state: any, actionKey: string)
+	pcall(function()
+		local completed, reward = PlayerData.ReportMissionAction(state, actionKey)
+		if completed then
+			notifyPlayer(state.Player, "MISSION COMPLETE! +" .. GameConfig.FormatCash(reward))
+		end
+	end)
 end
 
 local function rollFuseMutation(): string
@@ -113,6 +125,7 @@ function FuseService.PerformFuse(state: any, uids: any): boolean
 	if placedOk then
 		local mutationText = if mutationName == "Normal" then "" else ", " .. mutationName
 		notifyPlayer(state.Player, string.format("FUSED! Your 3 %s brainrots became %s (%s%s)!", sharedRarity, resultCharacter.Name, resultRarity, mutationText))
+		reportMission(state, "Fuse")
 	end
 	return placedOk
 end

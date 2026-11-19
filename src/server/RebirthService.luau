@@ -31,6 +31,17 @@ local function notifyPlayer(player: Player, message: string)
 	end
 end
 
+-- Mission reporting is always pcall-wrapped: the mission chain is a bonus
+-- layer and can never be allowed to break the mechanic that feeds it.
+local function reportMission(state: any, actionKey: string)
+	pcall(function()
+		local completed, reward = PlayerData.ReportMissionAction(state, actionKey)
+		if completed then
+			notifyPlayer(state.Player, "MISSION COMPLETE! +" .. GameConfig.FormatCash(reward))
+		end
+	end)
+end
+
 function RebirthService.GetNextRebirthCost(state: any): number
 	return GameConfig.GetRebirthCost(state.Rebirths)
 end
@@ -60,12 +71,13 @@ function RebirthService.PerformRebirth(state: any): boolean
 	PlayerData.WipeForRebirth(state)
 	local newMultiplier = PlayerData.GetIncomeMultiplier(state)
 	notifyPlayer(state.Player, string.format("REBIRTH! Your income is now x%d forever. Rebuild bigger!", newMultiplier))
+	reportMission(state, "Rebirth")
 	return true
 end
 
 -- Stepping up to the shrine's crystal offers the rebirth; the REBIRTH button confirms it.
 function RebirthService.WatchShrineProximity()
-	local shrinePosition = Vector3.new(-38, 0, -56)
+	local shrinePosition = Vector3.new(108, 0, -4)
 	task.spawn(function()
 		while true do
 			task.wait(1)
