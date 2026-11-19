@@ -613,11 +613,12 @@ local function buildPlayground(worldFolder: Folder)
 		makePart(seesaw, "HandleGrip", Vector3.new(0.25, 0.25, 1.6), Vector3.new(25 + dx, 3.8, -116), dark, Enum.Material.Metal)
 	end
 
-	-- MERRY-GO-ROUND at (75, -116): a candy-pink deck on a cream candy rim,
-	-- centre pole, four candy-stripe handle posts and four real seats with
-	-- backrests, so it reads as a ride and not a plain slab. PlaygroundService
-	-- spins the model, carries standing riders around with it, and seated
-	-- riders ride along on their seats' welds.
+	-- MERRY-GO-ROUND at (75, -116): a candy-pink deck on a cream candy rim
+	-- and four real seats with backrests, so it reads as a ride and not a
+	-- plain slab. No centre mast and no handle poles (removed: riders kept
+	-- wedging on the verticals). PlaygroundService spins the model, carries
+	-- standing riders around with it, and seated riders ride along on their
+	-- seats' welds.
 	local merry = Instance.new("Model")
 	merry.Name = "MerryGoRound"
 	merry.Parent = folder
@@ -636,26 +637,18 @@ local function buildPlayground(worldFolder: Folder)
 	local merryDeck = makePart(merry, "Deck", Vector3.new(1.2, 18, 18), Vector3.new(75, 1, -116), Color3.fromRGB(255, 130, 200), Enum.Material.SmoothPlastic)
 	merryDeck.Shape = Enum.PartType.Cylinder
 	merryDeck.Orientation = Vector3.new(0, 0, 90)
-	local merryPole = makePart(merry, "CentrePole", Vector3.new(5, 1.1, 1.1), Vector3.new(75, 3.4, -116), lavender, Enum.Material.Neon)
-	merryPole.Shape = Enum.PartType.Cylinder
-	merryPole.Orientation = Vector3.new(0, 0, 90)
-	for postIndex = 1, 4 do
-		local angle = math.rad(45 + (postIndex - 1) * 90)
-		local postX = 75 + math.cos(angle) * 6.2
-		local postZ = -116 + math.sin(angle) * 6.2
-		local postLower = makePart(merry, "HandlePost" .. tostring(postIndex), Vector3.new(1.5, 0.4, 0.4),
-			Vector3.new(postX, 2.35, postZ), Color3.fromRGB(255, 255, 255), Enum.Material.SmoothPlastic)
-		postLower.Shape = Enum.PartType.Cylinder
-		postLower.Orientation = Vector3.new(0, 0, 90)
-		local postUpper = makePart(merry, "HandlePostTop" .. tostring(postIndex), Vector3.new(1.5, 0.4, 0.4),
-			Vector3.new(postX, 3.85, postZ), Color3.fromRGB(255, 80, 110), Enum.Material.SmoothPlastic)
-		postUpper.Shape = Enum.PartType.Cylinder
-		postUpper.Orientation = Vector3.new(0, 0, 90)
-	end
-	-- Four seats inside the handle posts, facing outward over the deck edge,
-	-- one candy colour each: a Seat box on a short post, with a backrest on
-	-- the centre side. Sitting players face out and hold the striped pole
-	-- in front of them, just like a real carousel.
+	-- The centre mast and the four candy-stripe handle poles are GONE: the
+	-- poles stood at radius 6.2, exactly at each cushion's front edge where
+	-- a standing-up rider's dismount lands them, and riders kept catching
+	-- and wedging on the verticals. Nothing on the deck is now taller than
+	-- the seat backs. A low, wide hub caps the centre where the mast was:
+	-- 0.8 studs proud of the deck top (a normal step-over height) and 3.6
+	-- wide, so it reads as the ride's centre cap and nobody can wedge on it.
+	local merryHub = makePart(merry, "CentreHub", Vector3.new(0.8, 3.6, 3.6), Vector3.new(75, 2, -116), lavender, Enum.Material.SmoothPlastic)
+	merryHub.Shape = Enum.PartType.Cylinder
+	merryHub.Orientation = Vector3.new(0, 0, 90)
+	-- Four seats facing outward over the deck edge, one candy colour each:
+	-- a Seat box on a short post, with a backrest on the centre side.
 	local merrySeatColors = {
 		Color3.fromRGB(255, 130, 200),
 		Color3.fromRGB(150, 240, 200),
