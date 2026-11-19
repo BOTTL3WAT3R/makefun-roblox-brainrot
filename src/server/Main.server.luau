@@ -248,32 +248,15 @@ remotes.BuyBoost.OnServerEvent:Connect(function(player: Player, boostId: any)
 	end
 end)
 
+-- The button and the Egg Machine's own E prompt share one entry point in
+-- EconomyService (state + 26-stud approach check + hatch), so they can
+-- never drift apart.
 remotes.HatchEgg.OnServerEvent:Connect(function(player: Player)
-	local state = PlayerData.GetState(player)
-	if not state then
-		return
-	end
-	local character = player.Character
-	local root = character and character:FindFirstChild("HumanoidRootPart")
-	if root and WorldBuilder.EggMachinePosition and (root.Position - WorldBuilder.EggMachinePosition).Magnitude > 26 then
-		remotes.Notify:FireClient(player, "Walk to the Egg Machine by the shop belt to hatch!")
-		return
-	end
-	EconomyService.HatchEgg(state)
+	EconomyService.TryHatchEgg(player)
 end)
 
 remotes.RollGacha.OnServerEvent:Connect(function(player: Player)
-	local state = PlayerData.GetState(player)
-	if not state then
-		return
-	end
-	local character = player.Character
-	local root = character and character:FindFirstChild("HumanoidRootPart")
-	if root and WorldBuilder.GachaMachinePosition and (root.Position - WorldBuilder.GachaMachinePosition).Magnitude > 26 then
-		remotes.Notify:FireClient(player, "Walk to the Gacha Capsule west of the arena to spin!")
-		return
-	end
-	EconomyService.RollGacha(state)
+	EconomyService.TryRollGacha(player)
 end)
 
 remotes.SellBrainrot.OnServerEvent:Connect(function(player: Player, uid: any)
@@ -323,6 +306,8 @@ EconomyService.StartConveyorLoop()
 EconomyService.StartArenaEventLoop()
 TsunamiService.StartWaveCycleLoop()
 RebirthService.WatchShrineProximity()
+EconomyService.WatchMachinePrompts()
+FuseService.WatchFusePrompt()
 PlaygroundService.Start()
 
 -- Boost housekeeping: once a second, catch boost transitions per player. A

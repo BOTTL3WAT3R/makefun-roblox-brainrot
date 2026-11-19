@@ -98,24 +98,30 @@ function PlaygroundService.Start()
 		return
 	end
 
-	-- Bounce pad: a region check in the motion loop below, NOT a Touched
+	-- Bounce pads: a region check in the motion loop below, NOT a Touched
 	-- event. The old Touched handler only accepted hits from a part named
 	-- HumanoidRootPart, but a character standing or landing on the pad only
 	-- ever touches it with its feet and legs -- the root part hovers about
 	-- three studs above whatever the character stands on and never
 	-- intersects the thin disc, so the launch was effectively dead code.
-	-- The region check watches the root's position instead: over the disc
+	-- The region check watches the root's position instead: over a disc
 	-- (which fills its whole radius, so "within radius and airborne" always
-	-- means above the pad) and at standing height above its top face. The
-	-- per-player ready time is a plain timestamp, so the debounce always
-	-- expires on its own and can never strand a player unbounced.
-	local bouncePad = playground.BouncePad
-	local bounceCentre = bouncePad.Position
-	local bounceRadius = bouncePad.Size.Y / 2
-	local bounceTopY = bouncePad.Position.Y + bouncePad.Size.X / 2
+	-- means above the pad) and at standing height above its top face. Every
+	-- pad WorldBuilder planted (the playground original plus the arena, hill
+	-- and machine-lane pads) is checked against every player; the per-player
+	-- ready time is a plain timestamp shared across pads, so the debounce
+	-- always expires on its own and can never strand a player unbounced.
+	local bouncePads: { { Centre: Vector3, Radius: number, TopY: number } } = {}
+	for _, pad in ipairs(playground.BouncePads or {}) do
+		table.insert(bouncePads, {
+			Centre = pad.Position,
+			Radius = pad.Size.Y / 2,
+			TopY = pad.Position.Y + pad.Size.X / 2,
+		})
+	end
 	local bounceReadyAt: { [number]: number } = {}
 
-	local function checkBouncePad(now: number)
+	local function checkBouncePads(now: number)
 		for _, player in ipairs(Players:GetPlayers()) do
 			if now < (bounceReadyAt[player.UserId] or 0) then
 				continue
@@ -124,13 +130,16 @@ function PlaygroundService.Start()
 			local root = character and character:FindFirstChild("HumanoidRootPart")
 			local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 			if root and humanoid and humanoid.Health > 0 then
-				local relY = root.Position.Y - bounceTopY
-				local dx = root.Position.X - bounceCentre.X
-				local dz = root.Position.Z - bounceCentre.Z
-				if relY > 2.4 and relY < 5 and dx * dx + dz * dz <= bounceRadius * bounceRadius then
-					bounceReadyAt[player.UserId] = now + 0.5
-					local velocity = root.AssemblyLinearVelocity
-					root.AssemblyLinearVelocity = Vector3.new(velocity.X, 65, velocity.Z)
+				for _, pad in ipairs(bouncePads) do
+					local relY = root.Position.Y - pad.TopY
+					local dx = root.Position.X - pad.Centre.X
+					local dz = root.Position.Z - pad.Centre.Z
+					if relY > 2.4 and relY < 5 and dx * dx + dz * dz <= pad.Radius * pad.Radius then
+						bounceReadyAt[player.UserId] = now + 0.5
+						local velocity = root.AssemblyLinearVelocity
+						root.AssemblyLinearVelocity = Vector3.new(velocity.X, 65, velocity.Z)
+						break
+					end
 				end
 			end
 		end
@@ -189,7 +198,7 @@ function PlaygroundService.Start()
 		merryAngle += merryDelta
 		playground.MerryGoRound:PivotTo(CFrame.new(playground.MerryPivot) * CFrame.Angles(0, merryAngle, 0))
 		carryMerryRiders(merryDelta)
-		checkBouncePad(now)
+		checkBouncePads(now)
 		checkAccumulator += deltaTime
 		if checkAccumulator >= 0.1 then
 			checkAccumulator = 0

@@ -236,6 +236,56 @@ function EconomyService.RollGacha(state: any): boolean
 	return placedOk
 end
 
+-- The hatch and the spin, shared by the HUD buttons (through Main's remote
+-- handlers) and the machines' own E prompts, so both doors validate
+-- identically: state first, then the 26-stud approach check against the
+-- machine's approach point, then the economy call itself.
+function EconomyService.TryHatchEgg(player: Player)
+	local state = PlayerData.GetState(player)
+	if not state then
+		return
+	end
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if root and WorldBuilder.EggMachinePosition and (root.Position - WorldBuilder.EggMachinePosition).Magnitude > 26 then
+		notifyPlayer(player, "Walk to the Egg Machine by the shop belt to hatch!")
+		return
+	end
+	EconomyService.HatchEgg(state)
+end
+
+function EconomyService.TryRollGacha(player: Player)
+	local state = PlayerData.GetState(player)
+	if not state then
+		return
+	end
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if root and WorldBuilder.GachaMachinePosition and (root.Position - WorldBuilder.GachaMachinePosition).Magnitude > 26 then
+		notifyPlayer(player, "Walk to the Gacha Capsule west of the arena to spin!")
+		return
+	end
+	EconomyService.RollGacha(state)
+end
+
+-- The E prompts WorldBuilder bolted onto the Egg Machine and the Gacha
+-- Capsule: standing at the machine and pressing E does exactly what the
+-- side buttons do, through the same entry points.
+function EconomyService.WatchMachinePrompts()
+	local eggPrompt = WorldBuilder.EggPrompt
+	if eggPrompt then
+		eggPrompt.Triggered:Connect(function(player: Player)
+			EconomyService.TryHatchEgg(player)
+		end)
+	end
+	local gachaPrompt = WorldBuilder.GachaPrompt
+	if gachaPrompt then
+		gachaPrompt.Triggered:Connect(function(player: Player)
+			EconomyService.TryRollGacha(player)
+		end)
+	end
+end
+
 -- Boosts: the cash sink that replaced the shop panel. Fully server-validated
 -- against GameConfig.Boosts: unknown ids are ignored, timed boosts REFRESH
 -- their duration on re-buy, and the one-time Wave Shield refuses a second
@@ -308,6 +358,8 @@ end
 -- Conveyor belt: brainrots WALK the belt from the west end to the east end,
 -- like the big steal-a-brainrot games. Walking into one mid-stride buys it;
 -- reaching the far end unclaimed despawns it. Travel time is the lifetime.
+-- BELT_Y is the belt's TOP surface (the ConveyorBelt part is centred at
+-- y 1 and 2 thick), the height a walker's feet must rest on.
 local BELT_Z = -20
 local BELT_Y = 2
 local BELT_START_X = -80
@@ -337,6 +389,17 @@ local function spawnConveyorBrainrot()
 	local labelHeight = if beltSpawnCount % 2 == 0 then 5.2 else 6.6
 	local model = WorldBuilder.BuildBrainrotModel(character, "Normal", { BuyPrice = character.Price, LabelHeight = labelHeight })
 	model:PivotTo(CFrame.new(Vector3.new(BELT_START_X, BELT_Y, BELT_Z)) * CFrame.Angles(0, math.rad(-90), 0))
+	-- The pivot is the Body's centre, not the model's base: spawning with
+	-- the pivot ON the belt top sank every walker half a body into the
+	-- belt. Measure the built model and lift it until its lowest point
+	-- rests exactly on the belt top, whatever its shape (ball, cylinder,
+	-- flat and wide) -- RegisterWalker below then captures the corrected
+	-- height, and the gait bob adds on top of it.
+	local boxCFrame, boxSize = model:GetBoundingBox()
+	local lift = BELT_Y - (boxCFrame.Position.Y - boxSize.Y / 2)
+	if math.abs(lift) > 0.01 then
+		model:PivotTo(model:GetPivot() + Vector3.new(0, lift, 0))
+	end
 	for _, piece in ipairs(model:GetDescendants()) do
 		if piece:IsA("BasePart") then
 			piece.Anchored = true

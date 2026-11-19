@@ -15,6 +15,7 @@ local GameConfig = require(Shared:WaitForChild("GameConfig"))
 
 local ServerModules = script.Parent
 local PlayerData = require(ServerModules:WaitForChild("PlayerData"))
+local WorldBuilder = require(ServerModules:WaitForChild("WorldBuilder"))
 local EconomyService = require(ServerModules:WaitForChild("EconomyService"))
 local AnimationService = require(ServerModules:WaitForChild("AnimationService"))
 
@@ -139,6 +140,49 @@ function FuseService.PerformFuse(state: any, uids: any): boolean
 		reportMission(state, "Fuse")
 	end
 	return placedOk
+end
+
+-- The Fuse Machine's own E prompt: the panel lets the player hand-pick 3
+-- uids, but the machine itself just has to DO something. Pressing E runs an
+-- automatic attempt through the very same PerformFuse: the lowest rarity
+-- tier the player holds 3+ placed of (and that still has a tier above it)
+-- is fused first, so commons burn before rares. Every other outcome speaks:
+-- nothing placed, or no rarity with a full set of 3.
+function FuseService.WatchFusePrompt()
+	local prompt = WorldBuilder.FusePrompt
+	if not prompt then
+		return
+	end
+	prompt.Triggered:Connect(function(player: Player)
+		local state = PlayerData.GetState(player)
+		if not state then
+			return
+		end
+		if #state.Placed == 0 then
+			notifyPlayer(player, "You have no brainrots to fuse - buy some from the belt first!")
+			return
+		end
+		local uidsByRarity: { [string]: { number } } = {}
+		for _, placed in ipairs(state.Placed) do
+			local character = BrainrotCatalog.GetCharacterById(placed.CharacterId)
+			if character then
+				local uids = uidsByRarity[character.Rarity]
+				if not uids then
+					uids = {}
+					uidsByRarity[character.Rarity] = uids
+				end
+				table.insert(uids, placed.Uid)
+			end
+		end
+		for index, rarity in ipairs(BrainrotCatalog.RarityOrder) do
+			local uids = uidsByRarity[rarity]
+			if uids and #uids >= 3 and BrainrotCatalog.RarityOrder[index + 1] then
+				FuseService.PerformFuse(state, { uids[1], uids[2], uids[3] })
+				return
+			end
+		end
+		notifyPlayer(player, "The Fuse Machine needs 3 placed brainrots of the SAME rarity.")
+	end)
 end
 
 return FuseService

@@ -25,7 +25,10 @@ WorldBuilder.Bases = {} :: { any }
 WorldBuilder.ConveyorSlots = {} :: { any }
 WorldBuilder.Playground = nil :: any
 WorldBuilder.TsunamiWall = nil :: Part?
-WorldBuilder.TsunamiFoam = nil :: Part?
+WorldBuilder.TsunamiFoam = nil :: Model?
+WorldBuilder.EggPrompt = nil :: ProximityPrompt?
+WorldBuilder.GachaPrompt = nil :: ProximityPrompt?
+WorldBuilder.FusePrompt = nil :: ProximityPrompt?
 WorldBuilder.HighGroundTopY = 26
 
 local BASE_SPACING = 64
@@ -261,7 +264,7 @@ local function buildBasePlot(parent: Folder, index: number, origin: Vector3, fac
 	end
 
 	local lockButton = makePart(baseFolder, "LockButton", Vector3.new(5, 1, 5), origin + Vector3.new(18, 1.5, facing * 18),
-		Color3.fromRGB(255, 80, 80), Enum.Material.Neon)
+		Color3.fromRGB(200, 60, 60), Enum.Material.SmoothPlastic)
 	makeSign(baseFolder, "LockSign", lockButton, "LOCK BASE\n" .. tostring(GameConfig.LockDurationSeconds) .. "s", Color3.fromRGB(255, 90, 110), Vector3.new(0, 5, 0))
 
 	local lasers = {}
@@ -269,7 +272,7 @@ local function buildBasePlot(parent: Folder, index: number, origin: Vector3, fac
 		local angle = (side - 1) * math.pi / 2
 		local offset = Vector3.new(math.sin(angle) * 22, 3, math.cos(angle) * 22)
 		local laser = makePart(baseFolder, "LaserWall" .. tostring(side), Vector3.new(44, 5, 0.6), origin + offset,
-			Color3.fromRGB(255, 60, 60), Enum.Material.Neon)
+			Color3.fromRGB(200, 60, 60), Enum.Material.SmoothPlastic)
 		laser.Orientation = Vector3.new(0, math.deg(angle), 0)
 		laser.Transparency = 1
 		laser.CanCollide = false
@@ -311,7 +314,7 @@ end
 
 function WorldBuilder.SetBaseLasersVisible(base: any, visible: boolean)
 	for _, laser in ipairs(base.Lasers) do
-		laser.Transparency = if visible then 0.35 else 1
+		laser.Transparency = if visible then 0.5 else 1
 		laser.CanCollide = visible
 	end
 end
@@ -469,7 +472,12 @@ local function buildPlayground(worldFolder: Folder)
 	local chute = Instance.new("WedgePart")
 	chute.Name = "SlideChute"
 	chute.Size = Vector3.new(5, 9, 13.5)
-	chute.Position = Vector3.new(-70, 4.5, -109.5)
+	-- A stock WedgePart stands its tall face at the +Z end; the slide needs
+	-- the tall face NORTH, butted against the platform (whose top is y 9 at
+	-- z -116.25), with the slope falling away south to the landing. Turned
+	-- 180 degrees about Y, the wedge's 9-over-13.5 slope (~34 degrees)
+	-- runs exactly parallel to the lavender chute rails below.
+	chute.CFrame = CFrame.new(Vector3.new(-70, 4.5, -109.5)) * CFrame.Angles(0, math.pi, 0)
 	chute.Color = Color3.fromRGB(255, 130, 180)
 	chute.Material = Enum.Material.SmoothPlastic
 	chute.Anchored = true
@@ -623,14 +631,34 @@ local function buildPlayground(worldFolder: Folder)
 		seatBack.CFrame = seatFrame * CFrame.new(0, 1.05, 1.1)
 	end
 
-	-- BOUNCE PAD on the playground's south edge at (45, -112) -- the strip
-	-- between the mat and the north bases is open grass, so it sits clear of
-	-- every plot. PlaygroundService launches whoever steps on it.
-	local bounce = makePart(folder, "BouncePad", Vector3.new(0.8, 10, 10), Vector3.new(45, 0.4, -112), Color3.fromRGB(255, 80, 180), Enum.Material.Neon)
-	bounce.Shape = Enum.PartType.Cylinder
-	bounce.Orientation = Vector3.new(0, 0, 90)
-	local bouncePost = makePart(folder, "BouncePost", Vector3.new(0.7, 7, 0.7), Vector3.new(51.5, 3.5, -106.5), Color3.fromRGB(255, 80, 180), Enum.Material.Neon)
-	makeSign(folder, "BounceSign", bouncePost, "BOUNCE!", Color3.fromRGB(255, 150, 220), Vector3.new(0, 5, 0))
+	-- BOUNCE PADS: the original on the playground's south edge at (45, -112)
+	-- -- the strip between the mat and the north bases is open grass, so it
+	-- sits clear of every plot -- plus four more planted in the island's open
+	-- lanes, each checked against the belt (z -31..-9), the base plots
+	-- (z 60..104 and -104..-60), the machines and the roads:
+	--   * (38, 40): the grass south-east of the Candy Arena rim, between the
+	--     Fuse Machine's pad (ends z 36.5) and the south road (starts z 44);
+	--   * (0, 88): the corridor between the two middle south bases (their
+	--     plots start at |x| 10) at the foot of the chocolate hill (z 104),
+	--     so a good bounce starts the climb to the safe top;
+	--   * (-88, 8) and its east mirror (88, 8): the open lanes beside the
+	--     Egg Machine and Rebirth Shrine approaches.
+	-- PlaygroundService launches whoever steps on any of them.
+	local function makeBouncePad(name: string, position: Vector3, postPosition: Vector3): Part
+		local pad = makePart(folder, name, Vector3.new(0.8, 10, 10), position, Color3.fromRGB(255, 80, 180), Enum.Material.Neon)
+		pad.Shape = Enum.PartType.Cylinder
+		pad.Orientation = Vector3.new(0, 0, 90)
+		local post = makePart(folder, name .. "Post", Vector3.new(0.7, 7, 0.7), postPosition, Color3.fromRGB(255, 80, 180), Enum.Material.Neon)
+		makeSign(folder, name .. "Sign", post, "BOUNCE!", Color3.fromRGB(255, 150, 220), Vector3.new(0, 5, 0))
+		return pad
+	end
+	local bouncePads = {
+		makeBouncePad("BouncePad", Vector3.new(45, 0.4, -112), Vector3.new(51.5, 3.5, -106.5)),
+		makeBouncePad("BouncePadArena", Vector3.new(38, 0.4, 40), Vector3.new(44.5, 3.5, 45.5)),
+		makeBouncePad("BouncePadHill", Vector3.new(0, 0.4, 88), Vector3.new(6.5, 3.5, 93.5)),
+		makeBouncePad("BouncePadWest", Vector3.new(-88, 0.4, 8), Vector3.new(-81.5, 3.5, 13.5)),
+		makeBouncePad("BouncePadEast", Vector3.new(88, 0.4, 8), Vector3.new(94.5, 3.5, 13.5)),
+	}
 
 	-- TRASH CAN by the Fuse Machine, on the path every player walks: a
 	-- mint bin with a chocolate lid and a pink band, and a ProximityPrompt
@@ -669,7 +697,7 @@ local function buildPlayground(worldFolder: Folder)
 		SeesawPivot = Vector3.new(25, 2.45, -116),
 		MerryGoRound = merry,
 		MerryPivot = Vector3.new(75, 0, -116),
-		BouncePad = bounce,
+		BouncePads = bouncePads,
 		TrashPrompt = prompt,
 	}
 end
@@ -821,6 +849,18 @@ function WorldBuilder.BuildWorld()
 	brew.Orientation = Vector3.new(0, 0, 90)
 	brew.CanCollide = false
 	makeSign(worldFolder, "FuseSign", cauldron, "FUSE MACHINE\n3 SAME RARITY = 1 RARITY UP", Color3.fromRGB(215, 150, 255), Vector3.new(0, 9, 0))
+	-- The machine's own E prompt: the FUSE panel is not the only door in.
+	-- FuseService turns this into an automatic fuse attempt with feedback.
+	local fusePrompt = Instance.new("ProximityPrompt")
+	fusePrompt.Name = "FusePrompt"
+	fusePrompt.ActionText = "Fuse"
+	fusePrompt.ObjectText = "Fuse Machine"
+	fusePrompt.KeyboardKeyCode = Enum.KeyCode.E
+	fusePrompt.HoldDuration = 0
+	fusePrompt.MaxActivationDistance = 12
+	fusePrompt.RequiresLineOfSight = false
+	fusePrompt.Parent = cauldron
+	WorldBuilder.FusePrompt = fusePrompt
 	makePart(worldFolder, "FusePostW", Vector3.new(0.8, 9, 0.8), Vector3.new(28, 4.5, 30), Color3.fromRGB(180, 140, 255), Enum.Material.Neon)
 	makePart(worldFolder, "FusePostE", Vector3.new(0.8, 9, 0.8), Vector3.new(40, 4.5, 30), Color3.fromRGB(180, 140, 255), Enum.Material.Neon)
 	WorldBuilder.FuseMachinePosition = Vector3.new(34, 0, 30)
@@ -870,6 +910,16 @@ function WorldBuilder.BuildWorld()
 	crankHandle.Shape = Enum.PartType.Ball
 	makePart(worldFolder, "GachaPrizeSlot", Vector3.new(3.6, 1.7, 0.5), Vector3.new(-44, 1.15, 34.6), Color3.fromRGB(16, 16, 22), Enum.Material.SmoothPlastic)
 	makeSign(worldFolder, "GachaSign", gachaBase, "GACHA CAPSULE\n" .. GameConfig.FormatCash(GameConfig.GachaPrice) .. " PER SPIN - NO COMMONS!", Color3.fromRGB(255, 110, 220), Vector3.new(0, 10, 0))
+	local gachaPrompt = Instance.new("ProximityPrompt")
+	gachaPrompt.Name = "GachaPrompt"
+	gachaPrompt.ActionText = "Spin " .. GameConfig.FormatCash(GameConfig.GachaPrice)
+	gachaPrompt.ObjectText = "Gacha Capsule"
+	gachaPrompt.KeyboardKeyCode = Enum.KeyCode.E
+	gachaPrompt.HoldDuration = 0
+	gachaPrompt.MaxActivationDistance = 12
+	gachaPrompt.RequiresLineOfSight = false
+	gachaPrompt.Parent = gachaBase
+	WorldBuilder.GachaPrompt = gachaPrompt
 	makePart(worldFolder, "GachaPostW", Vector3.new(0.8, 9, 0.8), Vector3.new(-50, 4.5, 30), Color3.fromRGB(255, 110, 220), Enum.Material.Neon)
 	makePart(worldFolder, "GachaPostE", Vector3.new(0.8, 9, 0.8), Vector3.new(-38, 4.5, 30), Color3.fromRGB(255, 110, 220), Enum.Material.Neon)
 	WorldBuilder.GachaMachinePosition = Vector3.new(-44, 0, 30)
@@ -913,6 +963,16 @@ function WorldBuilder.BuildWorld()
 	eggDome.CanCollide = false
 	eggDome.Parent = worldFolder
 	makeSign(worldFolder, "EggSign", eggBase, "EGG MACHINE\nHATCH: " .. GameConfig.FormatCash(GameConfig.EggPrice), Color3.fromRGB(255, 120, 230), Vector3.new(0, 10, 0))
+	local eggPrompt = Instance.new("ProximityPrompt")
+	eggPrompt.Name = "HatchPrompt"
+	eggPrompt.ActionText = "Hatch " .. GameConfig.FormatCash(GameConfig.EggPrice)
+	eggPrompt.ObjectText = "Egg Machine"
+	eggPrompt.KeyboardKeyCode = Enum.KeyCode.E
+	eggPrompt.HoldDuration = 0
+	eggPrompt.MaxActivationDistance = 12
+	eggPrompt.RequiresLineOfSight = false
+	eggPrompt.Parent = eggBase
+	WorldBuilder.EggPrompt = eggPrompt
 	makePart(worldFolder, "EggBeacon", Vector3.new(0.8, 11, 0.8), Vector3.new(-122, 5.5, -20), Color3.fromRGB(120, 255, 190), Enum.Material.Neon)
 	WorldBuilder.EggMachinePosition = Vector3.new(-108, 0, -4)
 
@@ -977,15 +1037,39 @@ function WorldBuilder.BuildWorld()
 	-- gumdrops on the rim and sprinkles on the paths.
 	buildCandyDecor(worldFolder)
 
-	-- The Big Wave wall itself: a huge sheet of strawberry-pink soda with a
-	-- white foam crest, tweened smoothly across the island by TsunamiService.
+	-- The Big Wave wall itself: a huge sheet of strawberry-pink soda, mostly
+	-- see-through (Transparency 0.78) so standing in its path tints the world
+	-- pink instead of blanking the screen, crowned with a foam crest -- a
+	-- white slab with a row of foam bubbles along its top edge -- so it reads
+	-- as a cresting wave. TsunamiService tweens the wall part and the foam
+	-- MODEL (by CFrame) smoothly across the island together.
 	local wall = makePart(worldFolder, "TsunamiWall", Vector3.new(280, 30, 6), Vector3.new(-165, 12, 0), Color3.fromRGB(255, 110, 160), Enum.Material.SmoothPlastic)
-	wall.Transparency = 0.3
+	wall.Transparency = 0.78
 	wall.CanCollide = false
 	WorldBuilder.TsunamiWall = wall
-	local foam = makePart(worldFolder, "TsunamiFoam", Vector3.new(280, 3, 6.6), Vector3.new(-165, 28.5, 0), Color3.fromRGB(255, 255, 255), Enum.Material.SmoothPlastic)
-	foam.Transparency = 0.15
-	foam.CanCollide = false
+	local foam = Instance.new("Model")
+	foam.Name = "TsunamiFoam"
+	foam.Parent = worldFolder
+	local foamRoot = Instance.new("Part")
+	foamRoot.Name = "FoamRoot"
+	foamRoot.Size = Vector3.new(1, 1, 1)
+	foamRoot.Position = Vector3.new(-165, 28.5, 0)
+	foamRoot.Transparency = 1
+	foamRoot.Anchored = true
+	foamRoot.CanCollide = false
+	foamRoot.Parent = foam
+	foam.PrimaryPart = foamRoot
+	local foamSlab = makePart(foam, "FoamSlab", Vector3.new(280, 2.2, 6.8), Vector3.new(-165, 28.5, 0), Color3.fromRGB(255, 255, 255), Enum.Material.SmoothPlastic)
+	foamSlab.Transparency = 0.1
+	foamSlab.CanCollide = false
+	for bubbleIndex = 1, 18 do
+		local bubbleSize = if bubbleIndex % 2 == 0 then 4.1 else 3.2
+		local bubble = makePart(foam, "FoamBubble" .. tostring(bubbleIndex), Vector3.new(bubbleSize, bubbleSize, bubbleSize),
+			Vector3.new(-165 - 133 + (bubbleIndex - 1) * (266 / 17), 30.3, 0), Color3.fromRGB(255, 255, 255), Enum.Material.SmoothPlastic)
+		bubble.Shape = Enum.PartType.Ball
+		bubble.Transparency = 0.1
+		bubble.CanCollide = false
+	end
 	WorldBuilder.TsunamiFoam = foam
 
 	return worldFolder

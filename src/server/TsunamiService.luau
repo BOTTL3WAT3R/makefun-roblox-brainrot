@@ -105,12 +105,13 @@ local function runSweep()
 	local distance = endX - startX
 	local duration = distance / GameConfig.TsunamiWallSpeed
 	-- The wall glides on a linear TweenService tween instead of stepping, and the
-	-- white foam crest rides the same tween along its top edge.
+	-- foam crest MODEL rides the same tween along its top edge (tweened by
+	-- CFrame -- a model has no Position of its own).
 	if wall then
 		TweenService:Create(wall, TweenInfo.new(duration, Enum.EasingStyle.Linear), { Position = Vector3.new(endX, 12, 0) }):Play()
 	end
 	if foam then
-		TweenService:Create(foam, TweenInfo.new(duration, Enum.EasingStyle.Linear), { Position = Vector3.new(endX, 28.5, 0) }):Play()
+		TweenService:Create(foam, TweenInfo.new(duration, Enum.EasingStyle.Linear), { CFrame = CFrame.new(endX, 28.5, 0) }):Play()
 	end
 	local elapsed = 0
 	local step = 0.1
@@ -141,7 +142,7 @@ local function runSweep()
 		wall.Position = Vector3.new(startX, 12, 0)
 	end
 	if foam then
-		foam.Position = Vector3.new(startX, 28.5, 0)
+		foam:PivotTo(CFrame.new(startX, 28.5, 0))
 	end
 	notifyAll("The Big Wave passed. The belt is restocked — happy collecting!")
 end
