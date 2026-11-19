@@ -1,5 +1,5 @@
 -- PlayerData.luau (ModuleScript, ServerScriptService.Server)
--- Brainrot Island -- all per-player state lives in this one module:
+-- Neon Shores -- all per-player state lives in this one module:
 -- cash, placed brainrots, the brainrot being carried, rebirths and the income multiplier.
 -- Every other service reads and writes state through here, never in its own tables.
 

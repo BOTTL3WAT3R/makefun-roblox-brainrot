@@ -1,13 +1,13 @@
 -- GameConfig.luau (ModuleScript, ReplicatedStorage.Shared)
--- Brainrot Island -- every tunable number for the whole game lives here,
+-- Neon Shores -- every tunable number for the whole game lives here,
 -- so the economy, the steal rules, the Big Wave cycle and the rebirth ladder stay in one place.
 
 local GameConfig = {}
 
 -- Game identity
-GameConfig.GameTitle = "Brainrot Island"
-GameConfig.WorldName = "Brainrot Island"
-GameConfig.Tagline = "Buy them. Guard them. Outrun the Big Wave."
+GameConfig.GameTitle = "Neon Shores"
+GameConfig.WorldName = "Neon Shores"
+GameConfig.Tagline = "Buy the glow. Guard the glow. Outrun the Big Wave."
 GameConfig.StartingCash = 100
 GameConfig.MaxPlacedPerBase = 10
 GameConfig.BaseCount = 8

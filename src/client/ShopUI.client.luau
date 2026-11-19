@@ -1,9 +1,10 @@
 -- ShopUI.client.luau (LocalScript, StarterPlayerScripts.Client)
--- Brainrot Island -- the panels over the 3D world: a SHOP panel listing
+-- Neon Shores -- the panels over the 3D world: a SHOP panel listing
 -- the whole cast by rarity with prices and income (buying sends the brainrot straight to a
--- free pad at your base), a MY BASE panel listing what you own with a SELL button each, and
--- the EGG and REBIRTH buttons. Panels open from the right-hand side, away from
--- the top-left corner where Roblox draws its own menu.
+-- free pad at your base), a MY BASE panel listing what you own with a SELL button each, an
+-- INDEX panel grid of the whole 36-character cast that lights up in rarity colours for the
+-- ones you own, and the EGG and REBIRTH buttons. Panels open from the right-hand side,
+-- away from the top-left corner where Roblox draws its own menu.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -16,7 +17,7 @@ local player = Players.LocalPlayer
 local remotes = ReplicatedStorage:WaitForChild("Remotes")
 
 local gui = Instance.new("ScreenGui")
-gui.Name = "BrainrotPanels"
+gui.Name = "NeonPanels"
 gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
@@ -114,6 +115,97 @@ end
 
 remotes:WaitForChild("StateUpdate").OnClientEvent:Connect(rebuildBasePanel)
 
+-- Index panel: a grid of the whole cast. Owned brainrots glow in their rarity
+-- colour; the rest sit greyed out. Ownership comes from the same state snapshot
+-- as MY BASE (placed CharacterIds plus the carried one), so no extra remote.
+local indexPanel = Instance.new("Frame")
+indexPanel.Name = "IndexPanel"
+indexPanel.AnchorPoint = Vector2.new(1, 0)
+indexPanel.Position = UDim2.new(1, -14, 0, 90)
+indexPanel.Size = UDim2.fromOffset(380, 460)
+indexPanel.BackgroundColor3 = Color3.fromRGB(22, 22, 34)
+indexPanel.BackgroundTransparency = 0.1
+indexPanel.Visible = false
+indexPanel.Parent = gui
+
+local indexTitle = Instance.new("TextLabel")
+indexTitle.Name = "IndexTitle"
+indexTitle.Size = UDim2.new(1, 0, 0, 44)
+indexTitle.BackgroundTransparency = 1
+indexTitle.Text = "INDEX  0/" .. tostring(#BrainrotCatalog.Characters)
+indexTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+indexTitle.TextSize = 26
+indexTitle.Font = Enum.Font.FredokaOne
+indexTitle.Parent = indexPanel
+
+local indexScroll = Instance.new("ScrollingFrame")
+indexScroll.Name = "IndexGrid"
+indexScroll.Position = UDim2.fromOffset(6, 48)
+indexScroll.Size = UDim2.new(1, -12, 1, -54)
+indexScroll.BackgroundTransparency = 1
+indexScroll.BorderSizePixel = 0
+indexScroll.ScrollBarThickness = 8
+indexScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+indexScroll.CanvasSize = UDim2.fromOffset(0, 0)
+indexScroll.Parent = indexPanel
+local indexLayout = Instance.new("UIGridLayout")
+indexLayout.CellSize = UDim2.fromOffset(118, 86)
+indexLayout.CellPadding = UDim2.fromOffset(6, 6)
+indexLayout.SortOrder = Enum.SortOrder.LayoutOrder
+indexLayout.Parent = indexScroll
+
+local indexCells: { [string]: Frame } = {}
+local indexCellLabels: { [string]: TextLabel } = {}
+for cellIndex, character in ipairs(BrainrotCatalog.Characters) do
+	local cell = Instance.new("Frame")
+	cell.Name = "IndexCell_" .. character.Id
+	cell.LayoutOrder = cellIndex
+	cell.BackgroundColor3 = Color3.fromRGB(42, 42, 56)
+	local cellLabel = Instance.new("TextLabel")
+	cellLabel.Size = UDim2.new(1, -8, 1, -8)
+	cellLabel.Position = UDim2.fromOffset(4, 4)
+	cellLabel.BackgroundTransparency = 1
+	cellLabel.Text = string.format("%s\n%s\n$%d/s", character.Name, character.Rarity, character.IncomePerSecond)
+	cellLabel.TextColor3 = Color3.fromRGB(120, 120, 135)
+	cellLabel.TextSize = 14
+	cellLabel.Font = Enum.Font.FredokaOne
+	cellLabel.TextWrapped = true
+	cellLabel.Parent = cell
+	cell.Parent = indexScroll
+	indexCells[character.Id] = cell
+	indexCellLabels[character.Id] = cellLabel
+end
+
+local function rebuildIndexPanel(snapshot: any)
+	local owned: { [string]: boolean } = {}
+	for _, placed in ipairs(snapshot.Placed) do
+		if placed.CharacterId then
+			owned[placed.CharacterId] = true
+		end
+	end
+	if snapshot.CarriedId then
+		owned[snapshot.CarriedId] = true
+	end
+	local ownedCount = 0
+	for _, character in ipairs(BrainrotCatalog.Characters) do
+		local cell = indexCells[character.Id]
+		local cellLabel = indexCellLabels[character.Id]
+		if cell and cellLabel then
+			if owned[character.Id] then
+				ownedCount += 1
+				cell.BackgroundColor3 = BrainrotCatalog.RarityColors[character.Rarity] or Color3.fromRGB(42, 42, 56)
+				cellLabel.TextColor3 = Color3.fromRGB(20, 20, 28)
+			else
+				cell.BackgroundColor3 = Color3.fromRGB(42, 42, 56)
+				cellLabel.TextColor3 = Color3.fromRGB(120, 120, 135)
+			end
+		end
+	end
+	indexTitle.Text = "INDEX  " .. tostring(ownedCount) .. "/" .. tostring(#BrainrotCatalog.Characters)
+end
+
+remotes:WaitForChild("StateUpdate").OnClientEvent:Connect(rebuildIndexPanel)
+
 -- Side buttons: SHOP, MY BASE, EGG and REBIRTH, stacked down the right edge.
 local function makeSideButton(name: string, yOffset: number, text: string, color: Color3, onClick: () -> ()): TextButton
 	local button = Instance.new("TextButton")
@@ -134,11 +226,13 @@ end
 makeSideButton("ShopButton", 90, "SHOP", Color3.fromRGB(60, 170, 80), function()
 	shopPanel.Visible = not shopPanel.Visible
 	basePanel.Visible = false
+	indexPanel.Visible = false
 end)
 
 makeSideButton("BaseButton", 152, "MY BASE", Color3.fromRGB(80, 120, 220), function()
 	basePanel.Visible = not basePanel.Visible
 	shopPanel.Visible = false
+	indexPanel.Visible = false
 end)
 
 makeSideButton("EggButton", 214, "EGG " .. GameConfig.FormatCash(GameConfig.EggPrice), Color3.fromRGB(230, 90, 180), function()
@@ -147,6 +241,12 @@ end)
 
 local rebirthButton = makeSideButton("RebirthButton", 276, "REBIRTH", Color3.fromRGB(60, 200, 210), function()
 	remotes:WaitForChild("RequestRebirth"):FireServer()
+end)
+
+makeSideButton("IndexButton", 338, "INDEX", Color3.fromRGB(150, 90, 220), function()
+	indexPanel.Visible = not indexPanel.Visible
+	shopPanel.Visible = false
+	basePanel.Visible = false
 end)
 
 remotes:WaitForChild("StateUpdate").OnClientEvent:Connect(function(snapshot: any)

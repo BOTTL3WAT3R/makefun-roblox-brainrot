@@ -1,5 +1,5 @@
 -- Hud.client.luau (LocalScript, StarterPlayerScripts.Client)
--- Brainrot Island -- the heads-up display over the 3D world: cash, income per second,
+-- Neon Shores -- the heads-up display over the 3D world: cash, income per second,
 -- rebirth multiplier and lock state in a panel at the TOP CENTRE (Roblox's own menu
 -- buttons cover the top-left corner, so nothing important lives there), a big Big Wave
 -- countdown banner under it, a toast line for game news, and the DASH and LOCK buttons.
@@ -15,7 +15,7 @@ local player = Players.LocalPlayer
 local remotes = ReplicatedStorage:WaitForChild("Remotes")
 
 local gui = Instance.new("ScreenGui")
-gui.Name = "BrainrotHud"
+gui.Name = "NeonHud"
 gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
@@ -82,9 +82,9 @@ end
 -- Toasts: steals, hatches, sales and warnings land here, centre screen.
 local toastLabel = makeLabel("ToastLabel", UDim2.new(0.5, 0, 0.32, 0), UDim2.fromOffset(760, 64), 28, Color3.fromRGB(255, 255, 255))
 toastLabel.BackgroundTransparency = 1
-toastLabel.Text = "Buy them. Guard them. Outrun the Big Wave."
+toastLabel.Text = "Buy the glow. Guard the glow. Outrun the Big Wave."
 task.delay(8, function()
-	if toastLabel.Text == "Buy them. Guard them. Outrun the Big Wave." then
+	if toastLabel.Text == "Buy the glow. Guard the glow. Outrun the Big Wave." then
 		toastLabel.Text = ""
 	end
 end)
@@ -117,7 +117,7 @@ end)
 
 -- Roblox's default camera scripts swallow some keys, so the dash is bound through
 -- ContextActionService, which hears LeftShift even while the camera is listening.
-ContextActionService:BindAction("BrainrotDash", function(_actionName, inputState)
+ContextActionService:BindAction("NeonDash", function(_actionName, inputState)
 	if inputState == Enum.UserInputState.Begin then
 		remotes:WaitForChild("RequestDash"):FireServer()
 	end

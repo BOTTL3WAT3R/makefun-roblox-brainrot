@@ -1,5 +1,5 @@
 -- RebirthService.luau (ModuleScript, ServerScriptService.Server)
--- Brainrot Island -- the Rebirth Shrine's long ladder: pay a mountain of cash, lose
+-- Neon Shores -- the Rebirth Shrine's long ladder: pay a mountain of cash, lose
 -- every placed brainrot and your carried catch, and come back with a permanent income
 -- multiplier. Each rebirth also raises the shrine's price for the next one.
 

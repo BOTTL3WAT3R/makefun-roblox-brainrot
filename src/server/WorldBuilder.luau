@@ -1,9 +1,10 @@
 -- WorldBuilder.luau (ModuleScript, ServerScriptService.Server)
--- Brainrot Island -- builds the whole 3D world from primitive Parts at runtime, kept
--- deliberately simple and readable like the big tycoon games: one flat toybox island,
--- one strong colour per zone (orange belt, pink egg, gold shrine, green hill), big
--- short signs, and nothing else competing for the eye. All the motion lives on the
--- brainrots themselves (see AnimationService).
+-- Neon Shores -- builds the whole 3D world from primitive Parts at runtime: a tropical
+-- island at golden hour (see the Lighting setup in Main.server), where the ground and
+-- plaza go dark slate so the neon can glow: cyan edge strips on the plaza and path,
+-- neon zone colours (orange belt, pink egg, gold shrine, green hill), palm trees with
+-- glowfruit, and one vivid neon colour per player base. Big short signs throughout,
+-- and all the motion lives on the brainrots themselves (see AnimationService).
 -- Every sign uses a BillboardGui with large readable text, and MaxDistance is kept
 -- short so signs never pile up across the map.
 
@@ -24,6 +25,19 @@ WorldBuilder.HighGroundTopY = 26
 
 local BASE_SPACING = 95
 local PADS_PER_BASE = GameConfig.MaxPlacedPerBase
+
+-- One vivid neon colour per base slot: pads and floor trim wear it, so every base
+-- reads as its own glowing territory in a screenshot.
+local BASE_SLOT_COLORS = {
+	Color3.fromRGB(255, 90, 90),
+	Color3.fromRGB(255, 160, 60),
+	Color3.fromRGB(255, 230, 80),
+	Color3.fromRGB(110, 255, 120),
+	Color3.fromRGB(60, 220, 255),
+	Color3.fromRGB(110, 140, 255),
+	Color3.fromRGB(200, 110, 255),
+	Color3.fromRGB(255, 110, 200),
+}
 
 local function makePart(parent: Instance, name: string, size: Vector3, position: Vector3, color: Color3, material: Enum.Material?): Part
 	local part = Instance.new("Part")
@@ -194,8 +208,14 @@ local function buildBasePlot(parent: Folder, index: number, origin: Vector3)
 	baseFolder.Name = "Base" .. tostring(index)
 	baseFolder.Parent = parent
 
+	local slotColor = BASE_SLOT_COLORS[((index - 1) % #BASE_SLOT_COLORS) + 1]
 	local floor = makePart(baseFolder, "BaseFloor", Vector3.new(44, 1, 44), origin + Vector3.new(0, 0.5, 0),
-		Color3.fromRGB(90, 200, 120), Enum.Material.SmoothPlastic)
+		Color3.fromRGB(52, 54, 68), Enum.Material.SmoothPlastic)
+	-- Neon trim ring around the floor, in the base's slot colour.
+	makePart(baseFolder, "TrimN", Vector3.new(44, 0.3, 1.2), origin + Vector3.new(0, 1.05, -21.4), slotColor, Enum.Material.Neon)
+	makePart(baseFolder, "TrimS", Vector3.new(44, 0.3, 1.2), origin + Vector3.new(0, 1.05, 21.4), slotColor, Enum.Material.Neon)
+	makePart(baseFolder, "TrimE", Vector3.new(1.2, 0.3, 44), origin + Vector3.new(21.4, 1.05, 0), slotColor, Enum.Material.Neon)
+	makePart(baseFolder, "TrimW", Vector3.new(1.2, 0.3, 44), origin + Vector3.new(-21.4, 1.05, 0), slotColor, Enum.Material.Neon)
 	makeSign(baseFolder, "BaseSign", floor, "BASE " .. tostring(index) .. "\nFREE", Color3.fromRGB(255, 255, 255), Vector3.new(0, 9, 0))
 
 	local pads = {}
@@ -204,13 +224,13 @@ local function buildBasePlot(parent: Folder, index: number, origin: Vector3)
 		local row = math.floor((padIndex - 1) / 5)
 		local padPosition = origin + Vector3.new(-16 + column * 8, 1.2, -8 + row * 14)
 		local pad = makePart(baseFolder, "Pad" .. tostring(padIndex), Vector3.new(6, 0.4, 6), padPosition,
-			Color3.fromRGB(70, 70, 90), Enum.Material.Neon)
+			slotColor, Enum.Material.Neon)
 		table.insert(pads, pad)
 	end
 
 	local lockButton = makePart(baseFolder, "LockButton", Vector3.new(5, 1, 5), origin + Vector3.new(18, 1.5, 18),
 		Color3.fromRGB(255, 80, 80), Enum.Material.Neon)
-	makeSign(baseFolder, "LockSign", lockButton, "LOCK BASE\n" .. tostring(GameConfig.LockDurationSeconds) .. "s", Color3.fromRGB(255, 120, 120), Vector3.new(0, 5, 0))
+	makeSign(baseFolder, "LockSign", lockButton, "LOCK BASE\n" .. tostring(GameConfig.LockDurationSeconds) .. "s", Color3.fromRGB(255, 90, 110), Vector3.new(0, 5, 0))
 
 	local lasers = {}
 	for side = 1, 4 do
@@ -246,23 +266,72 @@ function WorldBuilder.SetBaseLasersVisible(base: any, visible: boolean)
 	end
 end
 
+-- One palm tree: a slightly tilted cylinder trunk, six flat leaves fanned from the
+-- top, and (on some palms) a glowing neon "glowfruit" sphere hanging by the crown.
+local function buildPalm(parent: Folder, name: string, position: Vector3, withGlowfruit: boolean, glowColor: Color3)
+	local trunk = Instance.new("Part")
+	trunk.Name = name .. "Trunk"
+	trunk.Shape = Enum.PartType.Cylinder
+	trunk.Size = Vector3.new(1.3, 10, 1.3)
+	trunk.Color = Color3.fromRGB(130, 92, 55)
+	trunk.Anchored = true
+	trunk.TopSurface = Enum.SurfaceType.Smooth
+	trunk.BottomSurface = Enum.SurfaceType.Smooth
+	trunk.CFrame = CFrame.new(position + Vector3.new(0, 5, 0)) * CFrame.Angles(0, 0, math.rad(7))
+	trunk.Parent = parent
+	local crownTop = position + Vector3.new(1.25, 10, 0)
+	for leafIndex = 1, 6 do
+		local leaf = Instance.new("Part")
+		leaf.Name = name .. "Leaf" .. tostring(leafIndex)
+		leaf.Size = Vector3.new(7, 0.3, 1.8)
+		leaf.Color = Color3.fromRGB(52, 165, 70)
+		leaf.Anchored = true
+		leaf.CanCollide = false
+		leaf.TopSurface = Enum.SurfaceType.Smooth
+		leaf.BottomSurface = Enum.SurfaceType.Smooth
+		leaf.CFrame = CFrame.new(crownTop)
+			* CFrame.Angles(0, math.rad((leafIndex - 1) * 60), 0)
+			* CFrame.Angles(0, 0, math.rad(-26))
+			* CFrame.new(3.1, 0, 0)
+		leaf.Parent = parent
+	end
+	if withGlowfruit then
+		local fruit = Instance.new("Part")
+		fruit.Name = name .. "Glowfruit"
+		fruit.Shape = Enum.PartType.Ball
+		fruit.Size = Vector3.new(1.5, 1.5, 1.5)
+		fruit.Color = glowColor
+		fruit.Material = Enum.Material.Neon
+		fruit.Anchored = true
+		fruit.CanCollide = false
+		fruit.Position = crownTop + Vector3.new(0.9, -1, 0.4)
+		fruit.Parent = parent
+	end
+end
+
 function WorldBuilder.BuildWorld()
 	local worldFolder = Instance.new("Folder")
-	worldFolder.Name = "BrainrotIslandWorld"
+	worldFolder.Name = "NeonShoresWorld"
 	worldFolder.Parent = Workspace
 
-	-- Island: a grass top on a slightly wider sand rim, floating in a calm sea.
-	-- The sand rim's top sits just below the grass top, so the island edge reads
-	-- as a beach from any camera angle.
-	makePart(worldFolder, "IslandSandRim", Vector3.new(436, 4, 436), Vector3.new(0, -2.25, 0), Color3.fromRGB(240, 220, 160), Enum.Material.Sand)
-	makePart(worldFolder, "IslandGround", Vector3.new(420, 4, 420), Vector3.new(0, -2, 0), Color3.fromRGB(105, 205, 110), Enum.Material.Grass)
-	local sea = makePart(worldFolder, "Sea", Vector3.new(900, 2, 900), Vector3.new(0, -5, 0), Color3.fromRGB(40, 130, 220), Enum.Material.SmoothPlastic)
+	-- Island: a warm grass top on a slightly wider sand rim, floating in a deep
+	-- teal sea. The sand rim's top sits just below the grass top, so the island
+	-- edge reads as a beach from any camera angle.
+	makePart(worldFolder, "IslandSandRim", Vector3.new(436, 4, 436), Vector3.new(0, -2.25, 0), Color3.fromRGB(245, 205, 140), Enum.Material.Sand)
+	makePart(worldFolder, "IslandGround", Vector3.new(420, 4, 420), Vector3.new(0, -2, 0), Color3.fromRGB(92, 192, 82), Enum.Material.Grass)
+	local sea = makePart(worldFolder, "Sea", Vector3.new(900, 2, 900), Vector3.new(0, -5, 0), Color3.fromRGB(16, 95, 125), Enum.Material.SmoothPlastic)
 	sea.Transparency = 0.25
 
-	-- Central plaza: clean pale paving, the fountain and one big title sign.
-	local plaza = makePart(worldFolder, "SpawnPlaza", Vector3.new(60, 1, 60), Vector3.new(0, 0.5, 0), Color3.fromRGB(232, 228, 220), Enum.Material.Concrete)
-	local fountain = makePart(worldFolder, "Fountain", Vector3.new(10, 3, 10), Vector3.new(0, 2, 0), Color3.fromRGB(120, 200, 255), Enum.Material.Neon)
-	makeSign(worldFolder, "TitleSign", fountain, "BRAINROT ISLAND", Color3.fromRGB(255, 230, 80), Vector3.new(0, 12, 0))
+	-- Central plaza: dark slate paving so the neon pops, cyan neon edge strips
+	-- outlining the square, the fountain and one big title sign.
+	local plaza = makePart(worldFolder, "SpawnPlaza", Vector3.new(60, 1, 60), Vector3.new(0, 0.5, 0), Color3.fromRGB(46, 48, 62), Enum.Material.Concrete)
+	local neonCyan = Color3.fromRGB(40, 230, 255)
+	makePart(worldFolder, "PlazaEdgeN", Vector3.new(60, 0.25, 1.2), Vector3.new(0, 1.05, -29.4), neonCyan, Enum.Material.Neon)
+	makePart(worldFolder, "PlazaEdgeS", Vector3.new(60, 0.25, 1.2), Vector3.new(0, 1.05, 29.4), neonCyan, Enum.Material.Neon)
+	makePart(worldFolder, "PlazaEdgeE", Vector3.new(1.2, 0.25, 60), Vector3.new(29.4, 1.05, 0), neonCyan, Enum.Material.Neon)
+	makePart(worldFolder, "PlazaEdgeW", Vector3.new(1.2, 0.25, 60), Vector3.new(-29.4, 1.05, 0), neonCyan, Enum.Material.Neon)
+	local fountain = makePart(worldFolder, "Fountain", Vector3.new(10, 3, 10), Vector3.new(0, 2, 0), Color3.fromRGB(60, 225, 255), Enum.Material.Neon)
+	makeSign(worldFolder, "TitleSign", fountain, "NEON SHORES", Color3.fromRGB(255, 240, 90), Vector3.new(0, 12, 0))
 	local spawn = Instance.new("SpawnLocation")
 	spawn.Name = "MainSpawn"
 	spawn.Size = Vector3.new(8, 1, 8)
@@ -272,14 +341,19 @@ function WorldBuilder.BuildWorld()
 	spawn.Neutral = true
 	spawn.Parent = worldFolder
 
-	-- One pale path from the plaza to the belt, one road ring to the bases.
-	makePart(worldFolder, "PathToBelt", Vector3.new(16, 0.4, 120), Vector3.new(0, 0.2, -90), Color3.fromRGB(226, 222, 214), Enum.Material.Concrete)
-	makePart(worldFolder, "RoadRing", Vector3.new(300, 0.4, 16), Vector3.new(0, 0.2, 60), Color3.fromRGB(80, 80, 90), Enum.Material.Asphalt)
+	-- One dark path from the plaza to the belt, edged with cyan neon strips,
+	-- and one road ring to the bases.
+	makePart(worldFolder, "PathToBelt", Vector3.new(16, 0.4, 120), Vector3.new(0, 0.2, -90), Color3.fromRGB(52, 54, 68), Enum.Material.Concrete)
+	makePart(worldFolder, "PathEdgeE", Vector3.new(1.2, 0.25, 120), Vector3.new(7.4, 0.45, -90), neonCyan, Enum.Material.Neon)
+	makePart(worldFolder, "PathEdgeW", Vector3.new(1.2, 0.25, 120), Vector3.new(-7.4, 0.45, -90), neonCyan, Enum.Material.Neon)
+	makePart(worldFolder, "RoadRing", Vector3.new(300, 0.4, 16), Vector3.new(0, 0.2, 60), Color3.fromRGB(60, 62, 76), Enum.Material.Asphalt)
 
-	-- ORANGE ZONE: the shop belt. Brainrots ride it, big sign, chase-light pads.
+	-- ORANGE ZONE: the shop belt. Brainrots ride it, big sign, chase-light pads,
+	-- and a neon orange beacon post marking the zone.
 	makePart(worldFolder, "BeltPlatform", Vector3.new(110, 1, 22), Vector3.new(0, 0.25, -150), Color3.fromRGB(255, 150, 60), Enum.Material.SmoothPlastic)
 	local belt = makePart(worldFolder, "ConveyorBelt", Vector3.new(90, 2, 10), Vector3.new(0, 1, -150), Color3.fromRGB(50, 50, 60), Enum.Material.Metal)
-	makeSign(worldFolder, "ShopSign", belt, "SHOP BELT - WALK IN TO BUY", Color3.fromRGB(120, 255, 160), Vector3.new(0, 10, 0))
+	makeSign(worldFolder, "ShopSign", belt, "SHOP BELT - WALK IN TO BUY", Color3.fromRGB(255, 165, 50), Vector3.new(0, 10, 0))
+	makePart(worldFolder, "BeltBeacon", Vector3.new(0.8, 11, 0.8), Vector3.new(56, 5.5, -150), Color3.fromRGB(255, 150, 40), Enum.Material.Neon)
 	for slotIndex = 1, GameConfig.ConveyorMaxOnBelt do
 		local slotPosition = Vector3.new(-37 + (slotIndex - 1) * 15, 2, -150)
 		local slotPad = makePart(worldFolder, "ConveyorSlot" .. tostring(slotIndex), Vector3.new(9, 0.4, 9), slotPosition, Color3.fromRGB(255, 140, 40), Enum.Material.Neon)
@@ -298,7 +372,8 @@ function WorldBuilder.BuildWorld()
 	eggDome.Anchored = true
 	eggDome.CanCollide = false
 	eggDome.Parent = worldFolder
-	makeSign(worldFolder, "EggSign", eggBase, "EGG MACHINE\nHATCH: " .. GameConfig.FormatCash(GameConfig.EggPrice), Color3.fromRGB(255, 170, 230), Vector3.new(0, 10, 0))
+	makeSign(worldFolder, "EggSign", eggBase, "EGG MACHINE\nHATCH: " .. GameConfig.FormatCash(GameConfig.EggPrice), Color3.fromRGB(255, 120, 230), Vector3.new(0, 10, 0))
+	makePart(worldFolder, "EggBeacon", Vector3.new(0.8, 11, 0.8), Vector3.new(60, 5.5, -120), Color3.fromRGB(255, 120, 220), Enum.Material.Neon)
 	WorldBuilder.EggMachinePosition = Vector3.new(45, 0, -104)
 
 	-- GOLD ZONE: the rebirth shrine, golden steps up to a glowing crystal.
@@ -307,7 +382,8 @@ function WorldBuilder.BuildWorld()
 	end
 	local crystal = makePart(worldFolder, "RebirthCrystal", Vector3.new(4, 8, 4), Vector3.new(-45, 7, -120), Color3.fromRGB(150, 255, 255), Enum.Material.Neon)
 	crystal.Orientation = Vector3.new(0, 45, 0)
-	makeSign(worldFolder, "RebirthSign", crystal, "REBIRTH SHRINE\nRESET FOR +100% INCOME", Color3.fromRGB(160, 255, 255), Vector3.new(0, 9, 0))
+	makeSign(worldFolder, "RebirthSign", crystal, "REBIRTH SHRINE\nRESET FOR +100% INCOME", Color3.fromRGB(255, 215, 80), Vector3.new(0, 9, 0))
+	makePart(worldFolder, "ShrineBeacon", Vector3.new(0.8, 11, 0.8), Vector3.new(-60, 5.5, -120), Color3.fromRGB(255, 205, 60), Enum.Material.Neon)
 	WorldBuilder.RebirthShrinePosition = Vector3.new(-45, 0, -104)
 
 	-- Eight base plots in two rows.
@@ -322,16 +398,28 @@ function WorldBuilder.BuildWorld()
 	end
 
 	-- GREEN ZONE: the high hill. Stand up here and the Big Wave cannot take you.
-	local hill = makePart(worldFolder, "ShelterHill", Vector3.new(70, WorldBuilder.HighGroundTopY, 70), Vector3.new(150, WorldBuilder.HighGroundTopY / 2, -40), Color3.fromRGB(105, 205, 110), Enum.Material.Grass)
-	makeSign(worldFolder, "ShelterSign", hill, "HIGH HILL\nSAFE FROM THE BIG WAVE", Color3.fromRGB(255, 255, 255), Vector3.new(0, 8, 40))
+	local hill = makePart(worldFolder, "ShelterHill", Vector3.new(70, WorldBuilder.HighGroundTopY, 70), Vector3.new(150, WorldBuilder.HighGroundTopY / 2, -40), Color3.fromRGB(92, 192, 82), Enum.Material.Grass)
+	makeSign(worldFolder, "ShelterSign", hill, "HIGH HILL\nSAFE FROM THE BIG WAVE", Color3.fromRGB(120, 255, 140), Vector3.new(0, 8, 40))
+	makePart(worldFolder, "HillBeacon", Vector3.new(0.8, 11, 0.8), Vector3.new(112, 5.5, -72), Color3.fromRGB(110, 255, 120), Enum.Material.Neon)
 
-	-- A ring of simple round trees around the plaza, nothing more.
-	for treeIndex = 1, 12 do
-		local angle = (treeIndex / 12) * math.pi * 2
-		local treePosition = Vector3.new(math.cos(angle) * 55, 0, math.sin(angle) * 55)
-		makePart(worldFolder, "TreeTrunk" .. tostring(treeIndex), Vector3.new(1.5, 7, 1.5), treePosition + Vector3.new(0, 3.5, 0), Color3.fromRGB(120, 85, 50))
-		local leaves = makePart(worldFolder, "TreeLeaves" .. tostring(treeIndex), Vector3.new(7, 5, 7), treePosition + Vector3.new(0, 9, 0), Color3.fromRGB(60, 170, 70))
-		leaves.Shape = Enum.PartType.Ball
+	-- Palm trees in neat clusters: plaza corners, the belt dock ends, the beach
+	-- rim and the hill path. Every other palm carries a neon glowfruit.
+	local palmSpots = {
+		{ Position = Vector3.new(-42, 0, -42), Glow = true, Color = Color3.fromRGB(255, 120, 220) },
+		{ Position = Vector3.new(42, 0, -42), Glow = false, Color = Color3.fromRGB(255, 220, 80) },
+		{ Position = Vector3.new(-42, 0, 42), Glow = false, Color = Color3.fromRGB(255, 220, 80) },
+		{ Position = Vector3.new(42, 0, 42), Glow = true, Color = Color3.fromRGB(60, 225, 255) },
+		{ Position = Vector3.new(-64, 0, -136), Glow = true, Color = Color3.fromRGB(255, 220, 80) },
+		{ Position = Vector3.new(64, 0, -164), Glow = false, Color = Color3.fromRGB(255, 120, 220) },
+		{ Position = Vector3.new(-180, 0, 30), Glow = false, Color = Color3.fromRGB(60, 225, 255) },
+		{ Position = Vector3.new(185, 0, 55), Glow = true, Color = Color3.fromRGB(255, 120, 220) },
+		{ Position = Vector3.new(-120, 0, -185), Glow = true, Color = Color3.fromRGB(60, 225, 255) },
+		{ Position = Vector3.new(105, 0, -95), Glow = false, Color = Color3.fromRGB(255, 220, 80) },
+		{ Position = Vector3.new(-185, 0, -120), Glow = false, Color = Color3.fromRGB(255, 220, 80) },
+		{ Position = Vector3.new(30, 0, 190), Glow = true, Color = Color3.fromRGB(255, 220, 80) },
+	}
+	for palmIndex, spot in ipairs(palmSpots) do
+		buildPalm(worldFolder, "Palm" .. tostring(palmIndex), spot.Position, spot.Glow, spot.Color)
 	end
 
 	-- The Big Wave wall itself: a huge sheet of water with a white foam crest,

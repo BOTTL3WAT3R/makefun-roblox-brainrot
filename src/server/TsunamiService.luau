@@ -1,5 +1,5 @@
 -- TsunamiService.luau (ModuleScript, ServerScriptService.Server)
--- Brainrot Island -- the Big Wave. Every cycle: calm, a loud warning with a countdown,
+-- Neon Shores -- the Big Wave. Every cycle: calm, a loud warning with a countdown,
 -- then a wall of water tweens smoothly across the island. Anyone caught low and outside
 -- a base loses the brainrot they are carrying and is washed back to spawn. Bases and
 -- the high hill are safe ground.

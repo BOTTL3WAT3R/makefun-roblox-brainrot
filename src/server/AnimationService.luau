@@ -1,5 +1,5 @@
 -- AnimationService.luau (ModuleScript, ServerScriptService.Server)
--- Brainrot Island -- the animation layer. The world itself stays deliberately simple;
+-- Neon Shores -- the animation layer. The world itself stays deliberately simple;
 -- all the motion lives on the collectibles, like the big tycoon games do it:
 --   * every placed or belt brainrot gently bobs, and Mythic / Brainrot God rarities
 --     also slowly spin, driven by ONE Heartbeat loop for the whole game;

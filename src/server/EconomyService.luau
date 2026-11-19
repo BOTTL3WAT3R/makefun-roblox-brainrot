@@ -1,5 +1,5 @@
 -- EconomyService.luau (ModuleScript, ServerScriptService.Server)
--- Brainrot Island -- the cash engine: the per-second income tick for every
+-- Neon Shores -- the cash engine: the per-second income tick for every
 -- placed brainrot, buying from the shop belt, hatching eggs with a mutation roll,
 -- placing a fresh brainrot on a free base pad, and selling one back. Every model it
 -- spawns is handed to AnimationService so it bobs (and spins / sparkles when rare).

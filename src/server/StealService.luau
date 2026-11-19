@@ -1,5 +1,5 @@
 -- StealService.luau (ModuleScript, ServerScriptService.Server)
--- Brainrot Island -- the tension engine: walk into another player's unlocked
+-- Neon Shores -- the tension engine: walk into another player's unlocked
 -- brainrot to rip it off its pad and carry it on your back, slowed down, while its owner
 -- chases you. Reach your own base to keep it. A locked base raises laser walls and cannot
 -- be robbed until the lock timer runs out.

@@ -1,11 +1,12 @@
 -- Main.server.luau (Script, ServerScriptService.Server)
--- Brainrot Island -- the server bootstrap. It builds the world, creates the
--- RemoteEvents the client talks through, hands each player a base plot, keeps leaderstats
--- in step with PlayerData, and starts every service loop: income, conveyor, stealing,
--- the Big Wave cycle, the Rebirth Shrine watch and the AnimationService dressing
--- (egg pulse and belt chase lights).
+-- Neon Shores -- the server bootstrap. It sets the golden-hour lighting, builds the
+-- world, creates the RemoteEvents the client talks through, hands each player a base
+-- plot, keeps leaderstats in step with PlayerData, and starts every service loop:
+-- income, conveyor, stealing, the Big Wave cycle, the Rebirth Shrine watch and the
+-- AnimationService dressing (egg pulse and belt chase lights).
 
 local Players = game:GetService("Players")
+local Lighting = game:GetService("Lighting")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
@@ -21,6 +22,44 @@ local StealService = require(ServerModules:WaitForChild("StealService"))
 local TsunamiService = require(ServerModules:WaitForChild("TsunamiService"))
 local RebirthService = require(ServerModules:WaitForChild("RebirthService"))
 local AnimationService = require(ServerModules:WaitForChild("AnimationService"))
+
+-- 0. Golden hour: the sun sits low, the air is peachy, and only the neon is bright
+-- enough to bloom. This is the single biggest screenshot win in the game.
+local function setupGoldenHourLighting()
+	Lighting.ClockTime = 17.6
+	Lighting.Brightness = 2
+	Lighting.Ambient = Color3.fromRGB(140, 102, 84)
+	Lighting.OutdoorAmbient = Color3.fromRGB(153, 112, 92)
+	Lighting.FogColor = Color3.fromRGB(250, 166, 120)
+	Lighting.FogStart = 150
+	Lighting.FogEnd = 700
+	for _, child in ipairs(Lighting:GetChildren()) do
+		if child:IsA("PostEffect") or child:IsA("Atmosphere") then
+			child:Destroy()
+		end
+	end
+	local bloom = Instance.new("BloomEffect")
+	bloom.Name = "NeonBloom"
+	bloom.Intensity = 0.6
+	bloom.Size = 24
+	bloom.Threshold = 0.85
+	bloom.Parent = Lighting
+	local sunRays = Instance.new("SunRaysEffect")
+	sunRays.Name = "DuskSunRays"
+	sunRays.Intensity = 0.08
+	sunRays.Spread = 0.8
+	sunRays.Parent = Lighting
+	local atmosphere = Instance.new("Atmosphere")
+	atmosphere.Name = "DuskAtmosphere"
+	atmosphere.Density = 0.25
+	atmosphere.Offset = 0.1
+	atmosphere.Color = Color3.fromRGB(255, 199, 158)
+	atmosphere.Decay = Color3.fromRGB(209, 140, 102)
+	atmosphere.Glare = 0.3
+	atmosphere.Haze = 1.5
+	atmosphere.Parent = Lighting
+end
+setupGoldenHourLighting()
 
 -- 1. The world exists before anyone joins.
 local worldFolder = WorldBuilder.BuildWorld()
@@ -61,6 +100,7 @@ local function buildStateSnapshot(state: any)
 		if character then
 			table.insert(placedSummary, {
 				Uid = placed.Uid,
+				CharacterId = placed.CharacterId,
 				Name = character.Name,
 				Rarity = character.Rarity,
 				Mutation = placed.Mutation,
@@ -79,6 +119,7 @@ local function buildStateSnapshot(state: any)
 		LockSecondsLeft = math.max(0, math.ceil(state.LockEndsAt - os.clock())),
 		IsLocked = PlayerData.IsBaseLocked(state),
 		Carrying = state.Carried ~= nil,
+		CarriedId = if state.Carried then state.Carried.CharacterId else nil,
 		Placed = placedSummary,
 	}
 end
@@ -141,7 +182,7 @@ local function onPlayerAdded(player: Player)
 		pushStateToPlayer(player)
 	end)
 
-	remotes.Notify:FireClient(player, "Welcome to Brainrot Island! Buy a brainrot from the belt, guard it at your base, and outrun the Big Wave!")
+	remotes.Notify:FireClient(player, "Welcome to Neon Shores! Buy a brainrot from the belt, guard it at your base, and outrun the Big Wave!")
 	pushStateToPlayer(player)
 end
 
