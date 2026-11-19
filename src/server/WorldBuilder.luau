@@ -378,6 +378,22 @@ local function groundHeightAt(x: number, z: number): number
 	return 0
 end
 
+-- Every chair in the game carries an E prompt that sits the player by
+-- script (PlaygroundService handles Triggered): touch-sitting is flaky on
+-- the rides, whose decks and swings pivot every frame, so sitting down is
+-- deliberate instead -- walk up, press E, sit; press E again to stand.
+local function addSitPrompt(seat: BasePart, objectText: string)
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.Name = "SitPrompt"
+	prompt.ActionText = "Sit"
+	prompt.ObjectText = objectText
+	prompt.KeyboardKeyCode = Enum.KeyCode.E
+	prompt.HoldDuration = 0
+	prompt.MaxActivationDistance = 10
+	prompt.RequiresLineOfSight = false
+	prompt.Parent = seat
+end
+
 -- A bench with a real Seat, built as a small model turned to face a target
 -- point: whoever sits down looks at whatever the bench faces (the arena ring).
 local function buildBench(parent: Folder, name: string, position: Vector3, faceTarget: Vector3)
@@ -405,14 +421,15 @@ local function buildBench(parent: Folder, name: string, position: Vector3, faceT
 		return part
 	end
 	-- CFrame.lookAt aims local -Z at the target, so the sitter's back is +Z.
-	add("Seat", "Seat", Vector3.new(5.5, 0.7, 1.9), Vector3.new(0, 1.9, 0), dark, Enum.Material.SmoothPlastic)
+	local seatPart = add("Seat", "Seat", Vector3.new(5.5, 0.7, 1.9), Vector3.new(0, 1.9, 0), dark, Enum.Material.SmoothPlastic)
+	addSitPrompt(seatPart, "Bench")
 	add("Part", "Backrest", Vector3.new(5.5, 2.4, 0.45), Vector3.new(0, 3.6, 1.1), dark, Enum.Material.SmoothPlastic)
 	add("Part", "Trim", Vector3.new(5.5, 0.3, 0.3), Vector3.new(0, 1.45, -1), Color3.fromRGB(255, 130, 190), Enum.Material.Neon)
 	for _, x in ipairs({ -2.3, 2.3 }) do
 		add("Part", "Leg", Vector3.new(0.55, 1.6, 0.55), Vector3.new(x, 0.8, 0.55), dark, nil)
 		add("Part", "Leg", Vector3.new(0.55, 1.6, 0.55), Vector3.new(x, 0.8, -0.55), dark, nil)
 	end
-	return bench
+	return bench, seatPart
 end
 
 -- THE CANDY PLAYGROUND: a pure fun layer on the empty north strip behind the
@@ -430,6 +447,11 @@ local function buildPlayground(worldFolder: Folder)
 	local dark = Color3.fromRGB(94, 58, 32)
 	local lavender = Color3.fromRGB(190, 160, 255)
 	local orange = Color3.fromRGB(255, 185, 120)
+
+	-- Every Seat built below (swings, merry-go-round, arena benches) is
+	-- collected here and exported in WorldBuilder.Playground, so
+	-- PlaygroundService can wire all their SitPrompts to one handler.
+	local playgroundSeats: { Seat } = {}
 
 	-- The safety mat: one soft pastel-pink slab so the whole zone reads as one place.
 	makePart(folder, "SafetyMat", Vector3.new(190, 0.35, 16), Vector3.new(0, 0.18, -119), Color3.fromRGB(255, 190, 220), Enum.Material.SmoothPlastic)
@@ -560,6 +582,8 @@ local function buildPlayground(worldFolder: Folder)
 		seat.TopSurface = Enum.SurfaceType.Smooth
 		seat.BottomSurface = Enum.SurfaceType.Smooth
 		seat.Parent = model
+		addSitPrompt(seat, "Swing")
+		table.insert(playgroundSeats, seat)
 		table.insert(swings, { Model = model, Pivot = Vector3.new(swingX, 10.2, -118), Phase = (i - 1) * 1.7 })
 	end
 
@@ -653,6 +677,8 @@ local function buildPlayground(worldFolder: Folder)
 		seat.BottomSurface = Enum.SurfaceType.Smooth
 		seat.CFrame = seatFrame
 		seat.Parent = merry
+		addSitPrompt(seat, "Merry-Go-Round")
+		table.insert(playgroundSeats, seat)
 		local seatPost = makePart(merry, "SeatPost" .. tostring(seatIndex), Vector3.new(0.5, 1, 0.5), seatPosition, dark, Enum.Material.Metal)
 		seatPost.CFrame = seatFrame * CFrame.new(0, -0.75, 0)
 		local seatBack = makePart(merry, "SeatBack" .. tostring(seatIndex), Vector3.new(2.4, 1.8, 0.4), seatPosition, merrySeatColors[seatIndex], Enum.Material.SmoothPlastic)
@@ -713,10 +739,13 @@ local function buildPlayground(worldFolder: Folder)
 	-- BENCHES around the Candy Arena, each with a real Seat, facing the ring:
 	-- two flanking the arena-to-belt path, one west, one south past the road.
 	local arenaCentre = Vector3.new(0, 0, 28)
-	buildBench(folder, "BenchNW", Vector3.new(-14, 0, -2), arenaCentre)
-	buildBench(folder, "BenchNE", Vector3.new(14, 0, -2), arenaCentre)
-	buildBench(folder, "BenchW", Vector3.new(-31, 0, 28), arenaCentre)
-	buildBench(folder, "BenchS", Vector3.new(0, 0, 62), arenaCentre)
+	local _, benchSeatNW = buildBench(folder, "BenchNW", Vector3.new(-14, 0, -2), arenaCentre)
+	local _, benchSeatNE = buildBench(folder, "BenchNE", Vector3.new(14, 0, -2), arenaCentre)
+	local _, benchSeatW = buildBench(folder, "BenchW", Vector3.new(-31, 0, 28), arenaCentre)
+	local _, benchSeatS = buildBench(folder, "BenchS", Vector3.new(0, 0, 62), arenaCentre)
+	for _, benchSeat in ipairs({ benchSeatNW, benchSeatNE, benchSeatW, benchSeatS }) do
+		table.insert(playgroundSeats, benchSeat)
+	end
 
 	WorldBuilder.PlaygroundFolder = folder
 	WorldBuilder.Playground = {
@@ -727,6 +756,7 @@ local function buildPlayground(worldFolder: Folder)
 		MerryPivot = Vector3.new(75, 0, -116),
 		BouncePads = bouncePads,
 		TrashPrompt = prompt,
+		Seats = playgroundSeats,
 	}
 end
 

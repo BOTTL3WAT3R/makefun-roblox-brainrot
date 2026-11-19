@@ -2,8 +2,9 @@
 -- Candy Island -- the runtime behaviour for the Candy Playground (built by
 -- WorldBuilder.buildPlayground): one Heartbeat loop rocks the swings, spins
 -- the merry-go-round and tips the seesaw toward whoever stands on it, plus
--- the two touch/prompt interactions -- the bounce pad launch and the trash
--- can rummage by the Fuse Machine. Pure fun layer: the only money it touches
+-- the touch/prompt interactions -- the bounce pad launch, the trash can
+-- rummage by the Fuse Machine, and the E-prompt sitting on every chair.
+-- Pure fun layer: the only money it touches
 -- is the trash can's small once-a-minute find, paid through PlayerData.
 
 local Players = game:GetService("Players")
@@ -178,6 +179,37 @@ function PlaygroundService.Start()
 	-- Trash can: the prompt lives on the bin in Workspace; Triggered is
 	-- server-side by design, no remote needed.
 	playground.TrashPrompt.Triggered:Connect(onTrashRummaged)
+
+	-- Seat prompts: every chair (merry-go-round seats, swing seats, arena
+	-- benches) carries a SitPrompt, because touch-sitting on the rides is
+	-- flaky -- the deck and swings pivot every frame, so a walking touch
+	-- rarely registers as a clean sit. The prompt sits the player by script
+	-- instead: seat:Sit welds them exactly like a touch-sit would, so the
+	-- merry-go-round's carry loop (which skips Humanoid.Sit riders) and the
+	-- swings' rocking both carry a prompted sitter on the weld unchanged.
+	-- Pressing E again while seated stands back up: clearing Sit breaks
+	-- the seat weld, and the Jumping state adds the little hop off.
+	for _, seat in ipairs(playground.Seats or {}) do
+		local sitPrompt = seat:FindFirstChild("SitPrompt")
+		if sitPrompt and sitPrompt:IsA("ProximityPrompt") then
+			sitPrompt.Triggered:Connect(function(player: Player)
+				local character = player.Character
+				local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+				if not humanoid or humanoid.Health <= 0 then
+					return
+				end
+				local occupant = seat.Occupant
+				if occupant == humanoid then
+					humanoid.Sit = false
+					humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+				elseif occupant == nil then
+					seat:Sit(humanoid)
+				else
+					notifyPlayer(player, "Someone is sitting there!")
+				end
+			end)
+		end
+	end
 
 	-- The motion loop: swings rock on offset sine phases around their bar
 	-- pivots, the merry-go-round turns at a steady half-radian per second
