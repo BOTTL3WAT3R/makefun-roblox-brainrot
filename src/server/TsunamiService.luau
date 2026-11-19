@@ -47,6 +47,13 @@ local function notifyAll(message: string)
 	end
 end
 
+local function notifyPlayer(player: Player, message: string)
+	local remote = remotes.Notify
+	if remote then
+		remote:FireClient(player, message)
+	end
+end
+
 -- Safe means: inside your own base plot, or standing on the high hill.
 function TsunamiService.IsPlayerSafeFromWave(player: Player): boolean
 	local character = player.Character
@@ -116,7 +123,16 @@ local function runSweep()
 			local root = character and character:FindFirstChild("HumanoidRootPart")
 			if root and math.abs(root.Position.X - x) < 5 and root.Position.Z > -165 and root.Position.Z < 165 then
 				if not TsunamiService.IsPlayerSafeFromWave(player) then
-					TsunamiService.ApplyWaveHitToPlayer(player)
+					local state = PlayerData.GetState(player)
+					if state and state.WaveShield then
+						-- The one-time Wave Shield boost burns itself out here:
+						-- consumed exactly when it saves its owner from a wash.
+						state.WaveShield = false
+						PlayerData.FireStateChanged(state)
+						notifyPlayer(player, "Your WAVE SHIELD saved you from the Big Wave!")
+					else
+						TsunamiService.ApplyWaveHitToPlayer(player)
+					end
 				end
 			end
 		end

@@ -169,15 +169,17 @@ function BrainrotCatalog.GetCharactersOfRarity(rarity: string)
 	return matches
 end
 
-function BrainrotCatalog.RollRarity(rng: Random): string
+-- weightOverrides, when given, is a { [name] = weight } map that replaces the
+-- base weights for this one roll (the Lucky Charm boost passes its own).
+function BrainrotCatalog.RollRarity(rng: Random, weightOverrides: { [string]: number }?): string
 	local totalWeight = 0
-	for _, weight in pairs(BrainrotCatalog.RarityHatchWeights) do
-		totalWeight += weight
+	for _, rarity in ipairs(BrainrotCatalog.RarityOrder) do
+		totalWeight += (weightOverrides and weightOverrides[rarity]) or BrainrotCatalog.RarityHatchWeights[rarity]
 	end
 	local roll = rng:NextNumber(0, totalWeight)
 	local running = 0
 	for _, rarity in ipairs(BrainrotCatalog.RarityOrder) do
-		running += BrainrotCatalog.RarityHatchWeights[rarity]
+		running += (weightOverrides and weightOverrides[rarity]) or BrainrotCatalog.RarityHatchWeights[rarity]
 		if roll <= running then
 			return rarity
 		end
@@ -185,15 +187,15 @@ function BrainrotCatalog.RollRarity(rng: Random): string
 	return "Common"
 end
 
-function BrainrotCatalog.RollMutation(rng: Random)
+function BrainrotCatalog.RollMutation(rng: Random, weightOverrides: { [string]: number }?)
 	local totalWeight = 0
 	for _, mutation in ipairs(BrainrotCatalog.Mutations) do
-		totalWeight += mutation.Weight
+		totalWeight += (weightOverrides and weightOverrides[mutation.Name]) or mutation.Weight
 	end
 	local roll = rng:NextNumber(0, totalWeight)
 	local running = 0
 	for _, mutation in ipairs(BrainrotCatalog.Mutations) do
-		running += mutation.Weight
+		running += (weightOverrides and weightOverrides[mutation.Name]) or mutation.Weight
 		if roll <= running then
 			return mutation
 		end
@@ -201,11 +203,11 @@ function BrainrotCatalog.RollMutation(rng: Random)
 	return BrainrotCatalog.Mutations[1]
 end
 
-function BrainrotCatalog.RollHatch(rng: Random)
-	local rarity = BrainrotCatalog.RollRarity(rng)
+function BrainrotCatalog.RollHatch(rng: Random, rarityWeights: { [string]: number }?, mutationWeights: { [string]: number }?)
+	local rarity = BrainrotCatalog.RollRarity(rng, rarityWeights)
 	local pool = BrainrotCatalog.GetCharactersOfRarity(rarity)
 	local character = pool[rng:NextInteger(1, #pool)]
-	local mutation = BrainrotCatalog.RollMutation(rng)
+	local mutation = BrainrotCatalog.RollMutation(rng, mutationWeights)
 	return character, mutation
 end
 

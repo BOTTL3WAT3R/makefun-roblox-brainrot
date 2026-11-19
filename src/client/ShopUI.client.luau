@@ -1,10 +1,11 @@
 -- ShopUI.client.luau (LocalScript, StarterPlayerScripts.Client)
--- Neon Shores -- the panels over the 3D world: a SHOP panel listing
--- the whole cast by rarity with prices and income (buying sends the brainrot straight to a
--- free pad at your base), a MY BASE panel listing what you own with a SELL button each, an
--- INDEX panel grid of the whole 36-character cast that lights up in rarity colours for the
+-- Neon Shores -- the panels over the 3D world: a BOOST panel selling four
+-- cash-bought powers (speed, wave shield, income x2, luck -- there is no shop
+-- list any more: the walking belt is the only way to buy a brainrot), a MY BASE
+-- panel listing what you own with a SELL button each, an INDEX panel grid of
+-- the whole 36-character cast that lights up in rarity colours for the
 -- ones you own, a FUSE panel that trades 3 same-rarity brainrots up a tier, and the EGG
--- and REBIRTH buttons. All four panels (SHOP, MY BASE, INDEX and FUSE) are
+-- and REBIRTH buttons. All four panels (BOOST, MY BASE, INDEX and FUSE) are
 -- centred modals, so they never sit under the right-hand button column or the
 -- top-left corner where Roblox draws its own menu.
 
@@ -106,14 +107,56 @@ local function makeRow(panel: Frame, text: string, buttonText: string, buttonCol
 	return row
 end
 
--- Shop panel: the full cast, cheapest first (the catalog is already in price order).
-local shopPanel = makePanel("ShopPanel", "SHOP")
-for _, character in ipairs(BrainrotCatalog.Characters) do
-	local rowText = string.format("%s [%s]\n$%d/s - %s", character.Name, character.Rarity, character.IncomePerSecond, character.Tagline)
-	makeRow(shopPanel, rowText, GameConfig.FormatCash(character.Price), Color3.fromRGB(60, 170, 80), function()
-		remotes:WaitForChild("BuyBrainrot"):FireServer(character.Id)
+-- Boost panel: one row per boost in GameConfig.Boosts (the same table the
+-- server validates against). The price button doubles as the status readout:
+-- it shows the live countdown while a timed boost runs, or HELD while a Wave
+-- Shield is waiting, and refreshes from every state snapshot.
+local boostPanel = makePanel("BoostPanel", "BOOSTS")
+local boostButtons: { [string]: TextButton } = {}
+local BOOST_BUTTON_COLOR = Color3.fromRGB(230, 150, 40)
+local BOOST_ACTIVE_COLOR = Color3.fromRGB(70, 70, 85)
+for _, boost in ipairs(GameConfig.Boosts) do
+	local durationText = if boost.OneTime then "one save" else tostring(boost.DurationSeconds) .. "s"
+	local rowText = string.format("%s (%s)\n%s", boost.Name, durationText, boost.Description)
+	local row = makeRow(boostPanel, rowText, GameConfig.FormatCash(boost.Price), BOOST_BUTTON_COLOR, function()
+		remotes:WaitForChild("BuyBoost"):FireServer(boost.Id)
 	end)
+	local button = row:FindFirstChildOfClass("TextButton")
+	if button then
+		boostButtons[boost.Id] = button
+	end
 end
+
+local function rebuildBoostPanel(snapshot: any)
+	if not snapshot.Boosts then
+		return
+	end
+	for _, boost in ipairs(GameConfig.Boosts) do
+		local button = boostButtons[boost.Id]
+		if button then
+			if boost.OneTime then
+				if snapshot.Boosts.WaveShield then
+					button.Text = "HELD"
+					button.BackgroundColor3 = BOOST_ACTIVE_COLOR
+				else
+					button.Text = GameConfig.FormatCash(boost.Price)
+					button.BackgroundColor3 = BOOST_BUTTON_COLOR
+				end
+			else
+				local secondsLeft = snapshot.Boosts[boost.Id .. "Left"] or 0
+				if secondsLeft > 0 then
+					button.Text = "ACTIVE " .. tostring(secondsLeft) .. "s"
+					button.BackgroundColor3 = BOOST_ACTIVE_COLOR
+				else
+					button.Text = GameConfig.FormatCash(boost.Price)
+					button.BackgroundColor3 = BOOST_BUTTON_COLOR
+				end
+			end
+		end
+	end
+end
+
+remotes:WaitForChild("StateUpdate").OnClientEvent:Connect(rebuildBoostPanel)
 
 -- Base panel: rebuilt from every state snapshot, one SELL row per placed brainrot.
 local basePanel = makePanel("BasePanel", "MY BASE")
@@ -133,8 +176,8 @@ local function rebuildBasePanel(snapshot: any)
 		table.insert(dynamicRows, row)
 	end
 	if #snapshot.Placed == 0 then
-		local row = makeRow(basePanel, "No brainrots yet. Buy one from the belt or the shop!", "SHOP", Color3.fromRGB(60, 170, 80), function()
-			shopPanel.Visible = true
+		local row = makeRow(basePanel, "No brainrots yet. Walk the belt and grab one!", "BOOST", Color3.fromRGB(230, 150, 40), function()
+			boostPanel.Visible = true
 			basePanel.Visible = false
 		end)
 		table.insert(dynamicRows, row)
@@ -465,7 +508,7 @@ fuseAction.Activated:Connect(function()
 	refreshFuseCells()
 end)
 
--- Side buttons: SHOP, MY BASE, EGG and REBIRTH, stacked down the right edge.
+-- Side buttons: BOOST, MY BASE, EGG and REBIRTH, stacked down the right edge.
 local function makeSideButton(name: string, yOffset: number, text: string, color: Color3, onClick: () -> ()): TextButton
 	local button = Instance.new("TextButton")
 	button.Name = name
@@ -482,8 +525,8 @@ local function makeSideButton(name: string, yOffset: number, text: string, color
 	return button
 end
 
-makeSideButton("ShopButton", 90, "SHOP", Color3.fromRGB(60, 170, 80), function()
-	shopPanel.Visible = not shopPanel.Visible
+makeSideButton("BoostButton", 90, "BOOST", Color3.fromRGB(230, 150, 40), function()
+	boostPanel.Visible = not boostPanel.Visible
 	basePanel.Visible = false
 	indexPanel.Visible = false
 	fusePanel.Visible = false
@@ -491,7 +534,7 @@ end)
 
 makeSideButton("BaseButton", 152, "MY BASE", Color3.fromRGB(80, 120, 220), function()
 	basePanel.Visible = not basePanel.Visible
-	shopPanel.Visible = false
+	boostPanel.Visible = false
 	indexPanel.Visible = false
 	fusePanel.Visible = false
 end)
@@ -506,14 +549,14 @@ end)
 
 makeSideButton("IndexButton", 338, "INDEX", Color3.fromRGB(150, 90, 220), function()
 	indexPanel.Visible = not indexPanel.Visible
-	shopPanel.Visible = false
+	boostPanel.Visible = false
 	basePanel.Visible = false
 	fusePanel.Visible = false
 end)
 
 makeSideButton("FuseButton", 400, "FUSE", Color3.fromRGB(170, 70, 230), function()
 	fusePanel.Visible = not fusePanel.Visible
-	shopPanel.Visible = false
+	boostPanel.Visible = false
 	basePanel.Visible = false
 	indexPanel.Visible = false
 end)

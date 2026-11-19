@@ -33,6 +33,8 @@ export type PlayerState = {
 	NextUid: number,
 	MissionIndex: number,
 	MissionProgress: number,
+	BoostEndsAt: { [string]: number },
+	WaveShield: boolean,
 }
 
 -- The mission chain, in order. Services report finished actions by Key through
@@ -73,6 +75,8 @@ function PlayerData.CreateStateForPlayer(player: Player): PlayerState
 		NextUid = 1,
 		MissionIndex = 1,
 		MissionProgress = 0,
+		BoostEndsAt = { Speed = 0, Income = 0, Luck = 0 },
+		WaveShield = false,
 	}
 	statesByUserId[player.UserId] = state
 	return state
@@ -96,6 +100,29 @@ end
 
 function PlayerData.GetIncomeMultiplier(state: PlayerState): number
 	return GameConfig.GetIncomeMultiplier(state.Rebirths)
+end
+
+-- Boosts (see GameConfig.Boosts): timed boosts store an os.clock() expiry in
+-- BoostEndsAt keyed by boost Id; the Wave Shield is a one-time held flag the
+-- TsunamiService consumes when it saves its owner.
+function PlayerData.HasBoost(state: PlayerState, boostId: string): boolean
+	return os.clock() < (state.BoostEndsAt[boostId] or 0)
+end
+
+function PlayerData.GetBoostSecondsLeft(state: PlayerState, boostId: string): number
+	return math.max(0, math.ceil((state.BoostEndsAt[boostId] or 0) - os.clock()))
+end
+
+-- The Income X2 boost as a multiplier, kept apart from the rebirth multiplier
+-- so the stacking order in EconomyService reads base x rebirth x boost.
+function PlayerData.GetIncomeBoostMultiplier(state: PlayerState): number
+	return if PlayerData.HasBoost(state, "Income") then 2 else 1
+end
+
+-- The speed a player should walk at when nothing else (carrying, dashing)
+-- overrides it: Speed Surge raises the base from 16 to 24 while it lasts.
+function PlayerData.GetBaseWalkSpeed(state: PlayerState): number
+	return if PlayerData.HasBoost(state, "Speed") then GameConfig.SpeedBoostWalkSpeed else GameConfig.NormalWalkSpeed
 end
 
 function PlayerData.AddCash(state: PlayerState, amount: number)

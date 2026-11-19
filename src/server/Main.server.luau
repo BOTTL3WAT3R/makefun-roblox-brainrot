@@ -72,7 +72,7 @@ remoteFolder.Name = "Remotes"
 remoteFolder.Parent = ReplicatedStorage
 
 local remoteNames = {
-	"BuyBrainrot", "HatchEgg", "SellBrainrot", "ToggleLock", "RequestRebirth",
+	"BuyBoost", "HatchEgg", "SellBrainrot", "ToggleLock", "RequestRebirth",
 	"RequestDash", "StateUpdate", "Notify", "WaveUpdate", "FuseBrainrots",
 }
 local remotes: { [string]: RemoteEvent } = {}
@@ -124,6 +124,12 @@ local function buildStateSnapshot(state: any)
 		Carrying = state.Carried ~= nil,
 		CarriedId = if state.Carried then state.Carried.CharacterId else nil,
 		Mission = PlayerData.GetMissionSnapshot(state),
+		Boosts = {
+			SpeedLeft = PlayerData.GetBoostSecondsLeft(state, "Speed"),
+			IncomeLeft = PlayerData.GetBoostSecondsLeft(state, "Income"),
+			LuckLeft = PlayerData.GetBoostSecondsLeft(state, "Luck"),
+			WaveShield = state.WaveShield,
+		},
 		Placed = placedSummary,
 	}
 end
@@ -151,6 +157,12 @@ stateChanged.Event:Connect(function(player: Player)
 	pushStateToPlayer(player)
 end)
 
+-- Boost bookkeeping for the 1-second housekeeping loop in section 6: the
+-- last-seen active flags per player, so expiries are caught the second a
+-- boost runs out and the player gets a fresh snapshot (and their WalkSpeed
+-- restored) instead of drifting on stale numbers.
+local boostWasActive: { [number]: { [string]: boolean } } = {}
+
 -- 4. Players: state, a base plot, leaderstats, and a welcome snapshot.
 local function onPlayerAdded(player: Player)
 	local state = PlayerData.CreateStateForPlayer(player)
@@ -177,7 +189,8 @@ local function onPlayerAdded(player: Player)
 		local root = character:WaitForChild("HumanoidRootPart")
 		local humanoid = character:FindFirstChildOfClass("Humanoid")
 		if humanoid then
-			humanoid.WalkSpeed = GameConfig.NormalWalkSpeed
+			-- Respawn keeps a live Speed Surge: base speed comes from PlayerData.
+			humanoid.WalkSpeed = PlayerData.GetBaseWalkSpeed(state)
 		end
 		if base then
 			task.wait(0.2)
@@ -198,6 +211,7 @@ for _, player in ipairs(Players:GetPlayers()) do
 end
 
 Players.PlayerRemoving:Connect(function(player)
+	boostWasActive[player.UserId] = nil
 	for _, base in ipairs(WorldBuilder.Bases) do
 		if base.Owner == player then
 			base.Owner = nil
@@ -219,13 +233,16 @@ Players.PlayerRemoving:Connect(function(player)
 end)
 
 -- 5. Client requests, each validated on the server before any money moves.
-remotes.BuyBrainrot.OnServerEvent:Connect(function(player: Player, characterId: any)
-	if typeof(characterId) ~= "string" then
+-- There is deliberately NO remote that buys a brainrot directly: the only
+-- way to buy one is walking into it on the belt (EconomyService's server-side
+-- touch handler). This endpoint buys BOOSTS, validated in EconomyService.
+remotes.BuyBoost.OnServerEvent:Connect(function(player: Player, boostId: any)
+	if typeof(boostId) ~= "string" then
 		return
 	end
 	local state = PlayerData.GetState(player)
 	if state then
-		EconomyService.BuyCharacter(state, characterId)
+		EconomyService.BuyBoost(state, boostId)
 	end
 end)
 
@@ -289,6 +306,45 @@ EconomyService.StartConveyorLoop()
 EconomyService.StartArenaEventLoop()
 TsunamiService.StartWaveCycleLoop()
 RebirthService.WatchShrineProximity()
+
+-- Boost housekeeping: once a second, catch boost transitions per player. A
+-- Speed Surge switching off restores the player's WalkSpeed (unless they are
+-- mid-carry, where the carry speed rules), and any boost starting or ending
+-- pushes a fresh snapshot so the BOOST panel timers never lie.
+task.spawn(function()
+	while true do
+		task.wait(1)
+		for _, player in ipairs(Players:GetPlayers()) do
+			local state = PlayerData.GetState(player)
+			if state then
+				local nowActive = {
+					Speed = PlayerData.HasBoost(state, "Speed"),
+					Income = PlayerData.HasBoost(state, "Income"),
+					Luck = PlayerData.HasBoost(state, "Luck"),
+					WaveShield = state.WaveShield,
+				}
+				local was = boostWasActive[player.UserId] or { Speed = false, Income = false, Luck = false, WaveShield = false }
+				local changed = false
+				for key, active in pairs(nowActive) do
+					if was[key] ~= active then
+						changed = true
+					end
+				end
+				if nowActive.Speed ~= was.Speed and not state.Carried then
+					local character = player.Character
+					local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+					if humanoid then
+						humanoid.WalkSpeed = PlayerData.GetBaseWalkSpeed(state)
+					end
+				end
+				boostWasActive[player.UserId] = nowActive
+				if changed then
+					pushStateToPlayer(player)
+				end
+			end
+		end
+	end
+end)
 
 -- 7. Animation dressing that belongs to the world itself: the egg dome breathes
 -- and the belt pads chase a highlight around the shop row.

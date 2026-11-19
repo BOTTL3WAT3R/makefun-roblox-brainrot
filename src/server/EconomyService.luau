@@ -64,7 +64,8 @@ function EconomyService.GetPlacedIncomePerSecond(state: any): number
 			total += BrainrotCatalog.GetIncomePerSecond(character, placed.Mutation)
 		end
 	end
-	return math.floor(total * PlayerData.GetIncomeMultiplier(state))
+	-- Stacking order: base income x rebirth multiplier x Income X2 boost.
+	return math.floor(total * PlayerData.GetIncomeMultiplier(state) * PlayerData.GetIncomeBoostMultiplier(state))
 end
 
 -- Places a brainrot on the owner's next free pad and stands its model on that pad.
@@ -149,13 +150,68 @@ function EconomyService.HatchEgg(state: any): boolean
 		notifyPlayer(state.Player, "The Egg Machine needs " .. GameConfig.FormatCash(GameConfig.EggPrice) .. ".")
 		return false
 	end
-	local character, mutation = BrainrotCatalog.RollHatch(rng)
+	-- The Lucky Charm boost tilts this player's own hatch: kinder mutation
+	-- weights and a rarity roll shifted one notch up the ladder. Belt spawns
+	-- are shared and never see these weights.
+	local character, mutation
+	if PlayerData.HasBoost(state, "Luck") then
+		character, mutation = BrainrotCatalog.RollHatch(rng, GameConfig.LuckyHatchRarityWeights, GameConfig.LuckyHatchMutationWeights)
+	else
+		character, mutation = BrainrotCatalog.RollHatch(rng)
+	end
 	local placedOk = EconomyService.PlaceBrainrotOnPad(state, character.Id, mutation.Name)
 	if placedOk then
 		notifyPlayer(state.Player, string.format("The egg hatched %s (%s, %s)!", character.Name, character.Rarity, mutation.Name))
 		reportMission(state, "Hatch")
 	end
 	return placedOk
+end
+
+-- Boosts: the cash sink that replaced the shop panel. Fully server-validated
+-- against GameConfig.Boosts: unknown ids are ignored, timed boosts REFRESH
+-- their duration on re-buy, and the one-time Wave Shield refuses a second
+-- purchase while one is already held.
+local function applyBaseWalkSpeed(state: any)
+	if state.Carried then
+		return
+	end
+	local character = state.Player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		humanoid.WalkSpeed = PlayerData.GetBaseWalkSpeed(state)
+	end
+end
+
+function EconomyService.BuyBoost(state: any, boostId: string): boolean
+	local boost = GameConfig.GetBoostById(boostId)
+	if not boost then
+		return false
+	end
+	if boost.OneTime then
+		if state.WaveShield then
+			notifyPlayer(state.Player, "You already have a Wave Shield — it will save you from the next Big Wave.")
+			return false
+		end
+		if not PlayerData.TrySpendCash(state, boost.Price) then
+			notifyPlayer(state.Player, "Not enough cash for " .. boost.Name .. " (" .. GameConfig.FormatCash(boost.Price) .. ")")
+			return false
+		end
+		state.WaveShield = true
+		PlayerData.FireStateChanged(state)
+		notifyPlayer(state.Player, "WAVE SHIELD ready! The next Big Wave cannot wash you.")
+		return true
+	end
+	if not PlayerData.TrySpendCash(state, boost.Price) then
+		notifyPlayer(state.Player, "Not enough cash for " .. boost.Name .. " (" .. GameConfig.FormatCash(boost.Price) .. ")")
+		return false
+	end
+	state.BoostEndsAt[boost.Id] = os.clock() + boost.DurationSeconds
+	if boost.Id == "Speed" then
+		applyBaseWalkSpeed(state)
+	end
+	PlayerData.FireStateChanged(state)
+	notifyPlayer(state.Player, string.format("%s active for %ds!", boost.Name, boost.DurationSeconds))
+	return true
 end
 
 function EconomyService.SellPlacedBrainrot(state: any, uid: number): boolean

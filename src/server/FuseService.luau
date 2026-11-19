@@ -2,7 +2,7 @@
 -- Neon Shores -- the Fuse Machine by the plaza: hand over 3 placed brainrots of
 -- the SAME rarity and they are consumed into 1 random brainrot of the NEXT
 -- rarity tier, with a mutation roll kinder than the egg's (55% Normal, 25% Gold,
--- 13% Diamond, 7% Rainbow). Fusing is free; Brainrot God has no tier above it
+-- 13% Diamond, 7% Rainbow -- or 40/32/18/10 under a Lucky Charm boost). Fusing is free; Brainrot God has no tier above it
 -- and cannot be fused. Every check happens here on the server -- the client's
 -- FUSE panel only ever sends 3 uids through the FuseBrainrots remote (created
 -- and wired to PerformFuse in Main.server) and hopes.
@@ -49,16 +49,26 @@ local function reportMission(state: any, actionKey: string)
 	end)
 end
 
-local function rollFuseMutation(): string
-	local roll = rng:NextInteger(1, 100)
-	if roll <= 55 then
-		return "Normal"
-	elseif roll <= 80 then
-		return "Gold"
-	elseif roll <= 93 then
-		return "Diamond"
+-- Mutation roll for a fuse result, weighted from GameConfig (55/25/13/7
+-- normally). A player under the Lucky Charm boost rolls the kinder table
+-- (40/32/18/10) instead -- the charm is personal and never touches the belt.
+local MUTATION_ORDER = { "Normal", "Gold", "Diamond", "Rainbow" }
+
+local function rollFuseMutation(lucky: boolean): string
+	local weights = if lucky then GameConfig.LuckyFuseMutationWeights else GameConfig.FuseMutationWeights
+	local totalWeight = 0
+	for _, name in ipairs(MUTATION_ORDER) do
+		totalWeight += weights[name]
 	end
-	return "Rainbow"
+	local roll = rng:NextInteger(1, totalWeight)
+	local running = 0
+	for _, name in ipairs(MUTATION_ORDER) do
+		running += weights[name]
+		if roll <= running then
+			return name
+		end
+	end
+	return "Normal"
 end
 
 local function nextRarity(rarity: string): string?
@@ -120,7 +130,7 @@ function FuseService.PerformFuse(state: any, uids: any): boolean
 	end
 	local pool = BrainrotCatalog.GetCharactersOfRarity(resultRarity)
 	local resultCharacter = pool[rng:NextInteger(1, #pool)]
-	local mutationName = rollFuseMutation()
+	local mutationName = rollFuseMutation(PlayerData.HasBoost(state, "Luck"))
 	local placedOk = EconomyService.PlaceBrainrotOnPad(state, resultCharacter.Id, mutationName)
 	if placedOk then
 		local mutationText = if mutationName == "Normal" then "" else ", " .. mutationName

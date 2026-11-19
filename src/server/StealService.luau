@@ -116,7 +116,7 @@ function StealService.DropCarriedBrainrot(thiefState: any, reason: string)
 	if carried.Model then
 		carried.Model:Destroy()
 	end
-	setWalkSpeed(thiefState.Player, GameConfig.NormalWalkSpeed)
+	setWalkSpeed(thiefState.Player, PlayerData.GetBaseWalkSpeed(thiefState))
 	PlayerData.FireStateChanged(thiefState)
 	notifyPlayer(thiefState.Player, reason)
 end
@@ -136,7 +136,7 @@ function StealService.TryBankCarriedBrainrot(thiefState: any): boolean
 	if carried.Model then
 		carried.Model:Destroy()
 	end
-	setWalkSpeed(thiefState.Player, GameConfig.NormalWalkSpeed)
+	setWalkSpeed(thiefState.Player, PlayerData.GetBaseWalkSpeed(thiefState))
 	local placedOk = EconomyService.PlaceBrainrotOnPad(thiefState, carried.CharacterId, carried.Mutation)
 	if placedOk then
 		local character = BrainrotCatalog.GetCharacterById(carried.CharacterId)
@@ -263,11 +263,11 @@ function StealService.TryDash(player: Player): boolean
 	end
 	dashReadyAtByUserId[player.UserId] = now + GameConfig.DashCooldownSeconds + GameConfig.DashDurationSeconds
 	local state = PlayerData.GetState(player)
-	local baseSpeed = if state and state.Carried then GameConfig.CarriedWalkSpeed else GameConfig.NormalWalkSpeed
+	local baseSpeed = if state and state.Carried then GameConfig.CarriedWalkSpeed else if state then PlayerData.GetBaseWalkSpeed(state) else GameConfig.NormalWalkSpeed
 	setWalkSpeed(player, GameConfig.DashWalkSpeed)
 	task.delay(GameConfig.DashDurationSeconds, function()
 		local currentState = PlayerData.GetState(player)
-		local restoreSpeed = if currentState and currentState.Carried then GameConfig.CarriedWalkSpeed else baseSpeed
+		local restoreSpeed = if currentState and currentState.Carried then GameConfig.CarriedWalkSpeed else if currentState then PlayerData.GetBaseWalkSpeed(currentState) else baseSpeed
 		setWalkSpeed(player, restoreSpeed)
 	end)
 	return true

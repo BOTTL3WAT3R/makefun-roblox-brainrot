@@ -4,7 +4,7 @@
 [![rank](https://make.fun/badge/roblox-brainrot-01/BOTTL3WAT3R/makefun-roblox-brainrot/rank.svg)](https://make.fun/bounty/roblox-brainrot-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=roblox-brainrot-01)
 [![reward](https://make.fun/badge/roblox-brainrot-01/BOTTL3WAT3R/makefun-roblox-brainrot/reward.svg)](https://make.fun/bounty/roblox-brainrot-01?utm_source=github&utm_medium=readme&utm_campaign=roblox-brainrot-01)
 
-**Neon Shores** — a 3D Roblox brainrot game set on a compact tropical island at golden hour, lit by neon. The layout follows the big steal-a-brainrot games: one long conveyor spine runs through the middle of the island with the eight player bases flanking it on both sides, the glowing **Neon Arena** spawn ring just south of the belt, the Egg Machine and the Rebirth Shrine capping the belt's two ends, and dark slate ground so every sign, pad and laser glows. Buy absurd meme-born characters that each earn cash every second, stand them on the glowing pads at your base, climb a ladder of 36 original brainrots across six rarities and four mutations, steal brainrots from other players' unlocked bases and dash home with the catch — and when the Big Wave warning sounds, run for your base or the high hill, or the wave takes what you are carrying and washes you back to spawn. A six-mission chain under the wave banner teaches the whole loop (buy, hatch, lock, fuse, steal, rebirth) and pays cash for every step, every few minutes a **golden brainrot** appears in the Neon Arena for whoever grabs it first, and the **Index** collection grid lights up in rarity colours for every brainrot you own. The world stays readable at a glance — one neon colour per zone, one vivid colour per base — because all the motion lives on the brainrots: they walk the shop belt, bob on their pads, the rarest ones spin, and the valuable ones sparkle.
+**Neon Shores** — a 3D Roblox brainrot game set on a compact tropical island at golden hour, lit by neon. The layout follows the big steal-a-brainrot games: one long conveyor spine runs through the middle of the island with the eight player bases flanking it on both sides, the glowing **Neon Arena** spawn ring just south of the belt, the Egg Machine and the Rebirth Shrine capping the belt's two ends, and dark slate ground so every sign, pad and laser glows. Buy absurd meme-born characters that each earn cash every second, stand them on the glowing pads at your base, climb a ladder of 36 original brainrots across six rarities and four mutations, steal brainrots from other players' unlocked bases and dash home with the catch — and when the Big Wave warning sounds, run for your base or the high hill, or the wave takes what you are carrying and washes you back to spawn. A six-mission chain under the wave banner teaches the whole loop (buy, hatch, lock, fuse, steal, rebirth) and pays cash for every step, every few minutes a **golden brainrot** appears in the Neon Arena for whoever grabs it first, and the **Index** collection grid lights up in rarity colours for every brainrot you own. There is no shop list — the belt is the only place to buy — so spare cash goes into **boosts**: speed, a one-save wave shield, double income and a luck charm that bends the egg and fuse odds your way. The world stays readable at a glance — one neon colour per zone, one vivid colour per base — because all the motion lives on the brainrots: they walk the shop belt, bob on their pads, the rarest ones spin, and the valuable ones sparkle.
 
 ## Run it
 
@@ -28,8 +28,9 @@ place link, place id and universe id in `PLAY.json`, and upload an icon and a th
    base glows in its own neon colour, and your name is on its sign.
 2. The orange **Shop Belt** runs straight through the middle of the island: brainrots
    walk down the conveyor spine one after another, each wearing a green **BUY** price
-   tag — walk into one to buy it before it strides off the far end, or use the **SHOP**
-   panel. It appears on a glowing pad at your base and starts earning cash every
+   tag — walk into one to buy it before it strides off the far end. That chase is the
+   only shop there is: no list, no menu purchase, the belt or nothing. It appears on a
+   glowing pad at your base and starts earning cash every
    second — its floating label shows its name, rarity and $/s.
 3. Stand by the pink **Egg Machine** at the belt's west end and press **EGG** to hatch
    a random brainrot: rarities roll from Common to Brainrot God, and mutations
@@ -52,11 +53,18 @@ place link, place id and universe id in `PLAY.json`, and upload an icon and a th
    random brainrot of the *next* rarity, with a kinder mutation roll than the egg
    (55% Normal, 25% Gold, 13% Diamond, 7% Rainbow). Fusing is free — but Brainrot God
    is the top of the ladder and cannot be fused.
-10. **Neon Arena events:** every few minutes a **golden brainrot** (a random Epic-or-better
+10. **Boosts:** press **BOOST** to spend cash on temporary powers instead of
+    brainrots — **Speed Surge** ($400, walk 50% faster for 60s), **Wave Shield**
+    ($800, the next Big Wave cannot wash you, one save), **Income X2** ($2,500,
+    double income for 120s) and **Lucky Charm** ($3,000, 90s of kinder mutation
+    odds at the Egg Machine — 50/32/13/5 instead of 70/20/8/2, a rarity roll
+    tilted up the ladder — and at the Fuse Machine, 40/32/18/10 instead of
+    55/25/13/7). Re-buying a running boost refreshes its timer.
+11. **Neon Arena events:** every few minutes a **golden brainrot** (a random Epic-or-better
     character with the Gold mutation) appears on the arena ring under a beam of golden
     light. First player to run up and grab it keeps it — if your base has a free pad.
     Unclaimed, it fades after 30 seconds.
-11. **Missions:** the gold bar under the wave banner always shows your current mission —
+12. **Missions:** the gold bar under the wave banner always shows your current mission —
     buy, hatch, lock, fuse, steal, rebirth — and pays cash ($100 up to $5,000) the
     moment you finish each one. Clear all six and you rule Neon Shores.
 
@@ -65,7 +73,7 @@ place link, place id and universe id in `PLAY.json`, and upload an icon and a th
 - **WASD / joystick** — move through the 3D world (standard Roblox character controls)
 - **Left Shift or the DASH button** — 3-second speed burst (dash home with a stolen brainrot!)
 - **Walk into** belt brainrots, placed brainrots, lock buttons and base floors to interact
-- **SHOP / MY BASE / INDEX / FUSE / EGG / REBIRTH buttons** — panels and actions, top-right and bottom-centre
+- **BOOST / MY BASE / INDEX / FUSE / EGG / REBIRTH buttons** — panels and actions, top-right and bottom-centre
 
 ## The cast
 
@@ -123,13 +131,13 @@ Rojo project — `src/` maps into the place, and `game.rbxl` is built from it:
 - `src/server/WorldBuilder.luau` — builds the 3D world from Parts: grass island on a sand rim in a deep teal sea, the conveyor spine (one long belt through the middle), 8 neon-trimmed bases flanking it north and south with pads and lock lasers, the glowing Neon Arena spawn ring, pink egg machine and gold rebirth shrine capping the belt's ends, purple Fuse Machine cauldron, green high hill, palm trees with glowfruit, the Big Wave wall with its foam crest, and every brainrot model with its floating label
 - `src/server/AnimationService.luau` — the animation layer: one Heartbeat loop bobs every placed brainrot (Mythic and Brainrot God also spin) and strides the belt brainrots down the conveyor with a walking gait, sparkle emitters for Legendary+ and mutated brainrots, the pulsing egg dome and the conveyor chase lights
 - `src/server/PlayerData.luau` — all per-player state in one place: cash, placed/carried brainrots, rebirths, multiplier, and the six-mission chain (progress, rewards, the HUD mission line)
-- `src/server/EconomyService.luau` — income tick, walking-belt buying with price tags, egg hatching, placing, selling, and the Neon Arena golden-brainrot event loop
+- `src/server/EconomyService.luau` — income tick, walking-belt buying with price tags, egg hatching, placing, selling, the four cash boosts, and the Neon Arena golden-brainrot event loop
 - `src/server/StealService.luau` — carry/steal, base lock lasers, dash, banking a stolen brainrot
 - `src/server/TsunamiService.luau` — Big Wave cycle: calm, warning countdown, tweened sweep, safe zones
 - `src/server/RebirthService.luau` — rebirth: cost check, reset, permanent multiplier
 - `src/server/FuseService.luau` — the Fuse Machine: validates 3 same-rarity placed brainrots server-side, consumes them, and places 1 random brainrot of the next rarity with a boosted mutation roll
 - `src/client/Hud.client.luau` — ScreenGui HUD: cash (pops when it changes), $/s, multiplier, Big Wave banner (pulses red under 10s), the mission bar, the rarity-ladder legend with mutation multipliers, DASH/LOCK buttons (kept clear of the top-left corner)
-- `src/client/ShopUI.client.luau` — shop panel, my-base panel with sell buttons, the Index collection grid, the Fuse picker panel, egg and rebirth buttons
+- `src/client/ShopUI.client.luau` — boost panel, my-base panel with sell buttons, the Index collection grid, the Fuse picker panel, egg and rebirth buttons
 - `src/world/` — static 3D structures as Rojo model files (plaza arch, shop stall, rarity pedestals)
 
 Client and server talk only through the RemoteEvents the server bootstrap creates under

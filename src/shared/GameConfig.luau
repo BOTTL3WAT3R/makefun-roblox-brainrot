@@ -48,6 +48,42 @@ GameConfig.RebirthMultiplierPerRebirth = 1
 -- Sell a brainrot back for a share of what it cost.
 GameConfig.SellRefundFraction = 0.5
 
+-- Boosts: cash-bought powers that replace the old shop panel. There is NO
+-- direct brainrot purchase any more -- the walking belt is the only shop --
+-- so cash beyond brainrots goes into these four boosts instead. This table
+-- is the single source of truth: the server validates against it and the
+-- client BOOST panel renders straight from it.
+GameConfig.SpeedBoostWalkSpeed = 24
+GameConfig.Boosts = {
+	{ Id = "Speed", Name = "SPEED SURGE", Price = 400, DurationSeconds = 60,
+		Description = "Walk 50% faster. Outrun thieves and waves." },
+	{ Id = "WaveShield", Name = "WAVE SHIELD", Price = 800, OneTime = true,
+		Description = "The next Big Wave cannot wash you. One save." },
+	{ Id = "Income", Name = "INCOME X2", Price = 2500, DurationSeconds = 120,
+		Description = "Every placed brainrot earns double." },
+	{ Id = "Luck", Name = "LUCKY CHARM", Price = 3000, DurationSeconds = 90,
+		Description = "Luckier mutations at the Egg and Fuse Machines." },
+}
+
+local boostsById: { [string]: any } = {}
+for _, boost in ipairs(GameConfig.Boosts) do
+	boostsById[boost.Id] = boost
+end
+
+function GameConfig.GetBoostById(boostId: string)
+	return boostsById[boostId]
+end
+
+-- Lucky Charm odds. While the charm is active, hatch and fuse mutation rolls
+-- shift weight away from Normal toward Gold / Diamond / Rainbow, and the
+-- hatch rarity roll tilts one notch up the ladder (Common gives up 10 points
+-- to Rare, Epic, Legendary and Mythic). The charm is personal: it never
+-- touches the shared belt spawns. All tables add up to 100.
+GameConfig.LuckyHatchMutationWeights = { Normal = 50, Gold = 32, Diamond = 13, Rainbow = 5 }
+GameConfig.LuckyHatchRarityWeights = { Common = 35, Rare = 32, Epic = 18, Legendary = 10, Mythic = 4, ["Brainrot God"] = 1 }
+GameConfig.FuseMutationWeights = { Normal = 55, Gold = 25, Diamond = 13, Rainbow = 7 }
+GameConfig.LuckyFuseMutationWeights = { Normal = 40, Gold = 32, Diamond = 18, Rainbow = 10 }
+
 function GameConfig.GetRebirthCost(currentRebirths: number): number
 	return math.floor(GameConfig.RebirthBaseCost * (GameConfig.RebirthCostGrowth ^ currentRebirths))
 end
