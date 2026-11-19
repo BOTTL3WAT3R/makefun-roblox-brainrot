@@ -1,7 +1,8 @@
 -- EconomyService.luau (ModuleScript, ServerScriptService.Server)
--- PLUNDERROT: Kraken's Curse -- the doubloon engine: the per-second income tick for every
--- placed brainrot, buying from the plunder belt, hatching Kraken eggs with a mutation roll,
--- placing a fresh brainrot on a free base pad, and selling one back.
+-- Brainrot Island -- the cash engine: the per-second income tick for every
+-- placed brainrot, buying from the shop belt, hatching eggs with a mutation roll,
+-- placing a fresh brainrot on a free base pad, and selling one back. Every model it
+-- spawns is handed to AnimationService so it bobs (and spins / sparkles when rare).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -14,6 +15,7 @@ local GameConfig = require(Shared:WaitForChild("GameConfig"))
 local ServerModules = script.Parent
 local PlayerData = require(ServerModules:WaitForChild("PlayerData"))
 local WorldBuilder = require(ServerModules:WaitForChild("WorldBuilder"))
+local AnimationService = require(ServerModules:WaitForChild("AnimationService"))
 
 local EconomyService = {}
 
@@ -79,6 +81,13 @@ function EconomyService.PlaceBrainrotOnPad(state: any, characterId: string, muta
 	model:SetAttribute("OwnerUserId", state.Player.UserId)
 	model:SetAttribute("BrainrotUid", 0)
 	model.Parent = Workspace
+	pcall(function()
+		AnimationService.Register(model, {
+			Rarity = character.Rarity,
+			Mutation = mutationName,
+			Spin = character.Rarity == "Mythic" or character.Rarity == "Brainrot God",
+		})
+	end)
 
 	local placed = {
 		Uid = PlayerData.AllocateUid(state),
@@ -98,7 +107,7 @@ function EconomyService.BuyCharacter(state: any, characterId: string): boolean
 		return false
 	end
 	if not PlayerData.HasFreePad(state) then
-		notifyPlayer(state.Player, "Your base is full! Sell a brainrot or rebirth with Davy Jones.")
+		notifyPlayer(state.Player, "Your base is full! Sell a brainrot or use the Rebirth Shrine.")
 		return false
 	end
 	if not PlayerData.TrySpendCash(state, character.Price) then
@@ -118,13 +127,13 @@ function EconomyService.HatchEgg(state: any): boolean
 		return false
 	end
 	if not PlayerData.TrySpendCash(state, GameConfig.EggPrice) then
-		notifyPlayer(state.Player, "The Kraken Egg Vault needs " .. GameConfig.FormatCash(GameConfig.EggPrice) .. ".")
+		notifyPlayer(state.Player, "The Egg Machine needs " .. GameConfig.FormatCash(GameConfig.EggPrice) .. ".")
 		return false
 	end
 	local character, mutation = BrainrotCatalog.RollHatch(rng)
 	local placedOk = EconomyService.PlaceBrainrotOnPad(state, character.Id, mutation.Name)
 	if placedOk then
-		notifyPlayer(state.Player, string.format("The Kraken egg hatched %s (%s, %s)!", character.Name, character.Rarity, mutation.Name))
+		notifyPlayer(state.Player, string.format("The egg hatched %s (%s, %s)!", character.Name, character.Rarity, mutation.Name))
 	end
 	return placedOk
 end
@@ -140,6 +149,9 @@ function EconomyService.SellPlacedBrainrot(state: any, uid: number): boolean
 	end
 	local removed = PlayerData.RemovePlaced(state, uid)
 	if removed and removed.Model then
+		pcall(function()
+			AnimationService.Unregister(removed.Model)
+		end)
 		removed.Model:Destroy()
 	end
 	local refund = math.floor(character.Price * GameConfig.SellRefundFraction)
@@ -162,11 +174,21 @@ local function spawnConveyorBrainrot()
 			end
 			local priceSign = model:FindFirstChild("IncomeLabel", true)
 			model.Parent = Workspace
+			pcall(function()
+				AnimationService.Register(model, {
+					Rarity = character.Rarity,
+					Mutation = "Normal",
+					Spin = character.Rarity == "Mythic" or character.Rarity == "Brainrot God",
+				})
+			end)
 			conveyorCharacters[slotIndex] = { Character = character, Model = model }
 			task.delay(GameConfig.ConveyorLifetimeSeconds, function()
 				local current = conveyorCharacters[slotIndex]
 				if current and current.Model == model then
 					conveyorCharacters[slotIndex] = nil
+					pcall(function()
+						AnimationService.Unregister(model)
+					end)
 					model:Destroy()
 				end
 			end)
@@ -189,6 +211,9 @@ local function spawnConveyorBrainrot()
 					end
 					if EconomyService.BuyCharacter(state, character.Id) then
 						conveyorCharacters[slotIndex] = nil
+						pcall(function()
+							AnimationService.Unregister(model)
+						end)
 						model:Destroy()
 					end
 				end)

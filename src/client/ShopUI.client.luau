@@ -1,8 +1,8 @@
 -- ShopUI.client.luau (LocalScript, StarterPlayerScripts.Client)
--- PLUNDERROT: Kraken's Curse -- the panels over the 3D world: a PLUNDER SHOP panel listing
+-- Brainrot Island -- the panels over the 3D world: a SHOP panel listing
 -- the whole cast by rarity with prices and income (buying sends the brainrot straight to a
--- free pad at your base), a ME BASE panel listing what you own with a SELL button each, and
--- the KRAKEN EGG and DAVY JONES buttons. Panels open from the right-hand side, away from
+-- free pad at your base), a MY BASE panel listing what you own with a SELL button each, and
+-- the EGG and REBIRTH buttons. Panels open from the right-hand side, away from
 -- the top-left corner where Roblox draws its own menu.
 
 local Players = game:GetService("Players")
@@ -16,7 +16,7 @@ local player = Players.LocalPlayer
 local remotes = ReplicatedStorage:WaitForChild("Remotes")
 
 local gui = Instance.new("ScreenGui")
-gui.Name = "PlunderrotPanels"
+gui.Name = "BrainrotPanels"
 gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
@@ -78,7 +78,7 @@ local function makeRow(panel: ScrollingFrame, text: string, buttonText: string, 
 end
 
 -- Shop panel: the full cast, cheapest first (the catalog is already in price order).
-local shopPanel = makePanel("ShopPanel", "PLUNDER SHOP")
+local shopPanel = makePanel("ShopPanel", "SHOP")
 for _, character in ipairs(BrainrotCatalog.Characters) do
 	local rowText = string.format("%s [%s]\n$%d/s - %s", character.Name, character.Rarity, character.IncomePerSecond, character.Tagline)
 	makeRow(shopPanel, rowText, GameConfig.FormatCash(character.Price), Color3.fromRGB(60, 170, 80), function()
@@ -87,7 +87,7 @@ for _, character in ipairs(BrainrotCatalog.Characters) do
 end
 
 -- Base panel: rebuilt from every state snapshot, one SELL row per placed brainrot.
-local basePanel = makePanel("BasePanel", "ME BASE")
+local basePanel = makePanel("BasePanel", "MY BASE")
 local dynamicRows: { Frame } = {}
 
 local function rebuildBasePanel(snapshot: any)
@@ -104,7 +104,7 @@ local function rebuildBasePanel(snapshot: any)
 		table.insert(dynamicRows, row)
 	end
 	if #snapshot.Placed == 0 then
-		local row = makeRow(basePanel, "No brainrots yet. Plunder one from the belt or the shop!", "SHOP", Color3.fromRGB(60, 170, 80), function()
+		local row = makeRow(basePanel, "No brainrots yet. Buy one from the belt or the shop!", "SHOP", Color3.fromRGB(60, 170, 80), function()
 			shopPanel.Visible = true
 			basePanel.Visible = false
 		end)
@@ -114,7 +114,7 @@ end
 
 remotes:WaitForChild("StateUpdate").OnClientEvent:Connect(rebuildBasePanel)
 
--- Side buttons: PLUNDER SHOP, ME BASE, KRAKEN EGG and DAVY JONES, stacked down the right edge.
+-- Side buttons: SHOP, MY BASE, EGG and REBIRTH, stacked down the right edge.
 local function makeSideButton(name: string, yOffset: number, text: string, color: Color3, onClick: () -> ()): TextButton
 	local button = Instance.new("TextButton")
 	button.Name = name
@@ -131,24 +131,24 @@ local function makeSideButton(name: string, yOffset: number, text: string, color
 	return button
 end
 
-makeSideButton("ShopButton", 90, "PLUNDER SHOP", Color3.fromRGB(60, 170, 80), function()
+makeSideButton("ShopButton", 90, "SHOP", Color3.fromRGB(60, 170, 80), function()
 	shopPanel.Visible = not shopPanel.Visible
 	basePanel.Visible = false
 end)
 
-makeSideButton("BaseButton", 152, "ME BASE", Color3.fromRGB(80, 120, 220), function()
+makeSideButton("BaseButton", 152, "MY BASE", Color3.fromRGB(80, 120, 220), function()
 	basePanel.Visible = not basePanel.Visible
 	shopPanel.Visible = false
 end)
 
-makeSideButton("EggButton", 214, "KRAKEN EGG " .. GameConfig.FormatCash(GameConfig.EggPrice), Color3.fromRGB(230, 90, 180), function()
+makeSideButton("EggButton", 214, "EGG " .. GameConfig.FormatCash(GameConfig.EggPrice), Color3.fromRGB(230, 90, 180), function()
 	remotes:WaitForChild("HatchEgg"):FireServer()
 end)
 
-local rebirthButton = makeSideButton("RebirthButton", 276, "DAVY JONES", Color3.fromRGB(60, 200, 210), function()
+local rebirthButton = makeSideButton("RebirthButton", 276, "REBIRTH", Color3.fromRGB(60, 200, 210), function()
 	remotes:WaitForChild("RequestRebirth"):FireServer()
 end)
 
 remotes:WaitForChild("StateUpdate").OnClientEvent:Connect(function(snapshot: any)
-	rebirthButton.Text = "DAVY JONES " .. GameConfig.FormatCash(snapshot.NextRebirthCost)
+	rebirthButton.Text = "REBIRTH " .. GameConfig.FormatCash(snapshot.NextRebirthCost)
 end)

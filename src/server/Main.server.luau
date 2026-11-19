@@ -1,8 +1,9 @@
 -- Main.server.luau (Script, ServerScriptService.Server)
--- PLUNDERROT: Kraken's Curse -- the server bootstrap. It builds the world, creates the
+-- Brainrot Island -- the server bootstrap. It builds the world, creates the
 -- RemoteEvents the client talks through, hands each player a base plot, keeps leaderstats
 -- in step with PlayerData, and starts every service loop: income, conveyor, stealing,
--- the Kraken Tide cycle and Davy Jones' Shrine.
+-- the Big Wave cycle, the Rebirth Shrine watch and the AnimationService dressing
+-- (egg pulse and belt chase lights).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -19,9 +20,10 @@ local EconomyService = require(ServerModules:WaitForChild("EconomyService"))
 local StealService = require(ServerModules:WaitForChild("StealService"))
 local TsunamiService = require(ServerModules:WaitForChild("TsunamiService"))
 local RebirthService = require(ServerModules:WaitForChild("RebirthService"))
+local AnimationService = require(ServerModules:WaitForChild("AnimationService"))
 
 -- 1. The world exists before anyone joins.
-WorldBuilder.BuildWorld()
+local worldFolder = WorldBuilder.BuildWorld()
 
 -- 2. Remotes: one folder, named events, created here so client and server agree.
 local remoteFolder = Instance.new("Folder")
@@ -139,7 +141,7 @@ local function onPlayerAdded(player: Player)
 		pushStateToPlayer(player)
 	end)
 
-	remotes.Notify:FireClient(player, "Welcome to PLUNDERROT: Kraken's Curse! Plunder a brainrot from the belt, guard it, and outrun the Kraken Tide!")
+	remotes.Notify:FireClient(player, "Welcome to Brainrot Island! Buy a brainrot from the belt, guard it at your base, and outrun the Big Wave!")
 	pushStateToPlayer(player)
 end
 
@@ -188,7 +190,7 @@ remotes.HatchEgg.OnServerEvent:Connect(function(player: Player)
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
 	if root and WorldBuilder.EggMachinePosition and (root.Position - WorldBuilder.EggMachinePosition).Magnitude > 26 then
-		remotes.Notify:FireClient(player, "Walk to the Kraken Egg Vault by the plunder belt to hatch!")
+		remotes.Notify:FireClient(player, "Walk to the Egg Machine by the shop belt to hatch!")
 		return
 	end
 	EconomyService.HatchEgg(state)
@@ -230,4 +232,13 @@ EconomyService.StartConveyorLoop()
 TsunamiService.StartWaveCycleLoop()
 RebirthService.WatchShrineProximity()
 
-print(GameConfig.GameTitle .. " server started: world built, remotes live, Kraken Tide scheduled.")
+-- 7. Animation dressing that belongs to the world itself: the egg dome breathes
+-- and the belt pads chase a highlight around the shop row.
+pcall(function()
+	AnimationService.StartEggPulse(worldFolder:FindFirstChild("EggDome"))
+end)
+pcall(function()
+	AnimationService.StartBeltLights(WorldBuilder.ConveyorSlots)
+end)
+
+print(GameConfig.GameTitle .. " server started: world built, remotes live, Big Wave scheduled.")

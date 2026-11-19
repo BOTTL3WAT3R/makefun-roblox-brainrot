@@ -1,13 +1,13 @@
 -- GameConfig.luau (ModuleScript, ReplicatedStorage.Shared)
--- PLUNDERROT: Kraken's Curse -- every tunable number for the whole game lives here,
--- so the economy, the steal rules, the Kraken Tide cycle and the rebirth ladder stay in one place.
+-- Brainrot Island -- every tunable number for the whole game lives here,
+-- so the economy, the steal rules, the Big Wave cycle and the rebirth ladder stay in one place.
 
 local GameConfig = {}
 
 -- Game identity
-GameConfig.GameTitle = "PLUNDERROT: Kraken's Curse"
-GameConfig.WorldName = "Plunderrot Lagoon"
-GameConfig.Tagline = "Plunder them. Guard them. Outrun the Kraken Tide."
+GameConfig.GameTitle = "Brainrot Island"
+GameConfig.WorldName = "Brainrot Island"
+GameConfig.Tagline = "Buy them. Guard them. Outrun the Big Wave."
 GameConfig.StartingCash = 100
 GameConfig.MaxPlacedPerBase = 10
 GameConfig.BaseCount = 8
@@ -34,7 +34,7 @@ GameConfig.DashWalkSpeed = 26
 GameConfig.DashDurationSeconds = 3
 GameConfig.DashCooldownSeconds = 6
 
--- Kraken Tide hazard: warn, count down, sweep, calm, repeat.
+-- Big Wave hazard: warn, count down, sweep, calm, repeat.
 GameConfig.TsunamiPeriodSeconds = 120
 GameConfig.TsunamiWarningSeconds = 15
 GameConfig.TsunamiSweepSeconds = 8

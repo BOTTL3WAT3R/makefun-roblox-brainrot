@@ -1,11 +1,12 @@
 -- TsunamiService.luau (ModuleScript, ServerScriptService.Server)
--- PLUNDERROT: Kraken's Curse -- the Kraken Tide that gives the curse its name. Every cycle:
--- calm, a loud warning with a countdown, then a wall of water sweeps the island. Anyone
--- caught low and outside a base loses the brainrot they are carrying and is washed back
--- to spawn. Bases and the Crow's Nest Cliffs are safe ground.
+-- Brainrot Island -- the Big Wave. Every cycle: calm, a loud warning with a countdown,
+-- then a wall of water tweens smoothly across the island. Anyone caught low and outside
+-- a base loses the brainrot they are carrying and is washed back to spawn. Bases and
+-- the high hill are safe ground.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local GameConfig = require(Shared:WaitForChild("GameConfig"))
@@ -46,7 +47,7 @@ local function notifyAll(message: string)
 	end
 end
 
--- Safe means: inside your own base plot, or standing on the shelter hill's high ground.
+-- Safe means: inside your own base plot, or standing on the high hill.
 function TsunamiService.IsPlayerSafeFromWave(player: Player): boolean
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
@@ -81,7 +82,7 @@ end
 function TsunamiService.ApplyWaveHitToPlayer(player: Player)
 	local state = PlayerData.GetState(player)
 	if state and state.Carried then
-		StealService.DropCarriedBrainrot(state, "The KRAKEN TIDE took the brainrot you were carrying!")
+		StealService.DropCarriedBrainrot(state, "The BIG WAVE took the brainrot you were carrying!")
 	end
 	TsunamiService.WashPlayerBackToSpawn(player)
 end
@@ -89,21 +90,27 @@ end
 local function runSweep()
 	TsunamiService.Phase = "Sweeping"
 	broadcastWaveState()
-	notifyAll("KRAKEN TIDE! DASH TO YER BASE OR HIGH GROUND!")
+	notifyAll("BIG WAVE! RUN TO YOUR BASE OR HIGH GROUND!")
 	local wall = WorldBuilder.TsunamiWall
+	local foam = WorldBuilder.TsunamiFoam
 	local startX = -260
 	local endX = 260
 	local distance = endX - startX
 	local duration = distance / GameConfig.TsunamiWallSpeed
+	-- The wall glides on a linear TweenService tween instead of stepping, and the
+	-- white foam crest rides the same tween along its top edge.
+	if wall then
+		TweenService:Create(wall, TweenInfo.new(duration, Enum.EasingStyle.Linear), { Position = Vector3.new(endX, 12, 0) }):Play()
+	end
+	if foam then
+		TweenService:Create(foam, TweenInfo.new(duration, Enum.EasingStyle.Linear), { Position = Vector3.new(endX, 28.5, 0) }):Play()
+	end
 	local elapsed = 0
 	local step = 0.1
 	while elapsed < duration do
 		task.wait(step)
 		elapsed += step
-		local x = startX + distance * (elapsed / duration)
-		if wall then
-			wall.Position = Vector3.new(x, 12, 0)
-		end
+		local x = if wall then wall.Position.X else startX + distance * (elapsed / duration)
 		for _, player in ipairs(Players:GetPlayers()) do
 			local character = player.Character
 			local root = character and character:FindFirstChild("HumanoidRootPart")
@@ -117,7 +124,10 @@ local function runSweep()
 	if wall then
 		wall.Position = Vector3.new(startX, 12, 0)
 	end
-	notifyAll("The Kraken Tide passed. The belt is restocked and the plundering resumes!")
+	if foam then
+		foam.Position = Vector3.new(startX, 28.5, 0)
+	end
+	notifyAll("The Big Wave passed. The belt is restocked — happy collecting!")
 end
 
 function TsunamiService.StartWaveCycleLoop()
@@ -132,7 +142,7 @@ function TsunamiService.StartWaveCycleLoop()
 			end
 			TsunamiService.Phase = "Warning"
 			TsunamiService.SecondsUntilWave = GameConfig.TsunamiWarningSeconds
-			notifyAll("The KRAKEN TIDE is coming! Get to yer base or the Crow's Nest Cliffs!")
+			notifyAll("The BIG WAVE is coming! Get to your base or the high hill!")
 			while TsunamiService.SecondsUntilWave > 0 do
 				task.wait(1)
 				TsunamiService.SecondsUntilWave -= 1

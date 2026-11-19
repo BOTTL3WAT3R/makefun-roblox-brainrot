@@ -1,5 +1,5 @@
 -- StealService.luau (ModuleScript, ServerScriptService.Server)
--- PLUNDERROT: Kraken's Curse -- the tension engine: walk into another player's unlocked
+-- Brainrot Island -- the tension engine: walk into another player's unlocked
 -- brainrot to rip it off its pad and carry it on your back, slowed down, while its owner
 -- chases you. Reach your own base to keep it. A locked base raises laser walls and cannot
 -- be robbed until the lock timer runs out.
@@ -16,6 +16,7 @@ local ServerModules = script.Parent
 local PlayerData = require(ServerModules:WaitForChild("PlayerData"))
 local WorldBuilder = require(ServerModules:WaitForChild("WorldBuilder"))
 local EconomyService = require(ServerModules:WaitForChild("EconomyService"))
+local AnimationService = require(ServerModules:WaitForChild("AnimationService"))
 
 local StealService = {}
 
@@ -81,6 +82,10 @@ function StealService.BeginCarry(thiefState: any, victimState: any, placed: any)
 	PlayerData.FireStateChanged(thiefState)
 	setWalkSpeed(thiefState.Player, GameConfig.CarriedWalkSpeed)
 	if removed.Model then
+		-- Stop the bob loop first: from here the carry weld owns the model's pivot.
+		pcall(function()
+			AnimationService.Unregister(removed.Model)
+		end)
 		StealService.AttachCarriedModelToBack(thiefState.Player, removed.Model)
 	end
 	local character = BrainrotCatalog.GetCharacterById(removed.CharacterId)
@@ -90,7 +95,7 @@ function StealService.BeginCarry(thiefState: any, victimState: any, placed: any)
 	return true
 end
 
--- Dropping the catch: the Kraken Tide, a tackle or leaving all wash the carried brainrot away.
+-- Dropping the catch: the Big Wave, a tackle or leaving all wash the carried brainrot away.
 function StealService.DropCarriedBrainrot(thiefState: any, reason: string)
 	local carried = thiefState.Carried
 	if not carried then

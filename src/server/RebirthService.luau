@@ -1,5 +1,5 @@
 -- RebirthService.luau (ModuleScript, ServerScriptService.Server)
--- PLUNDERROT: Kraken's Curse -- Davy Jones' long ladder: pay a mountain of doubloons, lose
+-- Brainrot Island -- the Rebirth Shrine's long ladder: pay a mountain of cash, lose
 -- every placed brainrot and your carried catch, and come back with a permanent income
 -- multiplier. Each rebirth also raises the shrine's price for the next one.
 
@@ -53,17 +53,17 @@ end
 function RebirthService.PerformRebirth(state: any): boolean
 	local cost = RebirthService.GetNextRebirthCost(state)
 	if not PlayerData.TrySpendCash(state, cost) then
-		notifyPlayer(state.Player, "Davy Jones needs " .. GameConfig.FormatCash(cost) .. ". Keep plundering!")
+		notifyPlayer(state.Player, "The Rebirth Shrine needs " .. GameConfig.FormatCash(cost) .. ". Keep collecting!")
 		return false
 	end
 	destroyPlacedModels(state)
 	PlayerData.WipeForRebirth(state)
 	local newMultiplier = PlayerData.GetIncomeMultiplier(state)
-	notifyPlayer(state.Player, string.format("DAVY JONES TAKES YER CREW! Your income is now x%d forever. Rebuild bigger!", newMultiplier))
+	notifyPlayer(state.Player, string.format("REBIRTH! Your income is now x%d forever. Rebuild bigger!", newMultiplier))
 	return true
 end
 
--- Stepping up to Davy Jones' crystal offers the rebirth; the DAVY JONES button confirms it.
+-- Stepping up to the shrine's crystal offers the rebirth; the REBIRTH button confirms it.
 function RebirthService.WatchShrineProximity()
 	local shrinePosition = Vector3.new(-45, 0, -104)
 	task.spawn(function()
@@ -76,7 +76,7 @@ function RebirthService.WatchShrineProximity()
 					local remote = remotes.Notify
 					if remote then
 						local cost = RebirthService.GetNextRebirthCost(state)
-						remote:FireClient(state.Player, "Davy Jones' Shrine: reset everything for +100% income. Cost: " .. GameConfig.FormatCash(cost) .. " - use the DAVY JONES button!")
+						remote:FireClient(state.Player, "Rebirth Shrine: reset everything for +100% income. Cost: " .. GameConfig.FormatCash(cost) .. " - use the REBIRTH button!")
 					end
 				end
 			end
