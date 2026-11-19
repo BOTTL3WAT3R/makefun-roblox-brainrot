@@ -279,6 +279,47 @@ local function buildBasePlot(parent: Folder, index: number, origin: Vector3, fac
 		table.insert(lasers, laser)
 	end
 
+	-- MINI CANDY HOUSE at the plot's back edge (the side away from the belt):
+	-- pure dressing in the base's own candy colour, so every plot reads as a
+	-- little sweet home like the concept art. The back strip is dead ground
+	-- -- the pads end 11 studs from centre, the lock button sits at the
+	-- front corner, the spawn lands mid-plot -- so a 10x8 house centred 17
+	-- studs behind centre (spanning 13..21) clears all of them, and its
+	-- front face looks down the pad rows toward the belt.
+	local houseCentre = origin + Vector3.new(0, 0, -facing * 17)
+	local roofColor = BASE_SLOT_COLORS[(index % #BASE_SLOT_COLORS) + 1]
+	makePart(baseFolder, "HouseWalls", Vector3.new(10, 6, 8), houseCentre + Vector3.new(0, 4, 0), slotColor, Enum.Material.SmoothPlastic)
+	-- A gable roof from two wedges back to back: a stock wedge stands its
+	-- tall face at its +Z end, so the north wedge as-is has its tall face
+	-- toward the centre, and the south wedge turned 180 degrees about Y
+	-- mirrors it -- the two slopes meet at a ridge along X.
+	local roofSouth = Instance.new("WedgePart")
+	roofSouth.Name = "HouseRoofS"
+	roofSouth.Size = Vector3.new(11, 3, 4.6)
+	roofSouth.CFrame = CFrame.new(houseCentre + Vector3.new(0, 8.5, 2)) * CFrame.Angles(0, math.pi, 0)
+	roofSouth.Color = roofColor
+	roofSouth.Material = Enum.Material.SmoothPlastic
+	roofSouth.Anchored = true
+	roofSouth.TopSurface = Enum.SurfaceType.Smooth
+	roofSouth.BottomSurface = Enum.SurfaceType.Smooth
+	roofSouth.Parent = baseFolder
+	local roofNorth = Instance.new("WedgePart")
+	roofNorth.Name = "HouseRoofN"
+	roofNorth.Size = Vector3.new(11, 3, 4.6)
+	roofNorth.CFrame = CFrame.new(houseCentre + Vector3.new(0, 8.5, -2))
+	roofNorth.Color = roofColor
+	roofNorth.Material = Enum.Material.SmoothPlastic
+	roofNorth.Anchored = true
+	roofNorth.TopSurface = Enum.SurfaceType.Smooth
+	roofNorth.BottomSurface = Enum.SurfaceType.Smooth
+	roofNorth.Parent = baseFolder
+	-- The door slab on the front face (the side toward the belt), and a
+	-- little chimney poking out of the roof's east slope.
+	makePart(baseFolder, "HouseDoor", Vector3.new(2.2, 3.6, 0.3), houseCentre + Vector3.new(0, 2.8, facing * 4.1),
+		Color3.fromRGB(94, 58, 32), Enum.Material.SmoothPlastic)
+	makePart(baseFolder, "HouseChimney", Vector3.new(1.2, 2.6, 1.2), houseCentre + Vector3.new(3.2, 10.6, 0),
+		Color3.fromRGB(150, 95, 55), Enum.Material.SmoothPlastic)
+
 	local record = { Index = index, Folder = baseFolder, Floor = floor, Pads = pads, LockButton = lockButton, Lasers = lasers, Origin = origin, Facing = facing, Owner = nil :: Player? }
 	table.insert(WorldBuilder.Bases, record)
 	return record
@@ -335,55 +376,6 @@ local function groundHeightAt(x: number, z: number): number
 		return -0.25
 	end
 	return 0
-end
-
--- One palm tree: a slightly tilted cylinder trunk, six flat leaves fanned from the
--- top, and (on some palms) a glowing candy "glowfruit" sphere hanging by the crown.
--- The trunk's base is snapped to the ground height at its spot, and the cylinder
--- is built the way every other cylinder in this file is: its length runs along
--- its X axis (Size 10 long, 1.3 thick), stood upright with an 83-degree Z
--- rotation -- a 7-degree lean -- and centred halfway up the lean, so its foot
--- lands exactly on the ground point and its top meets the crown.
-local function buildPalm(parent: Folder, name: string, position: Vector3, withGlowfruit: boolean, glowColor: Color3)
-	local base = Vector3.new(position.X, groundHeightAt(position.X, position.Z), position.Z)
-	local trunk = Instance.new("Part")
-	trunk.Name = name .. "Trunk"
-	trunk.Shape = Enum.PartType.Cylinder
-	trunk.Size = Vector3.new(10, 1.3, 1.3)
-	trunk.Color = Color3.fromRGB(130, 92, 55)
-	trunk.Anchored = true
-	trunk.TopSurface = Enum.SurfaceType.Smooth
-	trunk.BottomSurface = Enum.SurfaceType.Smooth
-	trunk.CFrame = CFrame.new(base + Vector3.new(0.61, 4.96, 0)) * CFrame.Angles(0, 0, math.rad(83))
-	trunk.Parent = parent
-	local crownTop = base + Vector3.new(1.22, 9.93, 0)
-	for leafIndex = 1, 6 do
-		local leaf = Instance.new("Part")
-		leaf.Name = name .. "Leaf" .. tostring(leafIndex)
-		leaf.Size = Vector3.new(7, 0.3, 1.8)
-		leaf.Color = Color3.fromRGB(52, 165, 70)
-		leaf.Anchored = true
-		leaf.CanCollide = false
-		leaf.TopSurface = Enum.SurfaceType.Smooth
-		leaf.BottomSurface = Enum.SurfaceType.Smooth
-		leaf.CFrame = CFrame.new(crownTop)
-			* CFrame.Angles(0, math.rad((leafIndex - 1) * 60), 0)
-			* CFrame.Angles(0, 0, math.rad(-26))
-			* CFrame.new(3.1, 0, 0)
-		leaf.Parent = parent
-	end
-	if withGlowfruit then
-		local fruit = Instance.new("Part")
-		fruit.Name = name .. "Glowfruit"
-		fruit.Shape = Enum.PartType.Ball
-		fruit.Size = Vector3.new(1.5, 1.5, 1.5)
-		fruit.Color = glowColor
-		fruit.Material = Enum.Material.Neon
-		fruit.Anchored = true
-		fruit.CanCollide = false
-		fruit.Position = crownTop + Vector3.new(0.9, -1, 0.4)
-		fruit.Parent = parent
-	end
 end
 
 -- A bench with a real Seat, built as a small model turned to face a target
@@ -443,6 +435,42 @@ local function buildPlayground(worldFolder: Folder)
 	makePart(folder, "SafetyMat", Vector3.new(190, 0.35, 16), Vector3.new(0, 0.18, -119), Color3.fromRGB(255, 190, 220), Enum.Material.SmoothPlastic)
 	local matEdge = makePart(folder, "MatEdge", Vector3.new(190, 0.25, 0.9), Vector3.new(0, 0.45, -111.4), Color3.fromRGB(255, 255, 255), Enum.Material.Neon)
 	matEdge.CanCollide = false
+
+	-- A white picket fence along both long edges of the mat, like the
+	-- concept art's fenced playground: two rails with a slat every ~4
+	-- studs. The north edge runs full length; the south edge leaves the
+	-- centre open under the zone sign (the way in) and a second gap where
+	-- the original bounce pad's disc crosses the fence line at x 45.
+	local white = Color3.fromRGB(255, 255, 255)
+	local function buildFenceRun(xStart: number, xEnd: number, z: number)
+		local length = xEnd - xStart
+		local midX = (xStart + xEnd) / 2
+		for _, railY in ipairs({ 1.05, 2.15 }) do
+			makePart(folder, "FenceRail", Vector3.new(length, 0.28, 0.12), Vector3.new(midX, railY, z), white, Enum.Material.SmoothPlastic)
+		end
+		local slatCount = math.floor(length / 4)
+		for slatIndex = 0, slatCount do
+			local slat = makePart(folder, "FenceSlat", Vector3.new(0.35, 2.6, 0.15), Vector3.new(xStart + slatIndex * 4, 1.6, z), white, Enum.Material.SmoothPlastic)
+			slat.CanCollide = false
+		end
+	end
+	buildFenceRun(-95, 95, -127.4)
+	buildFenceRun(-95, -14, -110.6)
+	buildFenceRun(14, 36.5, -110.6)
+	buildFenceRun(53.5, 95, -110.6)
+
+	-- SANDBOX in the one clear pocket of the mat -- between the swings
+	-- (x -31..-19) and the seesaw (x 17..33), against the north fence: a
+	-- sand square in a low wooden rim, with a little pink bucket.
+	makePart(folder, "SandboxSand", Vector3.new(10, 0.5, 10), Vector3.new(0, 0.55, -121), Color3.fromRGB(240, 215, 160), Enum.Material.Sand)
+	makePart(folder, "SandboxRimN", Vector3.new(10.6, 0.9, 0.5), Vector3.new(0, 0.8, -126.3), dark, Enum.Material.SmoothPlastic)
+	makePart(folder, "SandboxRimS", Vector3.new(10.6, 0.9, 0.5), Vector3.new(0, 0.8, -115.7), dark, Enum.Material.SmoothPlastic)
+	makePart(folder, "SandboxRimE", Vector3.new(0.5, 0.9, 10.6), Vector3.new(5.3, 0.8, -121), dark, Enum.Material.SmoothPlastic)
+	makePart(folder, "SandboxRimW", Vector3.new(0.5, 0.9, 10.6), Vector3.new(-5.3, 0.8, -121), dark, Enum.Material.SmoothPlastic)
+	local bucket = makePart(folder, "SandboxBucket", Vector3.new(1.2, 1.1, 1.2), Vector3.new(2.2, 1.3, -120), Color3.fromRGB(255, 130, 190), Enum.Material.SmoothPlastic)
+	bucket.Shape = Enum.PartType.Cylinder
+	bucket.Orientation = Vector3.new(0, 0, 90)
+	bucket.CanCollide = false
 
 	-- The zone sign, on the grass lane south of the mat, facing the bases.
 	makePart(folder, "PlaygroundPostW", Vector3.new(0.8, 9, 0.8), Vector3.new(-8, 4.5, -109), lavender, Enum.Material.Neon)
@@ -704,8 +732,9 @@ end
 
 -- CANDY DECOR: pure dressing built from primitives -- lollipop trees scattered
 -- on the open lanes and rim, candy-cane poles along the belt ends and paths,
--- gumdrops sprinkled on the cream rim, and sprinkles scattered over the two
--- frosting paths. Everything is anchored; only the lollipop trunks collide.
+-- gumdrops sprinkled on the cream rim, sprinkles scattered over the two
+-- frosting paths, marshmallow piles on the rim lanes and gift boxes near
+-- the bases. Everything is anchored; only the lollipop trunks collide.
 local function buildCandyDecor(worldFolder: Folder)
 	local folder = Instance.new("Folder")
 	folder.Name = "CandyDecor"
@@ -727,6 +756,11 @@ local function buildCandyDecor(worldFolder: Folder)
 		Vector3.new(124, 0, -64), Vector3.new(-70, 0, -44), Vector3.new(70, 0, 44),
 		Vector3.new(-40, 0, 118), Vector3.new(40, 0, 118), Vector3.new(-110, 0, -118),
 		Vector3.new(110, 0, -118),
+		-- Six more on the open lanes the palm trees used to stand in (the
+		-- mockup island grows lollipops, not palms): the lane between belt
+		-- and north road, the two arena-side lanes, and the south-west rim.
+		Vector3.new(-48, 0, -38), Vector3.new(48, 0, -38), Vector3.new(0, 0, -38),
+		Vector3.new(-60, 0, 20), Vector3.new(60, 0, 20), Vector3.new(-88, 0, 120),
 	}
 	for index, spot in ipairs(lollipopSpots) do
 		local color = candyColors[((index - 1) % #candyColors) + 1]
@@ -768,6 +802,9 @@ local function buildCandyDecor(worldFolder: Folder)
 		Vector3.new(60, 0, -133), Vector3.new(-60, 0, -133), Vector3.new(133, 0, 120),
 		Vector3.new(-133, 0, -120), Vector3.new(20, 0, 133), Vector3.new(-20, 0, -133),
 		Vector3.new(133, 0, -120), Vector3.new(-133, 0, 120),
+		Vector3.new(100, 0, 133), Vector3.new(-100, 0, 133), Vector3.new(100, 0, -133),
+		Vector3.new(-100, 0, -133), Vector3.new(133, 0, 20), Vector3.new(-133, 0, 20),
+		Vector3.new(133, 0, -20), Vector3.new(-133, 0, -20),
 	}
 	for index, spot in ipairs(gumdropSpots) do
 		local drop = makePart(folder, "Gumdrop" .. tostring(index), Vector3.new(1.8, 1.3, 1.8), spot + Vector3.new(0, 0.35, 0), candyColors[((index - 1) % #candyColors) + 1], Enum.Material.SmoothPlastic)
@@ -777,14 +814,51 @@ local function buildCandyDecor(worldFolder: Folder)
 
 	-- Sprinkles: tiny flat candy sticks scattered over the two frosting paths
 	-- (deterministic pseudo-random spots, kept off the belt and the plots).
-	for index = 1, 24 do
-		local onNorth = index <= 12
-		local laneIndex = if onNorth then index else index - 12
-		local x = -115 + (laneIndex - 1) * 21 + ((laneIndex * 37) % 9) - 4
+	for index = 1, 40 do
+		local onNorth = index <= 20
+		local laneIndex = if onNorth then index else index - 20
+		local x = -114 + (laneIndex - 1) * 12 + ((laneIndex * 37) % 7) - 3
 		local z = (if onNorth then -52 else 52) + ((laneIndex * 29) % 9) - 4
 		local sprinkle = makePart(folder, "Sprinkle" .. tostring(index), Vector3.new(1.5, 0.14, 0.5), Vector3.new(x, 0.55, z), candyColors[((index - 1) % #candyColors) + 1], Enum.Material.SmoothPlastic)
 		sprinkle.Orientation = Vector3.new(0, (index * 47) % 180, 0)
 		sprinkle.CanCollide = false
+	end
+
+	-- Marshmallow piles: clusters of squashed white spheres heaped on the
+	-- rim lanes beside the belt ends and behind the corner bases, snapped
+	-- to the ground height at each spot.
+	local marshmallowSpots = {
+		Vector3.new(-124, 0, 100), Vector3.new(124, 0, 100), Vector3.new(-124, 0, -100),
+		Vector3.new(124, 0, -100), Vector3.new(-124, 0, 0), Vector3.new(124, 0, 0),
+	}
+	for pileIndex, spot in ipairs(marshmallowSpots) do
+		local groundY = groundHeightAt(spot.X, spot.Z)
+		for puffIndex = 1, 4 do
+			local angle = (puffIndex - 1) * (math.pi / 2) + pileIndex
+			local offset = if puffIndex == 1 then Vector3.new(0, 0, 0) else Vector3.new(math.cos(angle) * 1.9, 0, math.sin(angle) * 1.9)
+			local puffSize = 2.7 - puffIndex * 0.25
+			local puff = makePart(folder, "Marshmallow" .. tostring(pileIndex) .. "_" .. tostring(puffIndex),
+				Vector3.new(puffSize, puffSize * 0.62, puffSize),
+				spot + offset + Vector3.new(0, groundY + 0.55, 0), Color3.fromRGB(255, 252, 248), Enum.Material.SmoothPlastic)
+			puff.Shape = Enum.PartType.Ball
+			puff.CanCollide = false
+		end
+	end
+
+	-- Gift boxes: little candy cubes with a pale ribbon cross on top,
+	-- left on the open lanes near the bases and the arena.
+	local giftSpots = {
+		Vector3.new(56, 0, -38), Vector3.new(-56, 0, -38), Vector3.new(32, 0, 57),
+		Vector3.new(-32, 0, 57), Vector3.new(118, 0, -56), Vector3.new(-118, 0, 56),
+	}
+	for giftIndex, spot in ipairs(giftSpots) do
+		local giftColor = candyColors[((giftIndex - 1) % #candyColors) + 1]
+		local groundY = groundHeightAt(spot.X, spot.Z)
+		makePart(folder, "GiftBox" .. tostring(giftIndex), Vector3.new(2.2, 2.2, 2.2), spot + Vector3.new(0, groundY + 1.1, 0), giftColor, Enum.Material.SmoothPlastic)
+		local ribbonA = makePart(folder, "GiftRibbon" .. tostring(giftIndex) .. "A", Vector3.new(2.3, 0.25, 0.5), spot + Vector3.new(0, groundY + 2.3, 0), Color3.fromRGB(255, 255, 255), Enum.Material.SmoothPlastic)
+		ribbonA.CanCollide = false
+		local ribbonB = makePart(folder, "GiftRibbon" .. tostring(giftIndex) .. "B", Vector3.new(0.5, 0.25, 2.3), spot + Vector3.new(0, groundY + 2.3, 0), Color3.fromRGB(255, 255, 255), Enum.Material.SmoothPlastic)
+		ribbonB.CanCollide = false
 	end
 end
 
@@ -817,6 +891,19 @@ function WorldBuilder.BuildWorld()
 	arenaRing.Shape = Enum.PartType.Cylinder
 	arenaRing.Orientation = Vector3.new(0, 0, 90)
 	arenaRing.CanCollide = false
+	-- The candy-cane ring around the rim: 18 red/white arc segments hugging
+	-- the glow base's edge (radius 26.3, between the disc's 26 and the
+	-- glow's 27), laid almost flat -- a half-stud lip over the disc, so
+	-- players step in and out freely and the golden-brainrot stage inside
+	-- is untouched. Each segment's local X points radially outward, so its
+	-- long Z side runs along the ring.
+	for segmentIndex = 0, 17 do
+		local angle = segmentIndex * (math.pi * 2 / 18)
+		local segmentColor = if segmentIndex % 2 == 0 then Color3.fromRGB(255, 70, 80) else Color3.fromRGB(255, 255, 255)
+		local segment = makePart(worldFolder, "ArenaCaneSegment" .. tostring(segmentIndex + 1), Vector3.new(2.4, 0.9, 9.6),
+			Vector3.new(math.cos(angle) * 26.3, 0.95, 28 + math.sin(angle) * 26.3), segmentColor, Enum.Material.SmoothPlastic)
+		segment.CFrame = CFrame.new(segment.Position) * CFrame.Angles(0, -angle, 0)
+	end
 	local arenaCore = makePart(worldFolder, "ArenaCore", Vector3.new(0.3, 26, 26), Vector3.new(0, 1, 28), Color3.fromRGB(255, 130, 195), Enum.Material.SmoothPlastic)
 	arenaCore.Shape = Enum.PartType.Cylinder
 	arenaCore.Orientation = Vector3.new(0, 0, 90)
@@ -948,6 +1035,33 @@ function WorldBuilder.BuildWorld()
 		local slotPad = makePart(worldFolder, "ConveyorSlot" .. tostring(slotIndex), Vector3.new(9, 0.4, 9), slotPosition, Color3.fromRGB(255, 170, 205), Enum.Material.Neon)
 		table.insert(WorldBuilder.ConveyorSlots, { Pad = slotPad, Position = slotPosition + Vector3.new(0, 1, 0) })
 	end
+	-- Belt rollers: yellow wheels studding the belt's two long faces, like
+	-- the concept art's conveyor. They sit in the visible band of the face
+	-- (y 0.8..1.9, below the belt top the walkers walk on), axis pointing
+	-- outward. The south face skips any roller that would bite into a
+	-- conveyor slot pad on the apron in front of it.
+	for rollerIndex = 0, 21 do
+		local rollerX = -84 + rollerIndex * 8
+		local northRoller = makePart(worldFolder, "BeltRollerN" .. tostring(rollerIndex + 1), Vector3.new(0.7, 1.1, 1.1),
+			Vector3.new(rollerX, 1.35, -25.3), Color3.fromRGB(255, 205, 60), Enum.Material.SmoothPlastic)
+		northRoller.Shape = Enum.PartType.Cylinder
+		northRoller.Orientation = Vector3.new(0, 90, 0)
+		northRoller.CanCollide = false
+		local nearPad = false
+		for slotIndex = 1, GameConfig.ConveyorMaxOnBelt do
+			if math.abs(rollerX - (-72 + (slotIndex - 1) * 24)) < 5.2 then
+				nearPad = true
+				break
+			end
+		end
+		if not nearPad then
+			local southRoller = makePart(worldFolder, "BeltRollerS" .. tostring(rollerIndex + 1), Vector3.new(0.7, 1.1, 1.1),
+				Vector3.new(rollerX, 1.35, -14.7), Color3.fromRGB(255, 205, 60), Enum.Material.SmoothPlastic)
+			southRoller.Shape = Enum.PartType.Cylinder
+			southRoller.Orientation = Vector3.new(0, 90, 0)
+			southRoller.CanCollide = false
+		end
+	end
 
 	-- PINK ZONE: the egg machine caps the belt's WEST end, a glass dome on a
 	-- pink pedestal. The approach point sits south of it, on the belt line.
@@ -1005,29 +1119,46 @@ function WorldBuilder.BuildWorld()
 	-- Stand up here and the Big Wave cannot take you.
 	local hill = makePart(worldFolder, "ShelterHill", Vector3.new(56, WorldBuilder.HighGroundTopY, 20), Vector3.new(0, WorldBuilder.HighGroundTopY / 2, 114), Color3.fromRGB(111, 66, 35), Enum.Material.SmoothPlastic)
 	makePart(worldFolder, "HillCap", Vector3.new(56.6, 1.2, 20.6), Vector3.new(0, WorldBuilder.HighGroundTopY + 0.3, 114), Color3.fromRGB(150, 95, 55), Enum.Material.SmoothPlastic)
+	-- Hill dressing: flattened blobs of darker melted chocolate draped over
+	-- the cap's edges, and chocolate chunks scattered on the cap and fallen
+	-- at the front foot -- the concept art's churning chocolate hilltop.
+	-- The cap's centre (where wave refugees stand, under the sign) is kept
+	-- clear; every blob hugs an edge and every chunk sits off-centre.
+	local capTopY = WorldBuilder.HighGroundTopY + 0.9
+	local blobSpots = {
+		Vector3.new(-20, capTopY, 105.5), Vector3.new(13, capTopY, 105),
+		Vector3.new(-9, capTopY, 122.5), Vector3.new(21, capTopY, 121.5),
+		Vector3.new(27.5, capTopY, 113), Vector3.new(-27.5, capTopY, 116),
+	}
+	for blobIndex, spot in ipairs(blobSpots) do
+		local blob = makePart(worldFolder, "ChocolateBlob" .. tostring(blobIndex), Vector3.new(11, 2, 8), spot, Color3.fromRGB(74, 44, 24), Enum.Material.SmoothPlastic)
+		blob.Shape = Enum.PartType.Ball
+		blob.Orientation = Vector3.new(0, (blobIndex * 53) % 180, 0)
+		blob.CanCollide = false
+	end
+	local chunkSpots = {
+		{ Position = Vector3.new(-24, capTopY + 0.8, 120), Size = 2.6 },
+		{ Position = Vector3.new(17, capTopY + 0.7, 108), Size = 2.2 },
+		{ Position = Vector3.new(24, capTopY + 0.9, 118), Size = 3 },
+		{ Position = Vector3.new(-16, capTopY + 0.6, 107), Size = 2 },
+		{ Position = Vector3.new(5, capTopY + 0.6, 120.5), Size = 2.2 },
+		{ Position = Vector3.new(-7, 1, 99.5), Size = 2.8 },
+		{ Position = Vector3.new(6, 0.9, 101), Size = 2.4 },
+		{ Position = Vector3.new(2, 1.1, 97), Size = 2 },
+		{ Position = Vector3.new(31.5, 0.9, 108), Size = 2.6 },
+		{ Position = Vector3.new(-31.5, 1, 120), Size = 2.4 },
+	}
+	for chunkIndex, chunk in ipairs(chunkSpots) do
+		local piece = makePart(worldFolder, "ChocolateChunk" .. tostring(chunkIndex), Vector3.new(chunk.Size, chunk.Size, chunk.Size), chunk.Position,
+			Color3.fromRGB(90, 54, 28), Enum.Material.SmoothPlastic)
+		piece.Orientation = Vector3.new((chunkIndex * 31) % 40 - 20, (chunkIndex * 47) % 180, (chunkIndex * 17) % 30 - 15)
+	end
 	makeSign(worldFolder, "ShelterSign", hill, "HIGH HILL\nSAFE FROM THE BIG WAVE", Color3.fromRGB(255, 240, 200), Vector3.new(0, 16, 0))
 	makePart(worldFolder, "HillBeacon", Vector3.new(0.8, 11, 0.8), Vector3.new(34, 5.5, 114), Color3.fromRGB(255, 130, 190), Enum.Material.Neon)
 
-	-- Palm trees in neat clusters: the beach rim, the arena sides and the gaps
-	-- between belt and bases -- never under a base plot, the belt or the arena.
-	-- Every other palm carries a candy glowfruit.
-	local palmSpots = {
-		{ Position = Vector3.new(-120, 0, -40), Glow = true, Color = Color3.fromRGB(255, 120, 220) },
-		{ Position = Vector3.new(120, 0, -44), Glow = false, Color = Color3.fromRGB(255, 220, 80) },
-		{ Position = Vector3.new(-120, 0, 40), Glow = true, Color = Color3.fromRGB(170, 140, 255) },
-		{ Position = Vector3.new(124, 0, 36), Glow = false, Color = Color3.fromRGB(255, 220, 80) },
-		{ Position = Vector3.new(-48, 0, -38), Glow = false, Color = Color3.fromRGB(255, 220, 80) },
-		{ Position = Vector3.new(48, 0, -38), Glow = true, Color = Color3.fromRGB(255, 220, 80) },
-		{ Position = Vector3.new(-60, 0, 20), Glow = true, Color = Color3.fromRGB(255, 220, 80) },
-		{ Position = Vector3.new(60, 0, 20), Glow = false, Color = Color3.fromRGB(170, 140, 255) },
-		{ Position = Vector3.new(0, 0, -38), Glow = true, Color = Color3.fromRGB(255, 120, 220) },
-		{ Position = Vector3.new(-88, 0, 120), Glow = false, Color = Color3.fromRGB(255, 120, 220) },
-		{ Position = Vector3.new(88, 0, 120), Glow = true, Color = Color3.fromRGB(170, 140, 255) },
-		{ Position = Vector3.new(-124, 0, 20), Glow = false, Color = Color3.fromRGB(255, 220, 80) },
-	}
-	for palmIndex, spot in ipairs(palmSpots) do
-		buildPalm(worldFolder, "Palm" .. tostring(palmIndex), spot.Position, spot.Glow, spot.Color)
-	end
+	-- No palm trees: the concept island grows lollipops instead. The lanes
+	-- the palms used to stand in are covered by the extra lollipop trees
+	-- and marshmallow piles in buildCandyDecor below.
 
 	-- The Candy Playground fills the dead north strip behind the north bases,
 	-- and its benches ring the arena (built inside buildPlayground).
